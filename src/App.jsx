@@ -21,7 +21,7 @@ function App() {
   const [editingSong, setEditingSong] = useState(null);
   const [showSetListManager, setShowSetListManager] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [dbStatus, setDbStatus] = useState({ enabled: import.meta.env.VITE_TURSO_SYNC === 'true', ok: null });
+  const [dbStatus, setDbStatus] = useState({ enabled: import.meta.env.VITE_TURSO_SYNC === 'true', ok: null, loading: false, error: null, missingEnv: null });
   
   const scrollRef = useRef(null);
   
@@ -55,17 +55,26 @@ function App() {
     }
   }, []);
 
-  // Check DB status (if enabled)
-  useEffect(() => {
+  const refreshDbStatus = () => {
     if (import.meta.env.VITE_TURSO_SYNC === 'true') {
+      setDbStatus(prev => ({ ...prev, enabled: true, loading: true, error: null }));
       fetch('/api/status')
         .then(res => res.json())
-        .then(data => setDbStatus({ enabled: true, ok: !!data.ok }))
-        .catch(() => setDbStatus({ enabled: true, ok: false }));
+        .then(data => setDbStatus({
+          enabled: true,
+          ok: !!data.ok,
+          loading: false,
+          error: data.ok ? null : (data.error || null),
+          missingEnv: data.missingEnv || null,
+        }))
+        .catch(() => setDbStatus({ enabled: true, ok: false, loading: false, error: 'Network error', missingEnv: null }));
     } else {
-      setDbStatus({ enabled: false, ok: null });
+      setDbStatus({ enabled: false, ok: null, loading: false, error: null, missingEnv: null });
     }
-  }, []);
+  };
+
+  // Check DB status on mount
+  useEffect(() => { refreshDbStatus(); }, []);
   
   // Transpose handlers
   const handleTranspose = (value) => {
@@ -374,9 +383,18 @@ function App() {
               <small>
                 {songs.length} lagu • {setLists.length} set list
                 {dbStatus.enabled && (
-                  <> • DB: {dbStatus.ok ? 'Online' : 'Offline'}</>
+                  <> • DB: {dbStatus.loading ? 'Checking…' : dbStatus.ok ? 'Online' : 'Offline'}
+                    {!dbStatus.loading && !dbStatus.ok && dbStatus.missingEnv && (
+                      <> (missing env)</>
+                    )}
+                  </>
                 )}
               </small>
+              {dbStatus.enabled && (
+                <button onClick={refreshDbStatus} className="btn btn-sm" style={{ marginTop: 8 }}>
+                  ↻ Refresh DB Status
+                </button>
+              )}
             </div>
           </div>
         </aside>
