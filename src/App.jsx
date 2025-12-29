@@ -22,6 +22,7 @@ function App() {
   const [showSetListManager, setShowSetListManager] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [dbStatus, setDbStatus] = useState({ enabled: import.meta.env.VITE_TURSO_SYNC === 'true', ok: null, loading: false, error: null, missingEnv: null });
+  const [syncingToDb, setSyncingToDb] = useState(false);
   
   const scrollRef = useRef(null);
   
@@ -225,6 +226,49 @@ function App() {
   };
   
   // Import/Export
+  const handleSyncToDatabase = async () => {
+    if (!dbStatus.ok) {
+      alert('Database tidak terhubung. Cek koneksi terlebih dahulu.');
+      return;
+    }
+
+    if (!confirm(`Sync ${songs.length} lagu dan ${setLists.length} set list ke database Turso?\n\nData yang sama akan di-update.`)) {
+      return;
+    }
+
+    setSyncingToDb(true);
+
+    try {
+      // Sync songs
+      const songsResult = await fetch('/api/songs/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ songs })
+      }).then(res => res.json());
+
+      // Sync setlists
+      let setlistsSuccess = 0;
+      for (const setList of setLists) {
+        try {
+          await fetch('/api/setlists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(setList)
+          });
+          setlistsSuccess++;
+        } catch (err) {
+          console.error('Failed to sync setlist:', setList.name, err);
+        }
+      }
+
+      alert(`Sync berhasil!\n\nLagu: ${songsResult.inserted || 0} baru, ${songsResult.updated || 0} di-update\nSet List: ${setlistsSuccess} berhasil`);
+    } catch (err) {
+      alert('Gagal sync ke database: ' + err.message);
+    } finally {
+      setSyncingToDb(false);
+    }
+  };
+
   const handleExportDatabase = () => {
     const data = {
       songs,
@@ -378,6 +422,15 @@ function App() {
                   style={{ display: 'none' }}
                 />
               </label>
+              {dbStatus.enabled && dbStatus.ok && (
+                <button 
+                  onClick={handleSyncToDatabase} 
+                  className="btn btn-sm btn-block btn-primary"
+                  disabled={syncingToDb}
+                >
+                  {syncingToDb ? '⏳ Syncing...' : '☁️ Sync ke DB'}
+                </button>
+              )}
             </div>
             <div className="db-info">
               <small>
