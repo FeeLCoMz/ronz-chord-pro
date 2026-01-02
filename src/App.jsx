@@ -101,11 +101,20 @@ function App() {
       if (!response.ok) {
         let errorMsg = `Gagal menyimpan lagu ke database (status ${response.status})`;
         try {
-          const errorData = await response.json();
+          // Coba parse JSON
+          const errorData = await response.clone().json();
           if (errorData?.error || errorData?.message) {
             errorMsg += `: ${errorData.error || errorData.message}`;
+          } else {
+            errorMsg += `: ${JSON.stringify(errorData)}`;
           }
-        } catch {}
+        } catch {
+          try {
+            // Jika bukan JSON, ambil text
+            const errorText = await response.text();
+            if (errorText) errorMsg += `: ${errorText}`;
+          } catch {}
+        }
         alert(errorMsg);
         return;
       }
@@ -114,7 +123,7 @@ function App() {
       setSongs(songsData);
       setSelectedSong(updatedSong);
     } catch (error) {
-      alert(`Gagal menyimpan lagu ke database: ${error.message}`);
+      alert(`Gagal menyimpan lagu ke database: ${error?.message || error}`);
     }
     setShowSongForm(false);
     if (isEditMode) setEditingSong(null);
