@@ -99,8 +99,14 @@ function App() {
         body: JSON.stringify(updatedSong)
       });
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        alert(`Gagal menyimpan lagu ke database: ${errorData.error || response.status}`);
+        let errorMsg = `Gagal menyimpan lagu ke database (status ${response.status})`;
+        try {
+          const errorData = await response.json();
+          if (errorData?.error || errorData?.message) {
+            errorMsg += `: ${errorData.error || errorData.message}`;
+          }
+        } catch {}
+        alert(errorMsg);
         return;
       }
       // Refresh songs from DB
