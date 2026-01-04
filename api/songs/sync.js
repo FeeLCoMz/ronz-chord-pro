@@ -19,10 +19,8 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Method not allowed' });
     return;
   }
-
-  const client = getTursoClient();
-
   try {
+    const client = getTursoClient();
     const body = await readJson(req);
     const songs = body.songs || [];
 

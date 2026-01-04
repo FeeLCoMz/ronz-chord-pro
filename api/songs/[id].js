@@ -14,7 +14,6 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
-  const client = getTursoClient();
   const { id } = req.query || {};
 
   if (!id) {
@@ -23,6 +22,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    const client = getTursoClient();
     if (req.method === 'GET') {
       const result = await client.execute(
         `SELECT id, title, artist, youtubeId, melody, lyrics, createdAt, updatedAt

@@ -5,8 +5,8 @@ import { randomUUID } from 'crypto';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-  const client = getTursoClient();
   try {
+    const client = getTursoClient();
     await client.execute(
       `CREATE TABLE IF NOT EXISTS songs (
         id TEXT PRIMARY KEY,
@@ -31,8 +31,8 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const client = getTursoClient();
   try {
+    const client = getTursoClient();
     const body = req.body;
     const id = body.id?.toString() || randomUUID();
     const now = new Date().toISOString();
