@@ -1,3 +1,14 @@
+/* ===== App Footer ===== */
+.app-footer {
+  width: 100%;
+  text-align: center;
+  padding: 1rem 0;
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+}
 /* ===== YouTube Viewer Section in SongForm ===== */
 .youtube-viewer-section {
   margin-bottom: 1.5rem;
