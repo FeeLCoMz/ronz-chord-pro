@@ -82,14 +82,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
               onChange={handleChange}
               className={errors.title ? 'error' : ''}
               placeholder="Masukkan judul lagu"
-            />
-            {errors.title && <span className="error-message">{errors.title}</span>}
-          </div>
-          <div className="form-group">
-            <label htmlFor="artist">Nama Artis *</label>
-            <input
-              type="text"
-              id="artist"
+  		  </form>
               name="artist"
               value={formData.artist}
               onChange={handleChange}
