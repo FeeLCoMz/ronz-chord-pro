@@ -111,9 +111,9 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
             />
             <small>ID adalah kode setelah "v=" di URL YouTube</small>
           </div>
-          <div className="form-youtube-row">
+          <div className="form-youtube-row" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
           {formData.youtubeId && (
-            <div className="youtube-viewer-section">
+            <div className="youtube-viewer-section" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               <YouTubeViewer videoId={formData.youtubeId} />
             </div>
           )}
