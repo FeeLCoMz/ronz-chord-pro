@@ -67,46 +67,46 @@ function App() {
     const isEditMode = !!editingSong;
     const songId = isEditMode ? editingSong.id : Date.now().toString();
     const updatedSong = { ...songData, id: songId };
-    try {
-      const method = isEditMode ? 'PUT' : 'POST';
-      const endpoint = isEditMode ? `/api/songs/${songId}` : '/api/songs';
-      const response = await fetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedSong)
-      });
-      if (!response.ok) {
-        let errorMsg = `Gagal menyimpan lagu ke database (status ${response.status})`;
-        try {
-          // Coba parse JSON
-          const errorData = await response.clone().json();
-          if (errorData?.error || errorData?.message) {
-            errorMsg += `: ${errorData.error || errorData.message}`;
-          } else {
-            errorMsg += `: ${JSON.stringify(errorData)}`;
-          }
-        } catch {
-          try {
-            // Jika bukan JSON, ambil text
-            const errorText = await response.text();
-            if (errorText) errorMsg += `: ${errorText}`;
-          } catch {}
-        }
-        alert(errorMsg);
-        return;
-      }
-      // Refresh songs from DB
-      const songsData = await fetch('/api/songs').then(res => res.json());
-      setSongs(songsData);
-      setSelectedSong(updatedSong);
-    } catch (error) {
-      alert(`Gagal menyimpan lagu ke database: ${error?.message || error}`);
+    function App() {
+      const [songs, setSongs] = useState([]);
+      // ...existing code...
+      return (
+        <div className="app">
+          <div className="main-content">
+            <main>
+              {/* ...existing code... */}
+            </main>
+          </div>
+          {showSongForm && (
+            <SongForm
+              song={editingSong}
+              onSave={handleSaveSong}
+              onCancel={() => {
+                setShowSongForm(false);
+                setEditingSong(null);
+              }}
+            />
+          )}
+          {showSetListManager && (
+            <SetListManager
+              setLists={setLists}
+              songs={songs}
+              onCreateSetList={handleCreateSetList}
+              onDeleteSetList={handleDeleteSetList}
+              onAddSongToSetList={handleAddSongToSetList}
+              onRemoveSongFromSetList={handleRemoveSongFromSetList}
+              onSelectSetList={(id) => {
+                setCurrentSetList(id);
+                setShowSetListManager(false);
+              }}
+            />
+          )}
+          <footer className="app-footer">
+            <span>Versi aplikasi: {import.meta.env.VITE_APP_VERSION}</span>
+          </footer>
+        </div>
+      );
     }
-    setShowSongForm(false);
-    if (isEditMode) setEditingSong(null);
-    setTranspose(0);
-  };
-
   const handleEditSong = (song) => {
     setEditingSong(song);
     setShowSongForm(true);
