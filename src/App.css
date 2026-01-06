@@ -604,6 +604,91 @@ body {
   font-weight: 700;
   font-size: 0.9rem;
   box-shadow: var(--shadow-sm);
+  position: relative;
+  cursor: pointer;
+}
+
+.piano-chord-badge .piano-chord-popup {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 110%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0.5rem 1rem 0.7rem 1rem;
+  min-width: 120px;
+  min-height: 60px;
+  margin-top: 0.5rem;
+}
+
+.piano-chord-badge:hover .piano-chord-popup {
+  display: block;
+}
+
+.piano-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0.2rem 0;
+}
+.white-keys {
+  display: flex;
+  position: relative;
+  z-index: 1;
+}
+.white-key {
+  width: 22px;
+  height: 60px;
+  background: #fff;
+  border: 1px solid #bbb;
+  border-radius: 0 0 5px 5px;
+  margin-right: 2px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #333;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+.white-key.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary-dark);
+}
+.black-keys {
+  display: flex;
+  position: absolute;
+  left: 10px;
+  top: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.black-key {
+  width: 14px;
+  height: 36px;
+  background: #222;
+  margin-left: -7px;
+  margin-right: -7px;
+  border-radius: 0 0 3px 3px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: 0.6rem;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+}
+.black-key.active {
+  background: var(--accent);
+  color: #fff;
+}
+.black-key.empty {
+  background: transparent;
+  box-shadow: none;
 }
 
 .lyrics-content {
