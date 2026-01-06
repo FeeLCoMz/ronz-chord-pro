@@ -251,11 +251,6 @@ Outro bagian`;
             </button>
           </div>
           </form>
-          {formData.youtubeId && (
-            <div className="youtube-viewer-section" style={{ marginLeft: '2rem', minWidth: 320, maxWidth: 480 }}>
-              <YouTubeViewer videoId={formData.youtubeId} />
-            </div>
-          )}
         </div>
       </div>
     </div>
