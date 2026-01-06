@@ -1,3 +1,24 @@
+import YouTubeViewer from './YouTubeViewer';
+  youtubeId: '',
+  youtubeId: song.youtubeId || '',
+  youtubeId: formData.youtubeId.trim(),
+          <div className="form-group">
+            <label htmlFor="youtubeId">YouTube Video ID (Opsional)</label>
+            <input
+              type="text"
+              id="youtubeId"
+              name="youtubeId"
+              value={formData.youtubeId}
+              onChange={handleChange}
+              placeholder="Contoh: dQw4w9WgXcQ"
+            />
+            <small>ID adalah kode setelah "v=" di URL YouTube</small>
+          </div>
+          {formData.youtubeId && (
+            <div className="youtube-viewer-section">
+              <YouTubeViewer videoId={formData.youtubeId} />
+            </div>
+          )}
 import React, { useState, useEffect } from 'react';
 import YouTubeViewer from './YouTubeViewer';
 

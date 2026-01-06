@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import YouTubeViewer from './YouTubeViewer';
+
 
 const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     title: '',
     artist: '',
-    youtubeId: '',
+    // youtubeId: '',
     lyrics: '',
     melody: ''
   });
@@ -16,7 +16,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       setFormData({
         title: song.title || '',
         artist: song.artist || '',
-        youtubeId: song.youtubeId || '',
+        // youtubeId: song.youtubeId || '',
         lyrics: song.lyrics || '',
         melody: song.melody || ''
       });
@@ -46,7 +46,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     const songData = {
       title: formData.title.trim(),
       artist: formData.artist.trim(),
-      youtubeId: formData.youtubeId.trim(),
+      // youtubeId: formData.youtubeId.trim(),
       lyrics: formData.lyrics.trim(),
       melody: formData.melody.trim(),
       createdAt: song?.createdAt || new Date().toISOString()
@@ -98,23 +98,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
             />
             {errors.artist && <span className="error-message">{errors.artist}</span>}
           </div>
-          <div className="form-group">
-            <label htmlFor="youtubeId">YouTube Video ID (Opsional)</label>
-            <input
-              type="text"
-              id="youtubeId"
-              name="youtubeId"
-              value={formData.youtubeId}
-              onChange={handleChange}
-              placeholder="Contoh: dQw4w9WgXcQ"
-            />
-            <small>ID adalah kode setelah "v=" di URL YouTube</small>
-          </div>
-          {formData.youtubeId && (
-            <div className="youtube-viewer-section">
-              <YouTubeViewer videoId={formData.youtubeId} />
-            </div>
-          )}
           <div className="form-group">
             <div className="textarea-header">
               <label htmlFor="lyrics" style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
