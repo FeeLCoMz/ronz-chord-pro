@@ -87,14 +87,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
               onChange={handleChange}
               className={errors.artist ? 'error' : ''}
               placeholder="Masukkan nama artis"
-            />
-            {errors.artist && <span className="error-message">{errors.artist}</span>}
-          </div>
-          <div className="form-group">
-            <label htmlFor="youtubeId">YouTube Video ID (Opsional)</label>
-            <input
-              type="text"
-              id="youtubeId"
+  		  </form>
               name="youtubeId"
               value={formData.youtubeId}
               onChange={handleChange}
