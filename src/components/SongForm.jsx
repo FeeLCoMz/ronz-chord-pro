@@ -99,25 +99,25 @@ const SongForm = ({ song, onSave, onCancel }) => {
             <div className="textarea-header">
               <label htmlFor="lyrics" style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
                 Lirik & Chord *
-                <span className="help-popover-container">
-                  <span className="help-icon" tabIndex="0">❓</span>
-                  <span className="help-popover">
-                    <strong>Format Pengisian Lirik, Chord, dan Notasi:</strong>
-                    <ul></ul>
-                      <li><b>ChordPro:</b> <code>[C]Lirik baris pertama</code> (chord di dalam tanda [ ] sebelum kata)</li>
-                      <li><b>Standar:</b> <code>C   G   Am   F</code> (chord di atas lirik, baris bawah liriknya)</li>
-                      <li><b>Bar/ketukan:</b> Gunakan <code>|</code> untuk pemisah bar, contoh: <code>[C]Lirik | [G]bar berikut</code></li>
-                      <li><b>Lirik multi-baris:</b> Pisahkan tiap baris dengan enter.</li>
-                      <li><b>Notasi Angka:</b> <code>1 2 3 4 | 5 5 6 5</code> (spasi antar not, | untuk bar, . untuk rendah, ' untuk tinggi, - untuk panjang, m untuk minor)</li>
-                      <li><b>Notasi Balok:</b> <code>C4 D4 E4 F4 | G4 G4 A4 G4</code> (format standar not balok, angka setelah huruf menunjukkan oktaf)</li>
-                      <li><b>Contoh ChordPro:</b> <br /><code>[C]Ku ingin [G]selalu [Am]bersamamu [F]selamanya</code></li>
-                      <li><b>Contoh Standar:</b><br /><code>C   G   Am   F<br />Ku ingin selalu bersamamu selamanya</code></li>
-                      <li><b>Contoh Notasi Angka:</b><br /><code>1 2 3 4 | 5 5 6 5 | 4 3 2 1</code></li>
-                      <li><b>Contoh Notasi Balok:</b><br /><code>C4 D4 E4 F4 | G4 G4 A4 G4</code></li>
-                    </ul>
-                  </span>
-                </span>
               </label>
+              <span className="help-popover-container">
+                <span className="help-icon" tabIndex="0">❓</span>
+                <span className="help-popover">
+                  <strong>Format Pengisian Lirik, Chord, dan Notasi:</strong>
+                  <ul>
+                    <li><b>ChordPro:</b> <code>[C]Lirik baris pertama</code> (chord di dalam tanda [ ] sebelum kata)</li>
+                    <li><b>Standar:</b> <code>C   G   Am   F</code> (chord di atas lirik, baris bawah liriknya)</li>
+                    <li><b>Bar/ketukan:</b> Gunakan <code>|</code> untuk pemisah bar, contoh: <code>[C]Lirik | [G]bar berikut</code></li>
+                    <li><b>Lirik multi-baris:</b> Pisahkan tiap baris dengan enter.</li>
+                    <li><b>Notasi Angka:</b> <code>1 2 3 4 | 5 5 6 5</code> (spasi antar not, | untuk bar, . untuk rendah, ' untuk tinggi, - untuk panjang, m untuk minor)</li>
+                    <li><b>Notasi Balok:</b> <code>C4 D4 E4 F4 | G4 G4 A4 G4</code> (format standar not balok, angka setelah huruf menunjukkan oktaf)</li>
+                    <li><b>Contoh ChordPro:</b> <br /><code>[C]Ku ingin [G]selalu [Am]bersamamu [F]selamanya</code></li>
+                    <li><b>Contoh Standar:</b><br /><code>C   G   Am   F<br />Ku ingin selalu bersamamu selamanya</code></li>
+                    <li><b>Contoh Notasi Angka:</b><br /><code>1 2 3 4 | 5 5 6 5 | 4 3 2 1</code></li>
+                    <li><b>Contoh Notasi Balok:</b><br /><code>C4 D4 E4 F4 | G4 G4 A4 G4</code></li>
+                  </ul>
+                </span>
+              </span>
               <div className="template-buttons">
                 <button type="button" onClick={insertTemplate} className="btn btn-sm">
                   📋 ChordPro
