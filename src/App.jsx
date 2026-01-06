@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import ChordDisplay from './components/ChordDisplay';
 import YouTubeViewer from './components/YouTubeViewer';
 import AutoScroll from './components/AutoScroll';
-import SongForm from './components/SongForm';
+import SongFormBaru from './components/SongFormBaru';
 import SetListManager from './components/SetListManager';
 import { initialSongs, initialSetLists } from './data/songs';
 import './App.css';
@@ -415,7 +415,7 @@ function App() {
       </div>
       
       {showSongForm && (
-        <SongForm
+        <SongFormBaru
           song={editingSong}
           onSave={handleSaveSong}
           onCancel={() => {
