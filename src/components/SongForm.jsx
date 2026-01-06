@@ -183,10 +183,10 @@ Lirik baris | kedua dengan | chord dan | bar |`;
               value={formData.lyrics}
               onChange={handleChange}
               className={errors.lyrics ? 'error' : ''}
-                </li>
-                <li>Gunakan <code>|</code> untuk bar/ketukan, misal: <code>[C]Lirik | [G]bar berikut</code></li>
-              </ul>
-            </div>
+              placeholder="Copy-paste dari situs lain (chord di atas lirik) atau gunakan format ChordPro [C]lirik..."
+              rows={12}
+            />
+            {errors.lyrics && <span className="error-message">{errors.lyrics}</span>}
           </div>
 
           <div className="form-group">
