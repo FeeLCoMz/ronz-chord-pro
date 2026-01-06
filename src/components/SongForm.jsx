@@ -138,8 +138,12 @@ Outro bagian`;
           <button onClick={onCancel} className="btn-close">✕</button>
         </div>
 
-        <div className="form-youtube-row">
-          <form onSubmit={handleSubmit} style={{ flex: 1 }}>
+        {formData.youtubeId && (
+          <div className="youtube-viewer-section" style={{ marginBottom: '2rem', minWidth: 320, maxWidth: 640 }}>
+            <YouTubeViewer videoId={formData.youtubeId} />
+          </div>
+        )}
+        <form onSubmit={handleSubmit} style={{ flex: 1 }}>
           <div className="form-group">
             <label htmlFor="title">Judul Lagu *</label>
             <input
