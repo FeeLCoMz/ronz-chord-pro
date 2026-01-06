@@ -7,7 +7,6 @@ import SetListManager from './components/SetListManager';
 // import { useLocalStorage } from './hooks/useLocalStorage';
 import { initialSongs, initialSetLists } from './data/songs';
 import './App.css';
-import pkg from '../package.json';
 
 function App() {
   const [songs, setSongs] = useState([]);
@@ -512,7 +511,7 @@ function App() {
       )}
     </div>
     <footer className="app-footer">
-      <span>Versi aplikasi: {pkg.version}</span>
+      <span>Versi aplikasi: {import.meta.env.VITE_APP_VERSION}</span>
     </footer>
   );
 }
