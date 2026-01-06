@@ -82,7 +82,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
               onChange={handleChange}
               className={errors.title ? 'error' : ''}
               placeholder="Masukkan judul lagu"
-  		  </form>
               name="artist"
               value={formData.artist}
               onChange={handleChange}
