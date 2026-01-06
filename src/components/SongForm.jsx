@@ -256,5 +256,5 @@ Outro bagian`;
     </div>
   );
 };
-
+export default SongForm;
 export default SongForm;
