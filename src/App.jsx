@@ -4,14 +4,13 @@ import YouTubeViewer from './components/YouTubeViewer';
 import AutoScroll from './components/AutoScroll';
 import SongForm from './components/SongForm';
 import SetListManager from './components/SetListManager';
-// import { useLocalStorage } from './hooks/useLocalStorage';
 import { initialSongs, initialSetLists } from './data/songs';
 import './App.css';
 
 function App() {
   const [songs, setSongs] = useState([]);
   const [setLists, setSetLists] = useState([]);
-  const [selectedSong, setSelectedSong] = useState(songs[0]);
+  const [selectedSong, setSelectedSong] = useState(null);
   const [transpose, setTranspose] = useState(0);
   const [autoScrollActive, setAutoScrollActive] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(1);
@@ -22,12 +21,9 @@ function App() {
   const [showSetListManager, setShowSetListManager] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncingToDb, setSyncingToDb] = useState(false);
-  
   const scrollRef = useRef(null);
-  
-  // Fetch songs and setlists from Turso on mount (if enabled)
+
   useEffect(() => {
-    // Always fetch from Turso
     Promise.all([
       fetch('/api/songs').then(res => res.json()),
       fetch('/api/setlists').then(res => res.json())
@@ -44,9 +40,6 @@ function App() {
       .catch(err => console.warn('Failed to fetch from Turso:', err));
   }, []);
 
-  // Database statistics/status UI removed
-  
-  // Transpose handlers
   const handleTranspose = (value) => {
     setTranspose(prev => {
       const newValue = prev + value;
@@ -55,153 +48,90 @@ function App() {
       return newValue;
     });
   };
-  
-  // Song handlers
+
   const handleSelectSong = (song) => {
     setSelectedSong(song);
     setTranspose(0);
-    setAutoScrollActive(false);
   };
-  
-  const handleSaveSong = async (songData) => {
+
+  const handleSaveSong = (songData) => {
     const isEditMode = !!editingSong;
     const songId = isEditMode ? editingSong.id : Date.now().toString();
     const updatedSong = { ...songData, id: songId };
-    function App() {
-      const [songs, setSongs] = useState([]);
-      // ...existing code...
-      return (
-        <div className="app">
-          <div className="main-content">
-            <main>
-              {/* ...existing code... */}
-            </main>
-          </div>
-          {showSongForm && (
-            <SongForm
-              song={editingSong}
-              onSave={handleSaveSong}
-              onCancel={() => {
-                setShowSongForm(false);
-                setEditingSong(null);
-              }}
-            />
-          )}
-          {showSetListManager && (
-            <SetListManager
-              setLists={setLists}
-              songs={songs}
-              onCreateSetList={handleCreateSetList}
-              onDeleteSetList={handleDeleteSetList}
-              onAddSongToSetList={handleAddSongToSetList}
-              onRemoveSongFromSetList={handleRemoveSongFromSetList}
-              onSelectSetList={(id) => {
-                setCurrentSetList(id);
-                setShowSetListManager(false);
-              }}
-            />
-          )}
-          <footer className="app-footer">
-            <span>Versi aplikasi: {import.meta.env.VITE_APP_VERSION}</span>
-          </footer>
-        </div>
-      );
-    }
-  const handleEditSong = (song) => {
-    setEditingSong(song);
-    setShowSongForm(true);
-  };
-
-  const handleDeleteSong = async (songId) => {
-    if (!confirm('Hapus lagu ini?')) return;
-    try {
-      await fetch(`/api/songs/${songId}`, { method: 'DELETE' });
-      // Refresh songs and setlists from DB
-      const [songsData, setlistsData] = await Promise.all([
-        fetch('/api/songs').then(res => res.json()),
-        fetch('/api/setlists').then(res => res.json())
-      ]);
-      setSongs(songsData);
-      setSetLists(setlistsData);
-      if (selectedSong?.id === songId) {
-        setSelectedSong(songsData[0] || null);
+    setSongs(prevSongs => {
+      const existingIndex = prevSongs.findIndex(s => s.id === songId);
+      if (existingIndex > -1) {
+        // Update existing song
+        const newSongs = [...prevSongs];
+        newSongs[existingIndex] = updatedSong;
+        return newSongs;
+      } else {
+        // Add new song
+        return [...prevSongs, updatedSong];
       }
-    } catch (error) {
-      alert('Gagal menghapus lagu dari database.');
-    }
+    });
+    setSelectedSong(updatedSong);
+    setTranspose(0);
+    setAutoScrollActive(false);
+    setShowSongForm(false);
+    setEditingSong(null);
   };
 
-  // SetList handlers
-  const handleCreateSetList = async (name) => {
+  const handleCreateSetList = (name) => {
     const newSetList = {
       id: Date.now(),
       name,
       songs: [],
       createdAt: new Date().toISOString()
     };
-    try {
-      await fetch('/api/setlists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSetList)
-      });
-      const setlistsData = await fetch('/api/setlists').then(res => res.json());
-      setSetLists(setlistsData);
-    } catch (error) {
-      alert('Gagal membuat setlist di database.');
-    }
+    setSetLists(prevSetLists => [...prevSetLists, newSetList]);
+    setCurrentSetList(newSetList.id);
+    setShowSetListManager(false);
   };
-  
-  const handleDeleteSetList = async (id) => {
-    try {
-      await fetch(`/api/setlists/${id}`, { method: 'DELETE' });
-      const setlistsData = await fetch('/api/setlists').then(res => res.json());
-      setSetLists(setlistsData);
-      if (currentSetList === id) {
-        setCurrentSetList(null);
-      }
-    } catch (error) {
-      alert('Gagal menghapus setlist dari database.');
-    }
-  };
-  
-  const handleAddSongToSetList = async (setListId, songId) => {
-    const setList = setLists.find(sl => sl.id === setListId);
-    if (!setList || setList.songs.includes(songId)) return;
-    try {
-      await fetch(`/api/setlists/${setListId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...setList, songs: [...setList.songs, songId] })
-      });
-      const setlistsData = await fetch('/api/setlists').then(res => res.json());
-      setSetLists(setlistsData);
-    } catch (error) {
-      alert('Gagal menambah lagu ke setlist di database.');
-    }
-  };
-  
-  const handleRemoveSongFromSetList = async (setListId, songId) => {
-    const setList = setLists.find(sl => sl.id === setListId);
-    if (!setList) return;
-    try {
-      await fetch(`/api/setlists/${setListId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...setList, songs: setList.songs.filter(id => id !== songId) })
-      });
-      const setlistsData = await fetch('/api/setlists').then(res => res.json());
-      setSetLists(setlistsData);
-    } catch (error) {
-      alert('Gagal menghapus lagu dari setlist di database.');
-    }
-  };
-  
-  // Import/Export
-  const handleSyncToDatabase = async () => {
-    // proceed with sync; API will return error if DB not configured
 
-    if (!confirm(`Sync ${songs.length} lagu dan ${setLists.length} set list ke database Turso?\n\nData yang sama akan di-update.`)) {
+  const handleDeleteSetList = (id) => {
+    if (!confirm('Hapus setlist ini?')) return;
+    setSetLists(prevSetLists => prevSetLists.filter(sl => sl.id !== id));
+    setCurrentSetList(null);
+  };
+
+  const handleAddSongToSetList = (setListId, songId) => {
+    setSetLists(prevSetLists => {
+      return prevSetLists.map(setList => {
+        if (setList.id === setListId && !setList.songs.includes(songId)) {
+          return { ...setList, songs: [...setList.songs, songId] };
+        }
+        return setList;
+      });
+    });
+  };
+
+  const handleRemoveSongFromSetList = (setListId, songId) => {
+    setSetLists(prevSetLists => {
+      return prevSetLists.map(setList => {
+        if (setList.id === setListId) {
+          return { ...setList, songs: setList.songs.filter(id => id !== songId) };
+        }
+        return setList;
+      });
+    });
+  };
+
+  const handleEditSong = (song) => {
+    setEditingSong(song);
+    setShowSongForm(true);
+  };
+
+  const handleDeleteSong = (songId) => {
+    if (!confirm('Hapus lagu ini?')) return;
+    setSongs(prevSongs => prevSongs.filter(s => s.id !== songId));
+    if (selectedSong?.id === songId) {
+      setSelectedSong(null);
+    }
+  };
+
+  const handleSyncToDatabase = async () => {
+    if (!confirm(`Sync ${songs.length} lagu dan ${setLists.length} set list ke database Turso?`)) {
       return;
     }
 
@@ -473,7 +403,7 @@ function App() {
           )}
           
               <div className="lyrics-section" ref={scrollRef}>
-                <ChordDisplay song={selectedSong} transpose={transpose} />
+                {selectedSong && <ChordDisplay song={selectedSong} transpose={transpose} />}
               </div>
               <AutoScroll
                 isActive={autoScrollActive}
