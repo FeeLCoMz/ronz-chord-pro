@@ -1,8 +1,10 @@
-const fs = require('fs');
-const path = require('path');
+import { readFileSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
-const pkgPath = path.join(__dirname, 'package.json');
-const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkgPath = join(__dirname, 'package.json');
+const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
 
 function bumpPatch(version) {
   const parts = version.split('.').map(Number);
@@ -11,5 +13,5 @@ function bumpPatch(version) {
 }
 
 pkg.version = bumpPatch(pkg.version);
-fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 console.log('Version bumped to', pkg.version);
