@@ -71,13 +71,14 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
           <h2>{song ? '✏️ Edit Lagu' : '✨ Tambah Lagu Baru'}</h2>
           <button onClick={onCancel} className="btn-close">✕</button>
         </div>
-        {formData.youtubeId && (
-          <div className="youtube-viewer-section" style={{ marginBottom: '2rem', minWidth: 320, maxWidth: 640 }}>
-            <YouTubeViewer videoId={formData.youtubeId} />
-          </div>
-        )}
-        <form onSubmit={handleSubmit} style={{ flex: 1 }}>
-          <div className="form-group">
+        <div className="form-youtube-row">
+          {formData.youtubeId && (
+            <div className="youtube-viewer-section">
+              <YouTubeViewer videoId={formData.youtubeId} />
+            </div>
+          )}
+          <form onSubmit={handleSubmit} style={{ flex: 1 }}>
+            <div className="form-group">
             <label htmlFor="title">Judul Lagu *</label>
             <input
               type="text"
@@ -178,7 +179,8 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
               Batal
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
