@@ -238,22 +238,10 @@ Outro bagian`;
                     <button type="submit" className="btn btn-primary">
                       💾 {song ? 'Update Lagu' : 'Simpan Lagu'}
                     </button>
-                    <button type="button" onClick={onCancel} className="btn">
-                      Batal
-                    </button>
                   </div>
                 </form>
               </div>
             </div>
           );
-            <button type="button" onClick={onCancel} className="btn">
-              Batal
-            </button>
-          </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  );
 };
 export default SongForm;
