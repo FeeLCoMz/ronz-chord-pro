@@ -16,7 +16,7 @@
     "audit-fix": "npm audit fix"
   },
   "dependencies": {
-    "@libsql/client": "^0.16.0",
+    "@libsql/client": "^0.15.15",
     "cors": "^2.8.5",
     "dotenv": "^17.3.1",
     "express": "^4.18.2",
