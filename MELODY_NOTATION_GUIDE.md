@@ -1,10 +1,10 @@
-# 🎵 Panduan Format Not Angka Melodi
+# 🎵 Panduan Not Angka (Melodi) — Format Lengkap & Integrasi ke Lirik
 
 ## Format Input Melodi
 
-Aplikasi ini mendukung input melodi dalam format not angka. Berikut panduan lengkapnya:
+Aplikasi ini mendukung input melodi dalam format not angka dan menampilkannya langsung di bawah baris lirik (inline), selaras dengan tanda birama `|` pada lirik. Berikut format lengkap dan cara integrasinya.
 
-### Format Dasar
+### Format Dasar Not Angka
 
 ```
 1 2 3 4 | 5 5 6 5 | 4 3 2 1 |
@@ -62,7 +62,7 @@ Aplikasi ini mendukung input melodi dalam format not angka. Berikut panduan leng
   1 2 - 4 | _ 6 7 1 |
   ```
 
-### Kualitas Not
+### Kualitas Not (opsional)
 
 - **m**: Minor (opsional, untuk notasi khusus)
   ```
@@ -96,15 +96,42 @@ Aplikasi ini mendukung input melodi dalam format not angka. Berikut panduan leng
 5 5 5 3 5 | 6 5 3 2 1 | 5 5 5 3 5 | 6 5 3 2 |
 ```
 
-## Cara Menggunakan
+## Integrasi ke Lirik (Inline)
 
-1. **Buka Form Edit Lagu**: Klik tombol edit pada lagu yang ingin ditambahkan melodi
-2. **Isi Field "Melodi Not Angka"**: Masukkan melodi dengan format di atas
-3. **Simpan**: Klik "Update Lagu"
-4. **Tampilkan Partitur**: 
-   - Klik tombol "🎼 Tampilkan Partitur"
-   - Pilih tampilan: Not Angka, Not Balok, atau Keduanya
-5. **Transpose**: Fitur transpose otomatis bekerja pada partitur melodi
+- Not angka akan muncul di bawah baris lirik yang memiliki tanda birama `|`.
+- Mapping dilakukan berdasarkan jumlah grup `|` pada setiap baris lirik.
+- Satu grup `|` pada lirik = satu birama dari not angka.
+- Jika ada `||` (double bar), dihitung sebagai dua grup bar.
+
+### Contoh Integrasi
+
+Melodi (field "Melodi Not Angka"):
+
+```
+1 2 3 4 | 5 5 6 5 | 4 3 2 1 |
+```
+
+Lirik (mengandung bar `|`):
+
+```
+[C]Ku tak sangka | [Em]berjumpa de-[Am]nganmu |
+Hatiku ber-[F]bunga mekar | seribu [G]|
+```
+
+Tampilan:
+
+```
+Ku tak sangka | berjumpa de- nganmu |
+1 2 3 4 | 5 5 6 5 |
+
+Hatiku ber- bunga mekar | seribu |
+4 3 2 1 |
+```
+
+Catatan:
+- Pastikan jumlah birama pada lirik (jumlah grup `|`) konsisten dengan birama pada melodi.
+- Jika birama melodi habis lebih dulu, baris berikutnya tidak akan menampilkan not angka.
+- Transpose lagu juga menggeser not angka secara diatonis.
 
 ## Tips
 
@@ -116,21 +143,13 @@ Aplikasi ini mendukung input melodi dalam format not angka. Berikut panduan leng
 
 ## Tampilan
 
-### Not Angka
-Menampilkan angka 1-7 dengan nama solfege (do, re, mi, dst) dalam format visual yang mudah dibaca.
-
-### Not Balok
-Menampilkan melodi dalam bentuk not balok dengan treble clef (𝄞) pada staff lines, lengkap dengan indikator oktaf dan durasi.
-
-### Keduanya
-Menampilkan not angka dan not balok secara bersamaan untuk pembelajaran yang lebih lengkap.
+Not angka ditampilkan sederhana sebagai angka dan simbol di bawah lirik, dikelompokkan per birama dan dipisahkan oleh `|`.
 
 ## Batasan & Catatan
 
-- Format ini fokus pada melodi vokal/instrumen melodi utama
-- Transpose bekerja dalam skala diatonis (1-7)
-- Not balok ditampilkan dengan treble clef
-- Durasi visual pada not balok: ● (quarter), ◐ (half), ○ (whole)
+- Format ini fokus pada melodi vokal/instrumen melodi utama.
+- Transpose bekerja dalam skala diatonis (1-7).
+- Gunakan `|` di lirik untuk menyelaraskan birama.
 
 ## Contoh Lagu yang Sudah Ada Melodinya
 

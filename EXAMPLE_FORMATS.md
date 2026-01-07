@@ -59,3 +59,34 @@ Hingga tak tahu diri
 2. Paste langsung ke form
 3. Aplikasi otomatis mendeteksi format dan menampilkan dengan benar
 4. Transpose, auto-scroll, dan semua fitur tetap bekerja! 🎸
+
+---
+
+## Integrasi Not Angka ke Lirik (Inline)
+
+- Isi field "Melodi Not Angka" di form lagu, contoh:
+
+```
+1 2 3 4 | 5 5 6 5 | 4 3 2 1 |
+```
+
+- Gunakan `|` pada lirik untuk menandai birama. Not angka akan muncul tepat di bawah baris lirik dan dikelompokkan per `|`.
+
+Contoh:
+
+```
+[C]Ku tak sangka | [Em]berjumpa de-[Am]nganmu |
+Hatiku ber-[F]bunga mekar | seribu [G]|
+```
+
+Output:
+
+```
+Ku tak sangka | berjumpa de- nganmu |
+1 2 3 4 | 5 5 6 5 |
+
+Hatiku ber- bunga mekar | seribu |
+4 3 2 1 |
+```
+
+Catatan: jumlah birama pada lirik sebaiknya konsisten dengan jumlah birama pada melodi.

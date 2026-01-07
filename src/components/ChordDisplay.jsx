@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { parseChordPro, transposeChord, getAllChords } from '../utils/chordUtils';
-import SheetMusicDisplay from './SheetMusicDisplay';
+import { parseMelodyString, transposeMelody, formatNoteDisplay } from '../utils/musicNotationUtils';
 import PianoChordDiagram from './PianoChordDiagram';
 
 const ChordDisplay = ({ song, transpose = 0 }) => {
   const [parsedSong, setParsedSong] = useState(null);
   const [allChords, setAllChords] = useState([]);
-  const [showNotation, setShowNotation] = useState(false);
-  const [notationType, setNotationType] = useState('both'); // 'numeric', 'staff', 'both'
+  // Precompute melody bars for inline numeric notation
+  const [melodyBars, setMelodyBars] = useState([]);
   
   useEffect(() => {
     if (song && song.lyrics) {
@@ -15,10 +15,26 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       setParsedSong(parsed);
       setAllChords(getAllChords(parsed));
     }
-  }, [song]);
+    // Prepare melody bars for inline rendering
+    if (song && song.melody) {
+      const notes = parseMelodyString(song.melody);
+      const transposed = transposeMelody(notes, transpose);
+      const bars = [];
+      transposed.forEach(n => {
+        const b = n.bar || 0;
+        if (!bars[b]) bars[b] = [];
+        bars[b].push(n);
+      });
+      setMelodyBars(bars.filter(Boolean));
+    } else {
+      setMelodyBars([]);
+    }
+  }, [song, transpose]);
   
   if (!parsedSong) return null;
   
+  let melodyBarCursor = 0;
+
   const renderLine = (lineData, index) => {
     if (lineData.type === 'empty') {
       return <div key={index} className="lyrics-line empty"></div>;
@@ -142,6 +158,32 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
           <div className="text-line">
             {textParts.length > 0 ? textParts : lineData.text}
           </div>
+          {/* Inline numeric notation (not angka) mapped by bars */}
+          {melodyBars.length > 0 && (
+            (() => {
+              // Count groups of '|' in this line (treat consecutive | as one)
+              const barMatches = (lineData.text.match(/\|+/g) || []);
+              const barGroupsInLine = barMatches.length;
+              if (barGroupsInLine === 0) return null;
+              const slice = melodyBars.slice(melodyBarCursor, melodyBarCursor + barGroupsInLine);
+              melodyBarCursor += slice.length;
+              if (slice.length === 0) return null;
+              return (
+                <div className="numeric-notation-inline">
+                  {slice.map((bar, bi) => (
+                    <span key={bi} className="melody-bar-inline">
+                      {bar.map((n, ni) => (
+                        <span key={ni} className={`melody-note-inline${n.type === 'rest' ? ' rest' : ''}`}>
+                          {formatNoteDisplay(n)}{ni < bar.length - 1 ? ' ' : ''}
+                        </span>
+                      ))}
+                      <span className="bar-separator">|</span>
+                    </span>
+                  ))}
+                </div>
+              );
+            })()
+          )}
         </div>
       );
     }
@@ -197,58 +239,6 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
         </div>
       )}
       
-      <div className="melody-controls">
-        <button 
-          onClick={() => setShowNotation(!showNotation)}
-          className="btn-notation-toggle"
-          title={showNotation ? 'Sembunyikan Partitur' : 'Tampilkan Partitur'}
-        >
-          {showNotation ? '🎵 Sembunyikan Partitur' : '🎼 Tampilkan Partitur'}
-        </button>
-        
-        {showNotation && (
-          <div className="notation-type-selector">
-            <label>
-              <input 
-                type="radio" 
-                name="notationType"
-                value="numeric"
-                checked={notationType === 'numeric'}
-                onChange={(e) => setNotationType(e.target.value)}
-              />
-              Not Angka
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="notationType"
-                value="staff"
-                checked={notationType === 'staff'}
-                onChange={(e) => setNotationType(e.target.value)}
-              />
-              Not Balok
-            </label>
-            <label>
-              <input 
-                type="radio" 
-                name="notationType"
-                value="both"
-                checked={notationType === 'both'}
-                onChange={(e) => setNotationType(e.target.value)}
-              />
-              Keduanya
-            </label>
-          </div>
-        )}
-      </div>
-      
-      {showNotation && (
-        <SheetMusicDisplay 
-          melody={song.melody || ''}
-          notationType={notationType}
-          transpose={transpose}
-        />
-      )}
       
       <div className="lyrics-content">
         {parsedSong.lines.map((line, index) => renderLine(line, index))}
