@@ -24,6 +24,9 @@ function App() {
   const [syncingToDb, setSyncingToDb] = useState(false);
   const [runtimeErrors, setRuntimeErrors] = useState([]);
   const [sortBy, setSortBy] = useState('title-asc');
+  const [lyricsPreview, setLyricsPreview] = useState('');
+  const [lyricsLoading, setLyricsLoading] = useState(false);
+  const [lyricsError, setLyricsError] = useState('');
   const scrollRef = useRef(null);
   const isInitialLoad = useRef(true);
 
@@ -43,6 +46,37 @@ function App() {
       })
       .catch(err => console.warn('Failed to fetch from Turso:', err));
   }, []);
+
+  // Fetch quick lyrics preview when song changes (best-effort, non-blocking)
+  useEffect(() => {
+    if (!selectedSong?.title) {
+      setLyricsPreview('');
+      setLyricsError('');
+      return;
+    }
+
+    const controller = new AbortController();
+    const query = encodeURIComponent(`${selectedSong.title} ${selectedSong.artist || ''}`.trim());
+    const url = `https://lyrist.vercel.app/api/${query}`;
+
+    setLyricsLoading(true);
+    setLyricsError('');
+    fetch(url, { signal: controller.signal })
+      .then(res => res.ok ? res.json() : Promise.reject(new Error('Gagal mengambil lirik otomatis')))
+      .then(data => {
+        setLyricsPreview(data?.lyrics || '');
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') return;
+        setLyricsPreview('');
+        setLyricsError('Lirik otomatis tidak tersedia');
+      })
+      .finally(() => {
+        setLyricsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [selectedSong?.id, selectedSong?.title, selectedSong?.artist]);
 
   // Collect runtime errors without killing the UI
   useEffect(() => {
@@ -520,6 +554,48 @@ function App() {
           {showYouTube && selectedSong?.youtubeId && (
             <div className="youtube-section">
               <YouTubeViewer videoId={selectedSong.youtubeId} />
+            </div>
+          )}
+
+          {selectedSong && (
+            <div className="search-card">
+              <div className="search-card-header">
+                <div>
+                  <div className="search-title">Cari cepat</div>
+                  <div className="search-subtitle">{selectedSong.title} {selectedSong.artist ? `• ${selectedSong.artist}` : ''}</div>
+                </div>
+                <div className="search-links">
+                  <a
+                    className="search-link"
+                    href={`https://www.google.com/search?q=${encodeURIComponent(`${selectedSong.title} ${selectedSong.artist || ''} lirik`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    🔍 Google Lirik
+                  </a>
+                  <a
+                    className="search-link"
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${selectedSong.title} ${selectedSong.artist || ''}`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    ▶ YouTube
+                  </a>
+                </div>
+              </div>
+
+              <div className="search-body">
+                {lyricsLoading && <div className="search-status">Mengambil lirik otomatis...</div>}
+                {!lyricsLoading && lyricsError && (
+                  <div className="search-status error">{lyricsError}</div>
+                )}
+                {!lyricsLoading && lyricsPreview && (
+                  <div className="lyrics-preview">
+                    <div className="preview-label">Lirik otomatis (pratinjau)</div>
+                    <pre className="preview-text">{lyricsPreview.slice(0, 800)}</pre>
+                  </div>
+                )}
+              </div>
             </div>
           )}
           

@@ -698,6 +698,98 @@ body {
   pointer-events: none;
 }
 
+/* ===== Search & Preview Card ===== */
+.search-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 1.25rem;
+}
+
+.search-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-title {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.search-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.search-links {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.search-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.85rem;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.search-link:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.search-body {
+  margin-top: 0.75rem;
+}
+
+.search-status {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.search-status.error {
+  color: var(--accent);
+}
+
+.lyrics-preview {
+  margin-top: 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 0.9rem;
+}
+
+.preview-label {
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.preview-text {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  color: var(--text);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
 .chord-display {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1rem;
