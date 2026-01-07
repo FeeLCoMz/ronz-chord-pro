@@ -252,7 +252,8 @@ function App() {
               <div style={{ padding: '1rem', textAlign: 'center', color: '#666', fontSize: '0.9rem' }}>
                 {songs.length === 0 ? 'Tidak ada lagu. Klik ➕ untuk tambah.' : 'Tidak ada hasil pencarian.'}
               </div>
-            ) : displaySongs.map(song => (
+            ) : (
+              displaySongs.map(song => (
               <div 
                 key={song.id}
                 className={`song-item ${selectedSong?.id === song.id ? 'active' : ''}`}
@@ -296,6 +297,7 @@ function App() {
                   )}
                 </div>
               </div>
+            ))
             )}
           </div>
           
