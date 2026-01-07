@@ -41,6 +41,32 @@ function App() {
       .catch(err => console.warn('Failed to fetch from Turso:', err));
   }, []);
 
+  useEffect(() => {
+    if (songs.length === 0 && setLists.length === 0) return;
+    const sync = async () => {
+      setSyncingToDb(true);
+      try {
+        await fetch('/api/songs/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ songs })
+        });
+        for (const setList of setLists) {
+          await fetch('/api/setlists', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(setList)
+          });
+        }
+      } catch (err) {
+        console.error('Auto-sync gagal:', err);
+      } finally {
+        setSyncingToDb(false);
+      }
+    };
+    sync();
+  }, [songs, setLists]);
+
   const handleTranspose = (value) => {
     setTranspose(prev => {
       const newValue = prev + value;
@@ -128,44 +154,6 @@ function App() {
     setSongs(prevSongs => prevSongs.filter(s => s.id !== songId));
     if (selectedSong?.id === songId) {
       setSelectedSong(null);
-    }
-  };
-
-  const handleSyncToDatabase = async () => {
-    if (!confirm(`Sync ${songs.length} lagu dan ${setLists.length} set list ke database Turso?`)) {
-      return;
-    }
-
-    setSyncingToDb(true);
-
-    try {
-      // Sync songs
-      const songsResult = await fetch('/api/songs/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ songs })
-      }).then(res => res.json());
-
-      // Sync setlists
-      let setlistsSuccess = 0;
-      for (const setList of setLists) {
-        try {
-          await fetch('/api/setlists', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(setList)
-          });
-          setlistsSuccess++;
-        } catch (err) {
-          console.error('Failed to sync setlist:', setList.name, err);
-        }
-      }
-
-      alert(`Sync berhasil!\n\nLagu: ${songsResult.inserted || 0} baru, ${songsResult.updated || 0} di-update\nSet List: ${setlistsSuccess} berhasil`);
-    } catch (err) {
-      alert('Gagal sync ke database: ' + err.message);
-    } finally {
-      setSyncingToDb(false);
     }
   };
 
