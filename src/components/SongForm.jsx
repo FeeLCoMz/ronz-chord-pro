@@ -11,7 +11,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [errors, setErrors] = useState({});
   const [tapTimes, setTapTimes] = useState([]);
   const [bpm, setBpm] = useState(null);
-  const [detectedKey, setDetectedKey] = useState('');
+  // ...existing code...
 
   useEffect(() => {
     if (song) {
@@ -84,9 +84,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     setBpm(null);
   };
 
-  const handlePianoKeyPress = (note) => {
-    setDetectedKey(note);
-  };
+  // ...existing code...
 
   const insertTemplate = () => {
     const template = `{title: ${formData.title || 'Judul Lagu'}}\n{artist: ${formData.artist || 'Nama Artis'}}\n{key: C}\n{time: 4/4}\n{tempo: 120}\n{capo: 0}\n\n{start_of_intro}\n[C]Intro baris | [G]dengan chord |\n{end_of_intro}\n\n{start_of_verse}\n[C]Lirik baris | [G]pertama dengan | [Am]chord dan | [F]bar |\n[C]Lirik baris | [G]kedua dengan | [Am]chord dan | [F]bar |\n{end_of_verse}\n\n{start_of_pre-chorus}\n[Dm]Pre-chorus | [G]dengan lirik |\n{end_of_pre-chorus}\n\n{start_of_chorus}\n[C]Ini bagian | [G]chorus |\n[Am]Dengan lirik | [F]yang catchy |\n{end_of_chorus}\n\n{start_of_bridge}\n[Em]Bridge | [F]bagian |\n{end_of_bridge}\n\n{start_of_outro}\n[C]Outro | [G]bagian |\n{end_of_outro}`;
@@ -198,50 +196,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
             </div>
           </div>
 
-          <div className="form-group">
-            <label>🎹 Piano Virtual (Cari Nada Dasar)</label>
-            <div className="virtual-piano">
-              <div className="piano-keys-container">
-                {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map((note, idx) => {
-                  const isBlack = note.includes('#');
-                  return (
-                    <button
-                      key={note}
-                      type="button"
-                      className={`piano-key ${isBlack ? 'black' : 'white'} ${detectedKey === note ? 'active' : ''}`}
-                      onClick={() => handlePianoKeyPress(note)}
-                      onMouseDown={(e) => {
-                        e.currentTarget.style.transform = isBlack ? 'translateY(2px)' : 'translateY(3px)';
-                      }}
-                      onMouseUp={(e) => {
-                        e.currentTarget.style.transform = '';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = '';
-                      }}
-                    >
-                      <span className="note-label">{note}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {detectedKey && (
-                <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text)' }}>
-                    Nada Dasar: <span style={{ color: 'var(--primary)', fontSize: '1.3rem' }}>{detectedKey}</span>
-                  </span>
-                  <button
-                    type="button"
-                    className="btn btn-sm"
-                    onClick={() => setDetectedKey('')}
-                  >
-                    ✕
-                  </button>
-                </div>
-              )}
-            </div>
-            <small>Mainkan piano untuk mendengar dan menentukan nada dasar lagu</small>
-          </div>
+          {/* Piano virtual dihapus sesuai permintaan */}
 
           <div className="form-group">
             <label htmlFor="youtubeId">YouTube Video ID (Opsional)</label>
