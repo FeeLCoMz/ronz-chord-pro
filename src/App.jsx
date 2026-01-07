@@ -42,39 +42,6 @@ function App() {
       .catch(err => console.warn('Failed to fetch from Turso:', err));
   }, []);
 
-  useEffect(() => {
-    if (isInitialLoad.current) {
-      isInitialLoad.current = false;
-      return;
-    }
-    if (songs.length === 0 && setLists.length === 0) return;
-    const timeout = setTimeout(() => {
-      const sync = async () => {
-        setSyncingToDb(true);
-        try {
-          await fetch('/api/songs/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ songs })
-          });
-          for (const setList of setLists) {
-            await fetch('/api/setlists', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(setList)
-            });
-          }
-        } catch (err) {
-          console.error('Auto-sync gagal:', err);
-        } finally {
-          setSyncingToDb(false);
-        }
-      };
-      sync();
-    }, 1000);
-    return () => clearTimeout(timeout);
-  }, [songs, setLists]);
-
   const handleTranspose = (value) => {
     setTranspose(prev => {
       const newValue = prev + value;
