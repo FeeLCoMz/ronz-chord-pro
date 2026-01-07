@@ -4,6 +4,7 @@ import YouTubeViewer from './components/YouTubeViewer';
 import AutoScroll from './components/AutoScroll';
 
 import SetListManager from './components/SetListManager';
+import HelpModal from './components/HelpModal';
 import SongFormBaru from './components/SongForm';
 import { initialSongs, initialSetLists } from './data/songs';
 import './App.css';
@@ -30,6 +31,7 @@ function App() {
   const [selectedSetListsForAdd, setSelectedSetListsForAdd] = useState([]);
   const [showSetListPopup, setShowSetListPopup] = useState(false);
   const [showSidebarNav, setShowSidebarNav] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
   const scrollRef = useRef(null);
   const isInitialLoad = useRef(true);
 
@@ -398,6 +400,9 @@ function App() {
                   <button onClick={() => setShowSetListManager(true)} className="btn-icon" title="Kelola Set List">
                     ⚙️
                   </button>
+                  <button onClick={() => setShowHelp(true)} className="btn-icon" title="Bantuan">
+                    ❓
+                  </button>
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -674,6 +679,10 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {showHelp && (
+        <HelpModal onClose={() => setShowHelp(false)} />
       )}
 
       {runtimeErrors.length > 0 && (
