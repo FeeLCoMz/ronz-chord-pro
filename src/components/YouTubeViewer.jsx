@@ -117,10 +117,10 @@ const YouTubeViewer = ({ videoId, minimalControls = false }) => {
     return (
       <div className="youtube-viewer-minimal">
         <div className="video-controls">
-          <button onClick={handlePlayPause} className="btn btn-secondary">
+          <button type="button" onClick={handlePlayPause} className="btn btn-secondary">
             {isPlaying ? '⏸ Pause' : '▶ Play'}
           </button>
-          <button onClick={handleStop} className="btn btn-secondary">
+          <button type="button" onClick={handleStop} className="btn btn-secondary">
             ⏹ Stop
           </button>
         </div>
@@ -134,10 +134,10 @@ const YouTubeViewer = ({ videoId, minimalControls = false }) => {
         <div id={containerIdRef.current}></div>
       </div>
       <div className="video-controls">
-        <button onClick={handlePlayPause} className="btn btn-secondary">
+        <button type="button" onClick={handlePlayPause} className="btn btn-secondary">
           {isPlaying ? '⏸ Pause' : '▶ Play'}
         </button>
-        <button onClick={handleStop} className="btn btn-secondary">
+        <button type="button" onClick={handleStop} className="btn btn-secondary">
           ⏹ Stop
         </button>
       </div>
