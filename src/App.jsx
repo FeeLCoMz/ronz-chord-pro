@@ -79,7 +79,7 @@ function App() {
     setEditingSong(null);
   };
 
-  const handleCreateSetList = (name) => {
+  const handleCreateSetList = async (name) => {
     const newSetList = {
       id: Date.now(),
       name,
@@ -89,34 +89,80 @@ function App() {
     setSetLists(prevSetLists => [...prevSetLists, newSetList]);
     setCurrentSetList(newSetList.id);
     setShowSetListManager(false);
+
+    try {
+      await fetch('/api/setlists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSetList)
+      });
+    } catch (err) {
+      console.error('Gagal menyimpan setlist baru:', err);
+    }
   };
 
-  const handleDeleteSetList = (id) => {
+  const handleDeleteSetList = async (id) => {
     if (!confirm('Hapus setlist ini?')) return;
     setSetLists(prevSetLists => prevSetLists.filter(sl => sl.id !== id));
     setCurrentSetList(null);
+
+    try {
+      await fetch(`/api/setlists/${id}`, { method: 'DELETE' });
+    } catch (err) {
+      console.error('Gagal menghapus setlist:', err);
+    }
   };
 
-  const handleAddSongToSetList = (setListId, songId) => {
+  const handleAddSongToSetList = async (setListId, songId) => {
+    let updatedSetList = null;
     setSetLists(prevSetLists => {
       return prevSetLists.map(setList => {
         if (setList.id === setListId && !setList.songs.includes(songId)) {
-          return { ...setList, songs: [...setList.songs, songId] };
+          const next = { ...setList, songs: [...setList.songs, songId] };
+          updatedSetList = next;
+          return next;
         }
         return setList;
       });
     });
+
+    if (updatedSetList) {
+      try {
+        await fetch(`/api/setlists/${setListId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: updatedSetList.name, songs: updatedSetList.songs })
+        });
+      } catch (err) {
+        console.error('Gagal menambah lagu ke setlist:', err);
+      }
+    }
   };
 
-  const handleRemoveSongFromSetList = (setListId, songId) => {
+  const handleRemoveSongFromSetList = async (setListId, songId) => {
+    let updatedSetList = null;
     setSetLists(prevSetLists => {
       return prevSetLists.map(setList => {
         if (setList.id === setListId) {
-          return { ...setList, songs: setList.songs.filter(id => id !== songId) };
+          const next = { ...setList, songs: setList.songs.filter(id => id !== songId) };
+          updatedSetList = next;
+          return next;
         }
         return setList;
       });
     });
+
+    if (updatedSetList) {
+      try {
+        await fetch(`/api/setlists/${setListId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: updatedSetList.name, songs: updatedSetList.songs })
+        });
+      } catch (err) {
+        console.error('Gagal menghapus lagu dari setlist:', err);
+      }
+    }
   };
 
   const handleEditSong = (song) => {
