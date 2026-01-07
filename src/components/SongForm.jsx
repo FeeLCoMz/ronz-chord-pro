@@ -10,6 +10,9 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     melody: ''
   });
   const [errors, setErrors] = useState({});
+  const [tapTimes, setTapTimes] = useState([]);
+  const [bpm, setBpm] = useState(null);
+  const [detectedKey, setDetectedKey] = useState('');
 
   useEffect(() => {
     if (song) {
@@ -52,6 +55,40 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       createdAt: song?.createdAt || new Date().toISOString()
     };
     onSave(songData);
+  };
+
+  const handleTapTempo = () => {
+    const now = Date.now();
+    const newTaps = [...tapTimes, now].slice(-8);
+    setTapTimes(newTaps);
+
+    if (newTaps.length >= 2) {
+      const intervals = [];
+      for (let i = 1; i < newTaps.length; i++) {
+        intervals.push(newTaps[i] - newTaps[i - 1]);
+      }
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const calculatedBpm = Math.round(60000 / avgInterval);
+      setBpm(calculatedBpm);
+    }
+
+    setTimeout(() => {
+      setTapTimes(prev => {
+        if (prev.length > 0 && Date.now() - prev[prev.length - 1] > 3000) {
+          return [];
+        }
+        return prev;
+      });
+    }, 3000);
+  };
+
+  const resetTapTempo = () => {
+    setTapTimes([]);
+    setBpm(null);
+  };
+
+  const handlePianoKeyPress = (note) => {
+    setDetectedKey(note);
   };
 
   const insertTemplate = () => {
@@ -123,6 +160,92 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
               🎵 Cari Lagu di YouTube
             </button>
           </div>
+          
+          <div className="form-group">
+            <label>🎵 Tap Tempo (Ketuk Irama)</label>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleTapTempo}
+                style={{ minWidth: '120px', fontSize: '1.1rem' }}
+              >
+                👆 TAP
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                {bpm && (
+                  <>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                      {bpm} BPM
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={resetTapTempo}
+                    >
+                      🔄 Reset
+                    </button>
+                  </>
+                )}
+                {!bpm && tapTimes.length > 0 && (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    Ketuk {2 - tapTimes.length} kali lagi...
+                  </span>
+                )}
+                {!bpm && tapTimes.length === 0 && (
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    Ketuk tombol TAP mengikuti irama lagu
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>🎹 Piano Virtual (Cari Nada Dasar)</label>
+            <div className="virtual-piano">
+              <div className="piano-keys-container">
+                {['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].map((note, idx) => {
+                  const isBlack = note.includes('#');
+                  return (
+                    <button
+                      key={note}
+                      type="button"
+                      className={`piano-key ${isBlack ? 'black' : 'white'} ${detectedKey === note ? 'active' : ''}`}
+                      onClick={() => handlePianoKeyPress(note)}
+                      onMouseDown={(e) => {
+                        e.currentTarget.style.transform = isBlack ? 'translateY(2px)' : 'translateY(3px)';
+                      }}
+                      onMouseUp={(e) => {
+                        e.currentTarget.style.transform = '';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = '';
+                      }}
+                    >
+                      <span className="note-label">{note}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {detectedKey && (
+                <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ fontSize: '1.1rem', fontWeight: '600', color: 'var(--text)' }}>
+                    Nada Dasar: <span style={{ color: 'var(--primary)', fontSize: '1.3rem' }}>{detectedKey}</span>
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={() => setDetectedKey('')}
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
+            <small>Mainkan piano untuk mendengar dan menentukan nada dasar lagu</small>
+          </div>
+
           <div className="form-group">
             <label htmlFor="youtubeId">YouTube Video ID (Opsional)</label>
             <input

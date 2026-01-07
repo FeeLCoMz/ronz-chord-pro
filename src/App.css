@@ -1353,6 +1353,103 @@ body {
   transform: rotate(90deg);
 }
 
+/* ===== Virtual Piano in Form ===== */
+.virtual-piano {
+  background: var(--bg-dark);
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+}
+
+.piano-keys-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2px;
+  position: relative;
+  height: 140px;
+  margin-bottom: 0.5rem;
+}
+
+.piano-key {
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  transition: all 0.1s ease;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 0.5rem;
+  user-select: none;
+}
+
+.piano-key.white {
+  width: 50px;
+  height: 140px;
+  background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%);
+  border: 2px solid #333;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.piano-key.white:hover {
+  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
+}
+
+.piano-key.white.active {
+  background: linear-gradient(to bottom, var(--primary-light) 0%, var(--primary) 100%);
+  color: white;
+  box-shadow: 0 0 20px var(--primary);
+}
+
+.piano-key.black {
+  width: 35px;
+  height: 90px;
+  background: linear-gradient(to bottom, #2a2a2a 0%, #0a0a0a 100%);
+  border: 1px solid #000;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+  color: white;
+  position: absolute;
+  z-index: 2;
+  margin-left: -18px;
+}
+
+.piano-key.black:hover {
+  background: linear-gradient(to bottom, #3a3a3a 0%, #1a1a1a 100%);
+}
+
+.piano-key.black.active {
+  background: linear-gradient(to bottom, var(--chord) 0%, var(--accent) 100%);
+  box-shadow: 0 0 20px var(--chord);
+}
+
+.piano-key:nth-child(2) { left: 38px; }
+.piano-key:nth-child(4) { left: 90px; }
+.piano-key:nth-child(7) { left: 194px; }
+.piano-key:nth-child(9) { left: 246px; }
+.piano-key:nth-child(11) { left: 298px; }
+
+.note-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.piano-key.white .note-label {
+  color: #333;
+}
+
+.piano-key.white.active .note-label {
+  color: white;
+}
+
+.piano-key.black .note-label {
+  color: #ccc;
+}
+
 /* ===== Forms ===== */
 .song-form-modal {
   max-width: 800px;
