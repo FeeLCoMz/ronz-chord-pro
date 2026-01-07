@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { playNote } from '../utils/audio';
 
 // Piano key mapping for 1 octave (C to B)
 const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
@@ -27,6 +28,8 @@ const PianoChordDiagram = ({ chord }) => {
   const rootIdx = getKeyIndex(root);
   if (rootIdx !== -1) keys[rootIdx] = true;
 
+  const defaultOctave = 4;
+
   return (
     <div className="piano-diagram">
       <div className="white-keys">
@@ -38,6 +41,7 @@ const PianoChordDiagram = ({ chord }) => {
               className={
                 'white-key' + (keys[idx] ? ' active' : '')
               }
+              onClick={() => playNote(note, { octave: defaultOctave })}
             >
               {note}
             </div>
@@ -54,6 +58,7 @@ const PianoChordDiagram = ({ chord }) => {
               className={
                 'black-key' + (keys[idx] ? ' active' : '')
               }
+              onClick={() => playNote(note, { octave: defaultOctave })}
             >
               {note}
             </div>
