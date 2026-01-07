@@ -132,6 +132,34 @@ function App() {
     }
   };
 
+  const handleSyncToDatabase = async () => {
+    if (songs.length === 0) {
+      alert('Tidak ada lagu untuk disinkronkan.');
+      return;
+    }
+
+    setSyncingToDb(true);
+    try {
+      const response = await fetch('/api/songs/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ songs })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result?.error || 'Sync gagal');
+      }
+
+      alert(`Sync selesai. ${result.inserted || 0} disisipkan, ${result.updated || 0} diperbarui.`);
+    } catch (error) {
+      console.error('Sync error:', error);
+      alert('Gagal sync ke database. Coba lagi nanti.');
+    } finally {
+      setSyncingToDb(false);
+    }
+  };
+
   const handleExportDatabase = () => {
     const data = {
       songs,
