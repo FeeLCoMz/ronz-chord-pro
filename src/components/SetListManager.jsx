@@ -30,7 +30,7 @@ const SetListManager = ({
       <div className="modal-content setlist-modal">
         <div className="modal-header">
           <h2>📋 Set List Manager</h2>
-          <button onClick={() => onSelectSetList(null)} className="btn-close">✕</button>
+          <button onClick={() => onSelectSetList(selectedSetListId)} className="btn-close">✕</button>
         </div>
         
         <button 
@@ -74,8 +74,7 @@ const SetListManager = ({
                       className="setlist-item"
                       onClick={() => {
                         setSelectedSetListId(setList.id);
-                        // Propagate selection to parent and close modal
-                        if (onSelectSetList) onSelectSetList(setList.id);
+                        // Only update selection, do not close modal
                       }}
                     >
                       <span className="setlist-name">{setList.name}</span>
