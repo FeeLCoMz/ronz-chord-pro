@@ -221,8 +221,10 @@ function App() {
     link.download = `ronz-chordpro-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
   };
   
   const handleImportDatabase = (event) => {
