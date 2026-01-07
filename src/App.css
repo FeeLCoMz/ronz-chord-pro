@@ -233,6 +233,40 @@ body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+}
+
+/* ===== Navigation Toggle ===== */
+.nav-toggle-container {
+  position: fixed;
+  top: 120px;
+  left: 0;
+  z-index: 100;
+}
+
+.nav-toggle-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-toggle-btn:hover {
+  background: var(--primary-dark);
+  transform: translateX(2px);
+}
+
+.nav-toggle-btn.active {
+  background: var(--secondary);
 }
 
 /* ===== Sidebar ===== */
@@ -244,6 +278,21 @@ body {
   flex-direction: column;
   box-shadow: var(--shadow-lg);
   position: relative;
+  transition: var(--transition);
+  transform: translateX(0);
+}
+
+.sidebar.hidden {
+  transform: translateX(-100%);
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  z-index: 50;
+}
+
+.sidebar.visible {
+  transform: translateX(0);
 }
 
 /* Custom scrollbar for modern look */
@@ -1308,6 +1357,12 @@ body {
     border-right: none;
     border-bottom: 1px solid var(--border);
     padding-bottom: 0.5rem;
+  }
+  .sidebar.hidden {
+    transform: translateY(-100%);
+  }
+  .nav-toggle-container {
+    top: 80px;
   }
   .song-list { max-height: 240px; }
   .main { padding: 1rem; }

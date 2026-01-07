@@ -29,6 +29,7 @@ function App() {
   const [lyricsError, setLyricsError] = useState('');
   const [selectedSetListsForAdd, setSelectedSetListsForAdd] = useState([]);
   const [showSetListPopup, setShowSetListPopup] = useState(false);
+  const [showSidebarNav, setShowSidebarNav] = useState(true);
   const scrollRef = useRef(null);
   const isInitialLoad = useRef(true);
 
@@ -376,28 +377,42 @@ function App() {
       </header>
       
       <div className="container">
-        <aside className="sidebar">
+        <div className="nav-toggle-container">
+          <button 
+            className={`nav-toggle-btn ${showSidebarNav ? 'active' : ''}`}
+            onClick={() => setShowSidebarNav(!showSidebarNav)}
+          >
+            {showSidebarNav ? '« Sembunyikan' : '☰ Menu'}
+          </button>
+        </div>
+
+        <aside className={`sidebar ${showSidebarNav ? 'visible' : 'hidden'}`}>
           <div className="sidebar-header">
-            <h3>{currentSetListName}</h3>
-              <div className="header-actions">
-              <button onClick={() => setShowSongForm(true)} className="btn-icon" title="Tambah Lagu">
-                ➕
-              </button>
-              <button onClick={() => setShowSetListManager(true)} className="btn-icon" title="Set List">
-                ⚙️
-              </button>
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <select
-                className="setlist-select"
-                value={currentSetList || ''}
-                onChange={(e) => setCurrentSetList(e.target.value || null)}
-              >
-                <option value="">Semua Lagu</option>
-                {setLists.map(sl => (
-                  <option key={sl.id} value={sl.id}>{sl.name} ({sl.songs?.length || 0})</option>
-                ))}
-              </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3>🎵 Navigasi</h3>
+                <div className="header-actions">
+                  <button onClick={() => setShowSongForm(true)} className="btn-icon" title="Tambah Lagu">
+                    ➕
+                  </button>
+                  <button onClick={() => setShowSetListManager(true)} className="btn-icon" title="Kelola Set List">
+                    ⚙️
+                  </button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <select
+                  className="setlist-select"
+                  value={currentSetList || ''}
+                  onChange={(e) => setCurrentSetList(e.target.value || null)}
+                  style={{ flex: 1 }}
+                >
+                  <option value="">📚 Semua Lagu</option>
+                  {setLists.map(sl => (
+                    <option key={sl.id} value={sl.id}>📋 {sl.name} ({sl.songs?.length || 0})</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
           <div className="sidebar-search">
