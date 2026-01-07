@@ -62,22 +62,37 @@ Hingga tak tahu diri
 
 ---
 
-## Integrasi Not Angka ke Lirik (Inline)
+## Melodi Not Angka (Diketik dalam Lirik)
 
-- Isi field "Melodi Not Angka" di form lagu, contoh:
+Melodi not angka ditulis langsung dalam field lirik, pada baris terpisah. Tidak perlu field input khusus lagi—aplikasi akan otomatis mengenali baris yang dimulai dengan angka 1-7 sebagai baris melodi.
 
+Format:
 ```
 1 2 3 4 | 5 5 6 5 | 4 3 2 1 |
 ```
 
-- Gunakan `|` pada lirik untuk menandai birama. Not angka akan muncul tepat di bawah baris lirik dan dikelompokkan per `|`.
-
-Contoh:
-
+Contoh lengkap:
 ```
-[C]Ku tak sangka | [Em]berjumpa de-[Am]nganmu |
-Hatiku ber-[F]bunga mekar | seribu [G]|
+{title: Kasih Putih}
+{artist: Glenn Fredly}
+
+{start_of_verse}
+[C]Ku ingin selalu | [G]bersamamu selamanya |
+5 5 5 3 5 | 6 5 3 2 |
+[C]Cinta ini | [G]adalah milikmu |
+1 1 2 3 | 2 1 - - |
+{end_of_verse}
 ```
+
+Output:
+- Lirik dengan chord tampil normal.
+- Not angka pada baris terpisah akan muncul di bawah baris lirik sebelumnya, disesuaikan dengan pemisah bar `|`.
+- Transpose lagu juga menggeser not angka secara diatonis.
+
+Tips:
+- Letakkan not angka langsung di bawah lirik yang ingin ditambahkan melodi.
+- Gunakan spasi untuk pemisah not, `|` untuk birama.
+- Jangan campur not angka dengan lirik pada baris yang sama.
 
 Output:
 

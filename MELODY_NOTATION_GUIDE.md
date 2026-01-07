@@ -1,8 +1,8 @@
-# 🎵 Panduan Not Angka (Melodi) — Format Lengkap & Integrasi ke Lirik
+# 🎵 Panduan Not Angka (Melodi) — Diketik dalam Lirik
 
 ## Format Input Melodi
 
-Aplikasi ini mendukung input melodi dalam format not angka dan menampilkannya langsung di bawah baris lirik (inline), selaras dengan tanda birama `|` pada lirik. Berikut format lengkap dan cara integrasinya.
+Aplikasi ini mendukung input melodi dalam format not angka yang ditulis **langsung di dalam text lirik** (bukan field terpisah). Not angka akan otomatis dikenali dan ditampilkan inline di bawah baris lirik yang sesuai. Berikut format lengkap dan cara penggunaannya.
 
 ### Format Dasar Not Angka
 
@@ -96,42 +96,52 @@ Aplikasi ini mendukung input melodi dalam format not angka dan menampilkannya la
 5 5 5 3 5 | 6 5 3 2 1 | 5 5 5 3 5 | 6 5 3 2 |
 ```
 
-## Integrasi ke Lirik (Inline)
+## Integrasi ke Lirik (Diketik Langsung)
 
-- Not angka akan muncul di bawah baris lirik yang memiliki tanda birama `|`.
-- Mapping dilakukan berdasarkan jumlah grup `|` pada setiap baris lirik.
-- Satu grup `|` pada lirik = satu birama dari not angka.
-- Jika ada `||` (double bar), dihitung sebagai dua grup bar.
+- Not angka ditulis dalam text lirik, pada baris terpisah.
+- Baris yang dimulai dengan digit 1-7 akan otomatis dikenali sebagai baris not angka.
+- Baris not angka akan muncul di bawah baris lirik sebelumnya dan dipetakan per birama berdasarkan `|`.
+- Jangan campur not angka dengan lirik pada baris yang sama.
 
 ### Contoh Integrasi
 
-Melodi (field "Melodi Not Angka"):
+Format input di form lirik:
 
 ```
-1 2 3 4 | 5 5 6 5 | 4 3 2 1 |
+{title: Kasih Putih}
+{artist: Glenn Fredly}
+{key: C}
+
+{start_of_verse}
+[C]Ku ingin selalu | [G]bersamamu selamanya |
+[Am]Dalam suka dan | [F]duka sepanjang masa |
+5 5 5 3 5 | 6 5 3 2 |
+[C]Cinta ini | [G]adalah milikmu |
+[Am]Selamanya aku | [F]akan setia padamu |
+1 1 2 3 | 2 1 - - |
+{end_of_verse}
 ```
 
-Lirik (mengandung bar `|`):
+Tampilan di aplikasi:
 
 ```
-[C]Ku tak sangka | [Em]berjumpa de-[Am]nganmu |
-Hatiku ber-[F]bunga mekar | seribu [G]|
+Ku ingin selalu | bersamamu selamanya |
+(not angka tidak ditampilkan untuk baris tanpa melodi)
+
+Cinta ini | bersamamu selamanya |
+5 5 5 3 5 | 6 5 3 2 |
+
+Cinta ini | bersamamu selamanya |
+1 1 2 3 | 2 1 - - |
 ```
 
-Tampilan:
+### Tips Penulisan
 
-```
-Ku tak sangka | berjumpa de- nganmu |
-1 2 3 4 | 5 5 6 5 |
-
-Hatiku ber- bunga mekar | seribu |
-4 3 2 1 |
-```
-
-Catatan:
-- Pastikan jumlah birama pada lirik (jumlah grup `|`) konsisten dengan birama pada melodi.
-- Jika birama melodi habis lebih dulu, baris berikutnya tidak akan menampilkan not angka.
-- Transpose lagu juga menggeser not angka secara diatonis.
+1. **Letakkan not angka pada baris terpisah**, langsung di bawah lirik yang ingin ditambahkan melodi.
+2. **Gunakan format yang sama seperti sebelumnya**: `1 2 3 4 | 5 5 6 5 | 4 3 2 1 |`
+3. **Jangan pisahkan dengan baris kosong** antara lirik dan melodi supaya mapping bekerja dengan baik.
+4. **Pastikan jumlah birama (`|`) pada lirik konsisten** dengan melodi.
+5. **Transpose tetap bekerja**: Menggeser not angka secara diatonis.
 
 ## Tips
 

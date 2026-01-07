@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { parseChordPro, transposeChord, getAllChords } from '../utils/chordUtils';
-import { parseMelodyString, transposeMelody, formatNoteDisplay } from '../utils/musicNotationUtils';
+import { parseMelodyString, transposeMelody, formatNoteDisplay, extractMelodyFromLyrics } from '../utils/musicNotationUtils';
 import PianoChordDiagram from './PianoChordDiagram';
 
 const ChordDisplay = ({ song, transpose = 0 }) => {
@@ -16,16 +16,22 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       setAllChords(getAllChords(parsed));
     }
     // Prepare melody bars for inline rendering
-    if (song && song.melody) {
-      const notes = parseMelodyString(song.melody);
-      const transposed = transposeMelody(notes, transpose);
-      const bars = [];
-      transposed.forEach(n => {
-        const b = n.bar || 0;
-        if (!bars[b]) bars[b] = [];
-        bars[b].push(n);
-      });
-      setMelodyBars(bars.filter(Boolean));
+    if (song && song.lyrics) {
+      // Extract melody from lyrics text (lines starting with digits)
+      const melodyStr = extractMelodyFromLyrics(song.lyrics);
+      if (melodyStr) {
+        const notes = parseMelodyString(melodyStr);
+        const transposed = transposeMelody(notes, transpose);
+        const bars = [];
+        transposed.forEach(n => {
+          const b = n.bar || 0;
+          if (!bars[b]) bars[b] = [];
+          bars[b].push(n);
+        });
+        setMelodyBars(bars.filter(Boolean));
+      } else {
+        setMelodyBars([]);
+      }
     } else {
       setMelodyBars([]);
     }

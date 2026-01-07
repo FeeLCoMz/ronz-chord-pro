@@ -165,3 +165,27 @@ export function formatNoteDisplay(note) {
   
   return display;
 }
+
+/**
+ * Extract melody lines from lyrics text
+ * Melody lines start with a digit (1-7) and contain not angka separated by spaces/bars
+ * Example: "1 2 3 4 | 5 5 6 5 | 4 3 2 1 |"
+ * @param {string} lyricsText - Full lyrics text
+ * @returns {string} - Extracted melody string or empty if none found
+ */
+export function extractMelodyFromLyrics(lyricsText) {
+  if (!lyricsText) return '';
+  
+  const lines = lyricsText.split('\n');
+  const melodyLines = [];
+  
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    // Check if line starts with a digit (1-7) or is a continuation of melody (starts with space or | or digit)
+    if (/^[1-7]/.test(trimmed) || (melodyLines.length > 0 && /^[\d\s\-|'#b.m]+$/.test(trimmed))) {
+      melodyLines.push(trimmed);
+    }
+  });
+  
+  return melodyLines.join(' ');
+}

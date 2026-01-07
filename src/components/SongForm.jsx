@@ -6,8 +6,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     title: '',
     artist: '',
     youtubeId: '',
-    lyrics: '',
-    melody: ''
+    lyrics: ''
   });
   const [errors, setErrors] = useState({});
   const [tapTimes, setTapTimes] = useState([]);
@@ -20,8 +19,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
         title: song.title || '',
         artist: song.artist || '',
         youtubeId: song.youtubeId || '',
-        lyrics: song.lyrics || '',
-        melody: song.melody || ''
+        lyrics: song.lyrics || ''
       });
     }
   }, [song]);
@@ -51,7 +49,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       artist: formData.artist.trim(),
       youtubeId: formData.youtubeId.trim(),
       lyrics: formData.lyrics.trim(),
-      melody: formData.melody.trim(),
       createdAt: song?.createdAt || new Date().toISOString()
     };
     onSave(songData);
@@ -308,18 +305,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
             />
             {errors.lyrics && <span className="error-message">{errors.lyrics}</span>}
           </div>
-          <div className="form-group">
-            <label htmlFor="melody">Melodi Not Angka (Opsional)</label>
-            <textarea
-              id="melody"
-              name="melody"
-              value={formData.melody}
-              onChange={handleChange}
-              placeholder="Masukkan melodi dalam not angka, contoh: 1 2 3 4 | 5 5 6 5 | 4 3 2 1 |\nGunakan | untuk pemisah bar, spasi untuk pemisah not\nTambahkan . setelah angka untuk not rendah (1.), apostrof untuk not tinggi (1')\nTambahkan - untuk not panjang (1--), m untuk minor (1m)"
-              rows={6}
-            />
-            <small>Format: 1 2 3 4 | 5 5 6 5 (gunakan spasi antar not, | untuk bar, . untuk rendah, ' untuk tinggi)</small>
-          </div>
+
           <div className="form-actions">
             <button type="submit" className="btn btn-primary">
               💾 {song ? 'Update Lagu' : 'Simpan Lagu'}
