@@ -406,18 +406,11 @@ function App() {
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  className={`tab-btn${currentSetList === null ? ' active' : ''}`}
-                  style={{ flex: 1 }}
-                  onClick={() => setCurrentSetList(null)}
-                >
-                  📚 Library
-                </button>
                 <select
                   className="setlist-select"
                   value={currentSetList || ''}
                   onChange={e => setCurrentSetList(e.target.value || null)}
-                  style={{ flex: 2 }}
+                  style={{ flex: 1 }}
                 >
                   <option value="">Pilih Setlist...</option>
                   {setLists.map(sl => (
