@@ -10,21 +10,24 @@
     "prebuild": "node bump-version.js && node set-version-env.js",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "update": "npm update",
+    "audit": "npm audit",
+    "audit-fix": "npm audit fix"
   },
   "dependencies": {
-    "@libsql/client": "^0.15.15",
+    "@libsql/client": "^0.16.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "dotenv": "^17.3.1",
+    "express": "^4.18.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "prop-types": "^15.8.1"
   },
   "devDependencies": {
-    "@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.8"
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.1.0"
   }
 }

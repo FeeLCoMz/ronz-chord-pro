@@ -29,6 +29,14 @@ Persyaratan:
 npm install
 ```
 
+### Update Dependencies (Opsional - untuk versi terbaru)
+
+```bash
+npm run update
+npm audit
+npm audit-fix
+```
+
 ### Jalankan Development Server
 
 ```bash
