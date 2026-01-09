@@ -16,6 +16,7 @@
 .controls-compact {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 0.5rem 0.5rem 0;
   background: var(--card-hover);
@@ -825,7 +826,6 @@ body {
   font-weight: 700;
   min-width: 50px;
   text-align: center;
-  padding: 0.5rem 1rem;
   background: rgba(99, 102, 241, 0.15);
   border-radius: 6px;
   border: 1px solid rgba(129, 140, 248, 0.3);
@@ -1984,7 +1984,6 @@ body {
   }
   
   .controls {
-    flex-direction: column;
     align-items: stretch;
     padding: 1rem;
   }
