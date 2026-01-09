@@ -14,6 +14,29 @@ import SongListItem from './components/SongListItem';
 import { initialSongs, initialSetLists } from './data/songs';
 import './App.css';
 
+function sanitizeSongs(list = []) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter(Boolean)
+    .filter(item => item.title?.trim() && item.artist?.trim() && item.lyrics?.trim())
+    .map(item => ({
+      ...item,
+      title: item.title.trim(),
+      artist: item.artist.trim(),
+      lyrics: item.lyrics.trim()
+    }));
+}
+
+function sanitizeSetLists(list = []) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter(Boolean)
+    .map(sl => ({
+      ...sl,
+      songs: Array.isArray(sl.songs) ? sl.songs.filter(Boolean) : []
+    }));
+}
+
 function App() {
     const [showSidebar, setShowSidebar] = useState(true);
   const [showLyricsFullscreen, setShowLyricsFullscreen] = useState(false);
@@ -21,16 +44,23 @@ function App() {
   const getInitialSongs = () => {
     try {
       const data = localStorage.getItem('ronz_songs');
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = sanitizeSongs(JSON.parse(data));
+        if (parsed.length > 0) return parsed;
+      }
     } catch {}
-    return [];
+    // Fallback ke seed bawaan agar sidebar tidak kosong/blank
+    return sanitizeSongs(initialSongs);
   };
   const getInitialSetLists = () => {
     try {
       const data = localStorage.getItem('ronz_setlists');
-      if (data) return JSON.parse(data);
+      if (data) {
+        const parsed = sanitizeSetLists(JSON.parse(data));
+        if (parsed.length > 0) return parsed;
+      }
     } catch {}
-    return [];
+    return sanitizeSetLists(initialSetLists);
   };
   const [songs, setSongs] = useState(getInitialSongs);
   const [setLists, setSetLists] = useState(getInitialSetLists);
@@ -69,9 +99,10 @@ function App() {
         .then(([songsData, setlistsData]) => {
           // Merge songs
           if (Array.isArray(songsData)) {
+            const remoteSongs = sanitizeSongs(songsData);
             setSongs(prev => {
-              const merged = [...prev];
-              songsData.forEach(remote => {
+              const merged = [...sanitizeSongs(prev)];
+              remoteSongs.forEach(remote => {
                 const localIdx = merged.findIndex(s => s.id === remote.id);
                 if (localIdx > -1) {
                   merged[localIdx] = (remote.updatedAt > (merged[localIdx].updatedAt||0)) ? remote : merged[localIdx];
@@ -84,9 +115,10 @@ function App() {
           }
           // Merge setlists
           if (Array.isArray(setlistsData)) {
+            const remoteSetlists = sanitizeSetLists(setlistsData);
             setSetLists(prev => {
-              const merged = [...prev];
-              setlistsData.forEach(remote => {
+              const merged = [...sanitizeSetLists(prev)];
+              remoteSetlists.forEach(remote => {
                 const localIdx = merged.findIndex(s => s.id === remote.id);
                 if (localIdx > -1) {
                   merged[localIdx] = (remote.updatedAt > (merged[localIdx].updatedAt||0)) ? remote : merged[localIdx];
