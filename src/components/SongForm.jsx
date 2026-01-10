@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import YouTubeViewer from './YouTubeViewer';
+import AiAssistant from './AiAssistant';
 
 const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -27,6 +28,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [isLoadingChord, setIsLoadingChord] = useState(false);
   const [chordError, setChordError] = useState('');
   const [copiedChord, setCopiedChord] = useState(false);
+  const [showAi, setShowAi] = useState(false);
   // ...existing code...
 
   useEffect(() => {
@@ -456,6 +458,64 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     setFormData(prev => ({ ...prev, lyrics: result.join('\n') }));
   };
 
+  // Convert inline ChordPro ([C]Lyric) to chord-above-lyrics format
+  const convertChordProToStandard = () => {
+    const text = formData.lyrics || '';
+    if (!text.trim()) return;
+
+    const lines = text.split('\n');
+    const output = [];
+
+    const pushChordAndLyric = (chords, lyricLine) => {
+      if (chords.length === 0) {
+        output.push(lyricLine);
+        return;
+      }
+
+      // Build chord line aligned to lyric characters
+      let chordLine = '';
+      chords.forEach(({ pos, chord }) => {
+        while (chordLine.length < pos) chordLine += ' ';
+        chordLine += chord + ' ';
+      });
+
+      output.push(chordLine.trimEnd());
+      output.push(lyricLine.trimEnd());
+    };
+
+    for (const line of lines) {
+      let lyric = '';
+      const chords = [];
+      let i = 0;
+      while (i < line.length) {
+        const ch = line[i];
+        if (ch === '[') {
+          let j = i + 1;
+          let chord = '';
+          while (j < line.length && line[j] !== ']') {
+            chord += line[j];
+            j++;
+          }
+          if (j < line.length && line[j] === ']') {
+            chords.push({ pos: lyric.length, chord: chord.trim() });
+            i = j + 1;
+            continue;
+          }
+        }
+        lyric += ch;
+        i++;
+      }
+
+      if (chords.length > 0) {
+        pushChordAndLyric(chords, lyric);
+      } else {
+        output.push(line);
+      }
+    }
+
+    setFormData(prev => ({ ...prev, lyrics: output.join('\n') }));
+  };
+
    return (
     <>
       <div className="modal-overlay">
@@ -701,6 +761,12 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   <button type="button" onClick={convertStandardToChordPro} className="btn btn-sm btn-primary">
                     🔄 Convert ke ChordPro
                   </button>
+                  <button type="button" onClick={convertChordProToStandard} className="btn btn-sm">
+                    🔀 Convert ke Standar
+                  </button>
+                  <button type="button" onClick={() => setShowAi(true)} className="btn btn-sm btn-secondary">
+                    🤖 AI
+                  </button>
                 </div>
               </div>
               <textarea
@@ -727,6 +793,18 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
           </form>
         </div>
       </div>
+
+      {showAi && (
+        <AiAssistant
+          onClose={() => setShowAi(false)}
+          song={{
+            title: formData.title,
+            artist: formData.artist,
+            key: formData.key,
+            lyrics: formData.lyrics,
+          }}
+        />
+      )}
 
 
 
