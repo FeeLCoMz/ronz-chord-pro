@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import YouTubeViewer from './YouTubeViewer';
 import AiAssistant from './AiAssistant';
+import { transposeChord } from '../utils/chordUtils';
 
 const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -29,6 +30,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [chordError, setChordError] = useState('');
   const [copiedChord, setCopiedChord] = useState(false);
   const [showAi, setShowAi] = useState(false);
+  const [transposeValue, setTransposeValue] = useState(0);
   // ...existing code...
 
   useEffect(() => {
@@ -516,6 +518,35 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     setFormData(prev => ({ ...prev, lyrics: output.join('\n') }));
   };
 
+  // Transpose all chords in lyrics
+  const applyTranspose = () => {
+    if (transposeValue === 0) return;
+    const text = formData.lyrics || '';
+    if (!text.trim()) return;
+
+    // Find all chords in bracket format [C], [G#], [Am], etc
+    const transposed = text.replace(/\[([A-G][#b]?[^\]]*?)\]/g, (match, chord) => {
+      const result = transposeChord(chord.trim(), transposeValue);
+      return `[${result}]`;
+    });
+
+    // Also update the key field if it exists
+    if (formData.key.trim()) {
+      const newKey = transposeChord(formData.key.trim(), transposeValue);
+      setFormData(prev => ({ ...prev, lyrics: transposed, key: newKey }));
+    } else {
+      setFormData(prev => ({ ...prev, lyrics: transposed }));
+    }
+
+    // Reset transpose value after applying
+    setTransposeValue(0);
+    alert(`✓ Transpose ${transposeValue > 0 ? '+' : ''}${transposeValue} semitone berhasil diterapkan!`);
+  };
+
+  const resetTranspose = () => {
+    setTransposeValue(0);
+  };
+
    return (
     <>
       <div className="modal-overlay">
@@ -645,6 +676,47 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   onChange={handleChange}
                   placeholder="Contoh: Pop, Rock, Jazz"
                 />
+              </div>
+            </div>
+
+            {/* Section 2b: Transpose Chord */}
+            <div className="form-row">
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>🎹 Transpose Chord</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <input
+                    type="range"
+                    min="-12"
+                    max="12"
+                    value={transposeValue}
+                    onChange={(e) => setTransposeValue(Number(e.target.value))}
+                    style={{ flex: 1, minWidth: 100 }}
+                  />
+                  <span style={{ minWidth: '60px', textAlign: 'center', fontWeight: 600 }}>
+                    {transposeValue > 0 ? '+' : ''}{transposeValue}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-primary"
+                    onClick={applyTranspose}
+                    disabled={transposeValue === 0}
+                    title="Terapkan transpose ke semua chord"
+                  >
+                    ✓ Terapkan
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    onClick={resetTranspose}
+                    disabled={transposeValue === 0}
+                    title="Reset ke 0"
+                  >
+                    🔄
+                  </button>
+                </div>
+                <small style={{ display: 'block', marginTop: '0.35rem', color: 'var(--text-muted)' }}>
+                  Naik/turun semitone untuk mengubah kunci seluruh lagu
+                </small>
               </div>
             </div>
 
