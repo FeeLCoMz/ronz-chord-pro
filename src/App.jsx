@@ -166,16 +166,39 @@ function App() {
     try {
       localStorage.setItem('ronz_setlists', JSON.stringify(setLists));
     } catch { }
-    // Push changes ke backend jika online (hanya untuk setlist yang berubah/baru)
-    if (navigator.onLine && setLists.length > 0) {
-      setLists.forEach(setList => {
-        fetch(`/api/setlists/${setList.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(setList)
-        }).catch(() => { });
-      });
-    }
+  }, [setLists]);
+
+  // Sync setLists to backend (debounced to avoid too many requests)
+  useEffect(() => {
+    if (!navigator.onLine || setLists.length === 0) return;
+
+    const syncTimeout = setTimeout(async () => {
+      for (const setList of setLists) {
+        try {
+          // Check if setlist exists in backend
+          const checkRes = await fetch(`/api/setlists/${setList.id}`);
+          if (checkRes.ok) {
+            // Update existing
+            await fetch(`/api/setlists/${setList.id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(setList)
+            });
+          } else if (checkRes.status === 404) {
+            // Create new
+            await fetch('/api/setlists', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(setList)
+            });
+          }
+        } catch (err) {
+          console.error(`Failed to sync setlist ${setList.id}:`, err);
+        }
+      }
+    }, 1000); // Debounce 1 second
+
+    return () => clearTimeout(syncTimeout);
   }, [setLists]);
 
   // Collect runtime errors without killing the UI
