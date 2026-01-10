@@ -19,6 +19,11 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [importUrl, setImportUrl] = useState('');
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState('');
+  const [showYouTubeSearch, setShowYouTubeSearch] = useState(false);
+  const [youtubeSearchQuery, setYoutubeSearchQuery] = useState('');
+  const [youtubeResults, setYoutubeResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
   // ...existing code...
 
   useEffect(() => {
@@ -141,6 +146,64 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     } finally {
       setIsImporting(false);
     }
+  };
+
+  const searchYouTube = async () => {
+    if (!youtubeSearchQuery.trim()) {
+      setSearchError('Masukkan kata kunci pencarian');
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError('');
+
+    try {
+      // Using YouTube Data API v3 (requires API key)
+      // Note: User needs to get their own API key from Google Cloud Console
+      const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY || 'AIzaSyDummy_ReplaceWithRealKey';
+      const response = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(youtubeSearchQuery)}&key=${API_KEY}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Gagal mencari video YouTube');
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error.message || 'YouTube API error');
+      }
+
+      const videos = data.items.map(item => ({
+        id: item.id.videoId,
+        title: item.snippet.title,
+        channelTitle: item.snippet.channelTitle,
+        thumbnail: item.snippet.thumbnails.medium.url,
+        description: item.snippet.description
+      }));
+
+      setYoutubeResults(videos);
+    } catch (error) {
+      setSearchError(`Error: ${error.message}`);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const selectYouTubeVideo = (videoId) => {
+    setFormData(prev => ({ ...prev, youtubeId: videoId }));
+    setShowYouTubeSearch(false);
+    setYoutubeResults([]);
+    setYoutubeSearchQuery('');
+  };
+
+  const openYouTubeSearchModal = () => {
+    const query = `${formData.title} ${formData.artist}`.trim();
+    setYoutubeSearchQuery(query);
+    setShowYouTubeSearch(true);
+    setYoutubeResults([]);
+    setSearchError('');
   };
 
   const parseChordtelaContent = (doc) => {
@@ -413,10 +476,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                 <button
                   type="button"
                   className="btn btn-sm btn-secondary"
-                  onClick={() => {
-                    const q = encodeURIComponent(`${formData.title} ${formData.artist}`);
-                    window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
-                  }}
+                  onClick={openYouTubeSearchModal}
                   disabled={!formData.title && !formData.artist}
                   title="Cari video dari YouTube"
                 >
@@ -663,6 +723,154 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   Batal
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* YouTube Search Modal */}
+      {showYouTubeSearch && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '700px', maxHeight: '80vh', overflow: 'auto' }}>
+            <button
+              onClick={() => {
+                setShowYouTubeSearch(false);
+                setYoutubeSearchQuery('');
+                setYoutubeResults([]);
+                setSearchError('');
+              }}
+              className="btn-close"
+              style={{ position: 'absolute', top: 18, right: 18, zIndex: 10 }}
+              aria-label="Tutup"
+            >
+              ✕
+            </button>
+            <div className="modal-header">
+              <h2 style={{ marginBottom: 0 }}>🎵 Cari Video YouTube</h2>
+            </div>
+            <div style={{ padding: '1.5rem' }}>
+              <div className="form-group">
+                <label htmlFor="youtubeSearch">Kata Kunci Pencarian</label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    id="youtubeSearch"
+                    value={youtubeSearchQuery}
+                    onChange={(e) => {
+                      setYoutubeSearchQuery(e.target.value);
+                      setSearchError('');
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchYouTube();
+                      }
+                    }}
+                    placeholder="Contoh: Percaya Padaku Afgan"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={searchYouTube}
+                    disabled={isSearching}
+                    className="btn btn-primary"
+                  >
+                    {isSearching ? '⏳' : '🔍'}
+                  </button>
+                </div>
+                <small style={{ display: 'block', marginTop: '0.35rem', color: 'var(--text-muted)' }}>
+                  Masukkan judul lagu dan artis untuk mencari video
+                </small>
+              </div>
+
+              {searchError && (
+                <div style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '1rem', padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: '6px' }}>
+                  {searchError}
+                  <br />
+                  <small>💡 Tip: Dapatkan API Key gratis di Google Cloud Console → YouTube Data API v3</small>
+                </div>
+              )}
+
+              {youtubeResults.length > 0 && (
+                <div className="youtube-results">
+                  <p style={{ marginBottom: '1rem', fontWeight: 600 }}>
+                    {youtubeResults.length} video ditemukan - Klik untuk memilih:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {youtubeResults.map((video) => (
+                      <div
+                        key={video.id}
+                        onClick={() => selectYouTubeVideo(video.id)}
+                        style={{
+                          display: 'flex',
+                          gap: '1rem',
+                          padding: '0.75rem',
+                          border: '1px solid var(--border)',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          backgroundColor: 'var(--bg-secondary)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--primary)';
+                          e.currentTarget.style.backgroundColor = 'var(--bg-hover)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--border)';
+                          e.currentTarget.style.backgroundColor = 'var(--bg-secondary)';
+                        }}
+                      >
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          style={{
+                            width: '120px',
+                            height: '90px',
+                            objectFit: 'cover',
+                            borderRadius: '6px',
+                            flexShrink: 0
+                          }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h4 style={{
+                            margin: '0 0 0.25rem 0',
+                            fontSize: '0.95rem',
+                            fontWeight: 600,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical'
+                          }}>
+                            {video.title}
+                          </h4>
+                          <p style={{
+                            margin: 0,
+                            fontSize: '0.85rem',
+                            color: 'var(--text-muted)'
+                          }}>
+                            {video.channelTitle}
+                          </p>
+                          <p style={{
+                            margin: '0.25rem 0 0 0',
+                            fontSize: '0.75rem',
+                            color: 'var(--text-muted)',
+                            fontFamily: 'monospace'
+                          }}>
+                            ID: {video.id}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!isSearching && youtubeResults.length === 0 && youtubeSearchQuery && !searchError && (
+                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                  Klik tombol 🔍 untuk mencari video
+                </div>
+              )}
             </div>
           </div>
         </div>
