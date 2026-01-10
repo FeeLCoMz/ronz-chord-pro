@@ -741,7 +741,18 @@ function App() {
                   {/* Tombol fullscreen dan lirik fullscreen */}
                   <div className="lyrics-section" ref={scrollRef}>
                     {selectedSong ? (
-                      <ChordDisplay song={selectedSong} transpose={transpose} />
+                      <>
+                        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => handleEditSong(selectedSong)}
+                            className="btn btn-sm btn-primary"
+                            title="Edit lagu ini"
+                          >
+                            ✏️ Edit Lagu
+                          </button>
+                        </div>
+                        <ChordDisplay song={selectedSong} transpose={transpose} />
+                      </>
                     ) : (
                       <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
                         <h3>Pilih lagu dari daftar untuk melihat chord dan lirik</h3>
