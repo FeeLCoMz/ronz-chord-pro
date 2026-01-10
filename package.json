@@ -18,7 +18,9 @@
     "audit-fix": "npm audit fix"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@libsql/client": "^0.15.15",
+    "busboy": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.18.2",

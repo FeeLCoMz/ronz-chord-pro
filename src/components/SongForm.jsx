@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import YouTubeViewer from './YouTubeViewer';
 import AiAssistant from './AiAssistant';
 import { transposeChord } from '../utils/chordUtils';
+import { transcribeAudio } from '../apiClient';
 
 const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -31,6 +32,11 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [copiedChord, setCopiedChord] = useState(false);
   const [showAi, setShowAi] = useState(false);
   const [transposeValue, setTransposeValue] = useState(0);
+  const [showTranscribe, setShowTranscribe] = useState(false);
+  const [transcribeFile, setTranscribeFile] = useState(null);
+  const [transcribeLoading, setTranscribeLoading] = useState(false);
+  const [transcribeError, setTranscribeError] = useState('');
+  const [transcribeResult, setTranscribeResult] = useState('');
   // ...existing code...
 
   useEffect(() => {
@@ -301,8 +307,8 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     const result = [];
     let i = 0;
 
-    // Regex untuk mendeteksi chord (dengan atau tanpa dash/modifier)
-    const chordRegex = /-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*/g;
+    // Regex untuk mendeteksi chord (dengan atau tanpa dash/modifier dan dots untuk durasi)
+    const chordRegex = /-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*\.*/g;
     
     // Function to check if line is chord chart format (with bars |)
     const isChordChartLine = (line) => {
@@ -338,8 +344,23 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       const trimmed = line.trim();
       if (!trimmed) return false;
       
-      // Skip section labels
-      if (/^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik|Lead|Strings|Brass|Suling|Mandolin|Coda|Ending|Back to)\s*:?/i.test(trimmed)) {
+      // Check if it's a structure label with chords (e.g., "Intro : Gm D# F")
+      const structureLabelMatch = trimmed.match(/^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik|Lead|Strings|Brass|Suling|Mandolin|Coda|Ending|Back to)\s*:\s*(.+)/i);
+      if (structureLabelMatch) {
+        const afterLabel = structureLabelMatch[2].trim();
+        // Check if what follows contains chords
+        const tokens = afterLabel.split(/\s+/);
+        let chordCount = 0;
+        for (const token of tokens) {
+          // Match chords with optional - prefix and .. suffix, or single dot for repeat
+          if (/^-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*\.*/i.test(token) || token === '.') chordCount++;
+        }
+        // If majority are chords, treat this line as having chords
+        return chordCount > 0 && (chordCount / tokens.length) >= 0.5;
+      }
+      
+      // Skip section labels without chords
+      if (/^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik|Lead|Strings|Brass|Suling|Mandolin|Coda|Ending|Back to)\s*:?$/i.test(trimmed)) {
         return false;
       }
 
@@ -348,8 +369,21 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
         return false; // Will be handled separately
       }
       
-      // Remove all valid chords and check what's left
-      const withoutChords = trimmed.replace(chordRegex, '').replace(/[\s\.\-]+/g, '');
+      // Check for chord bar format (e.g., "D . Gm . Bb . D .")
+      // Count chords and dots - if they dominate, it's a chord line
+      const tokens = trimmed.split(/\s+/);
+      let chordOrDotCount = 0;
+      for (const token of tokens) {
+        if (/^-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*\.*/i.test(token) || token === '.') {
+          chordOrDotCount++;
+        }
+      }
+      if (chordOrDotCount > 0 && (chordOrDotCount / tokens.length) >= 0.6) {
+        return true;
+      }
+      
+      // Remove all valid chords (including - prefix and .. suffix) and check what's left
+      const withoutChords = trimmed.replace(/-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*\.\.?/gi, '').replace(/[\s\.\-]+/g, '');
       
       // If almost nothing left, it's a chord line
       return withoutChords.length < 3;
@@ -372,7 +406,37 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       // Check for section labels (ALL CAPS or with colon)
       if (/^[A-Z\s]+$/.test(trimmed) || /^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik|Lead|Strings|Brass|Suling|Mandolin|Coda|Ending|Back to)/i.test(trimmed)) {
         result.push(`{comment: ${trimmed}}`);
-        i++;
+        
+        // Check if next lines are indented chords (for "Musik :\n        D -C D.." pattern)
+        let j = i + 1;
+        while (j < lines.length && lines[j].trim() && /^\s+/.test(lines[j]) && isChordLine(lines[j])) {
+          const indentedChords = lines[j].trim();
+          // Parse chords with syncope marks and dots
+          const chordTokens = indentedChords.split(/\s+/);
+          let chordProLine = '';
+          for (const token of chordTokens) {
+            // Check if token is a chord (with optional - prefix and .. suffix)
+            const chordMatch = token.match(/^(-?)([A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*)(\.*)/i);
+            if (chordMatch) {
+              const syncope = chordMatch[1]; // "-" if present
+              const chord = chordMatch[2];
+              const duration = chordMatch[3]; // ".." if present
+              
+              // Preserve syncope mark in comment if present
+              if (syncope) {
+                chordProLine += `[${chord}]{comment: -}${duration} `;
+              } else {
+                chordProLine += `[${chord}]${duration} `;
+              }
+            }
+          }
+          if (chordProLine.trim()) {
+            result.push(chordProLine.trim());
+          }
+          j++;
+        }
+        
+        i = j;
         continue;
       }
 
@@ -386,6 +450,45 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
 
       // Check if current line is a chord line (lyrics format)
       if (isChordLine(currentLine)) {
+        // Check if it's a structure label with chords (e.g., "Intro : Gm D# F")
+        const structureLabelMatch = currentLine.match(/^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik|Lead|Strings|Brass|Suling|Mandolin|Coda|Ending|Back to)\s*:\s*(.+)/i);
+        
+        if (structureLabelMatch) {
+          // Extract label and chords
+          const label = structureLabelMatch[1];
+          const chordsAfterLabel = structureLabelMatch[2].trim();
+          
+          // Add the label line
+          result.push(`{comment: ${label} :}`);
+          
+          // Convert chords to ChordPro format
+          const chordTokens = chordsAfterLabel.split(/\s+/);
+          let chordProLine = '';
+          for (const token of chordTokens) {
+            if (chordRegex.test(token)) {
+              chordProLine += `[${token}] `;
+            }
+          }
+          result.push(chordProLine.trim());
+          
+          // Check if there are continuation lines (indented chords)
+          let j = i + 1;
+          while (j < lines.length && lines[j].trim() && isChordLine(lines[j]) && /^\s+/.test(lines[j])) {
+            const continuationChords = lines[j].trim().split(/\s+/);
+            let continuationLine = '';
+            for (const token of continuationChords) {
+              if (chordRegex.test(token)) {
+                continuationLine += `[${token}] `;
+              }
+            }
+            result.push(continuationLine.trim());
+            j++;
+          }
+          
+          i = j;
+          continue;
+        }
+        
         // Check if next line exists and is lyrics (not chords, not empty)
         if (nextLine && nextLine.trim() && !isChordLine(nextLine) && !isChordChartLine(nextLine)) {
           // This is chord + lyrics pattern
@@ -433,20 +536,74 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
           i += 2; // Skip both chord and lyric lines
         } else {
           // Chord line without lyrics (instrumental section)
-          const chords = [];
-          let match;
-          const chordPattern = /-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*/g;
+          // Handle chord bar format with pipes and/or dot repeat markers (e.g., "| D . | Gm . |" or "D . Gm .")
+          const hasPipes = currentLine.includes('|');
+          const tokens = hasPipes 
+            ? currentLine.split('|').map(s => s.trim()).filter(s => s)
+            : currentLine.trim().split(/\s+/);
           
-          while ((match = chordPattern.exec(currentLine)) !== null) {
-            if (match[0].trim()) {
-              chords.push(match[0].trim());
+          let lastChord = '';
+          let chordProLine = '';
+          let hasDotsOrMultipleChords = false;
+          
+          for (let j = 0; j < tokens.length; j++) {
+            const token = tokens[j];
+            
+            if (hasPipes) {
+              // Processing pipe-separated bars
+              const barTokens = token.split(/\s+/);
+              for (const barToken of barTokens) {
+                if (barToken === '.') {
+                  hasDotsOrMultipleChords = true;
+                  if (lastChord) {
+                    chordProLine += `[${lastChord}] `;
+                  }
+                } else if (/^-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*\.*/i.test(barToken)) {
+                  const cleanChord = barToken.replace(/\.+$/, '');
+                  lastChord = cleanChord;
+                  chordProLine += `[${cleanChord}] `;
+                  if (tokens.length > 1 || barTokens.length > 1) hasDotsOrMultipleChords = true;
+                }
+              }
+              // Add bar separator after each bar (except last)
+              if (j < tokens.length - 1) {
+                chordProLine += '| ';
+              }
+            } else {
+              // Processing space-separated tokens (no pipes)
+              if (token === '.') {
+                hasDotsOrMultipleChords = true;
+                if (lastChord) {
+                  chordProLine += `[${lastChord}] `;
+                }
+              } else if (/^-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*\.*/i.test(token)) {
+                const cleanChord = token.replace(/\.+$/, '');
+                lastChord = cleanChord;
+                chordProLine += `[${cleanChord}] `;
+                if (tokens.length > 1) hasDotsOrMultipleChords = true;
+              }
             }
           }
           
-          if (chords.length > 0) {
-            result.push(chords.map(c => `[${c}]`).join(' '));
+          if (hasDotsOrMultipleChords && chordProLine.trim()) {
+            result.push(chordProLine.trim());
           } else {
-            result.push(currentLine);
+            // Fallback to original pattern matching
+            const chords = [];
+            let match;
+            const chordPattern = /-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*/g;
+            
+            while ((match = chordPattern.exec(currentLine)) !== null) {
+              if (match[0].trim()) {
+                chords.push(match[0].trim());
+              }
+            }
+            
+            if (chords.length > 0) {
+              result.push(chords.map(c => `[${c}]`).join(' '));
+            } else {
+              result.push(currentLine);
+            }
           }
           i++;
         }
@@ -461,63 +618,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   };
 
   // Convert inline ChordPro ([C]Lyric) to chord-above-lyrics format
-  const convertChordProToStandard = () => {
-    const text = formData.lyrics || '';
-    if (!text.trim()) return;
-
-    const lines = text.split('\n');
-    const output = [];
-
-    const pushChordAndLyric = (chords, lyricLine) => {
-      if (chords.length === 0) {
-        output.push(lyricLine);
-        return;
-      }
-
-      // Build chord line aligned to lyric characters
-      let chordLine = '';
-      chords.forEach(({ pos, chord }) => {
-        while (chordLine.length < pos) chordLine += ' ';
-        chordLine += chord + ' ';
-      });
-
-      output.push(chordLine.trimEnd());
-      output.push(lyricLine.trimEnd());
-    };
-
-    for (const line of lines) {
-      let lyric = '';
-      const chords = [];
-      let i = 0;
-      while (i < line.length) {
-        const ch = line[i];
-        if (ch === '[') {
-          let j = i + 1;
-          let chord = '';
-          while (j < line.length && line[j] !== ']') {
-            chord += line[j];
-            j++;
-          }
-          if (j < line.length && line[j] === ']') {
-            chords.push({ pos: lyric.length, chord: chord.trim() });
-            i = j + 1;
-            continue;
-          }
-        }
-        lyric += ch;
-        i++;
-      }
-
-      if (chords.length > 0) {
-        pushChordAndLyric(chords, lyric);
-      } else {
-        output.push(line);
-      }
-    }
-
-    setFormData(prev => ({ ...prev, lyrics: output.join('\n') }));
-  };
-
   // Transpose all chords in lyrics
   const applyTranspose = () => {
     if (transposeValue === 0) return;
@@ -545,6 +645,47 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
 
   const resetTranspose = () => {
     setTransposeValue(0);
+  };
+
+  const handleTranscribeFile = async () => {
+    if (!transcribeFile) {
+      setTranscribeError('Pilih file audio terlebih dahulu');
+      return;
+    }
+
+    // Check file size (max 25MB)
+    const MAX_SIZE = 25 * 1024 * 1024; // 25MB
+    if (transcribeFile.size > MAX_SIZE) {
+      setTranscribeError(`File terlalu besar (${(transcribeFile.size / 1024 / 1024).toFixed(1)}MB). Max 25MB.`);
+      return;
+    }
+
+    setTranscribeLoading(true);
+    setTranscribeError('');
+    setTranscribeResult('');
+
+    try {
+      const resp = await transcribeAudio(transcribeFile);
+      setTranscribeResult(resp.transcript || '');
+    } catch (err) {
+      setTranscribeError(err.message);
+      console.error('Transcribe error:', err);
+    } finally {
+      setTranscribeLoading(false);
+    }
+  };
+
+  const pasteTranscribeResult = () => {
+    if (transcribeResult.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        lyrics: prev.lyrics ? prev.lyrics + '\n\n' + transcribeResult : transcribeResult
+      }));
+      setShowTranscribe(false);
+      setTranscribeFile(null);
+      setTranscribeResult('');
+      setTranscribeError('');
+    }
   };
 
    return (
@@ -833,11 +974,11 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   <button type="button" onClick={convertStandardToChordPro} className="btn btn-sm btn-primary">
                     🔄 Convert ke ChordPro
                   </button>
-                  <button type="button" onClick={convertChordProToStandard} className="btn btn-sm">
-                    🔀 Convert ke Standar
-                  </button>
                   <button type="button" onClick={() => setShowAi(true)} className="btn btn-sm btn-secondary">
                     🤖 AI
+                  </button>
+                  <button type="button" onClick={() => setShowTranscribe(true)} className="btn btn-sm">
+                    🎤 Transkripsi
                   </button>
                 </div>
               </div>
@@ -1215,6 +1356,150 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
         </div>
       )}
 
+      {/* Transcribe Audio Modal */}
+      {showTranscribe && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '80vh', overflow: 'auto' }}>
+            <button
+              onClick={() => {
+                setShowTranscribe(false);
+                setTranscribeFile(null);
+                setTranscribeResult('');
+                setTranscribeError('');
+              }}
+              className="btn-close"
+              style={{ position: 'absolute', top: 18, right: 18, zIndex: 10 }}
+              aria-label="Tutup"
+            >
+              ✕
+            </button>
+            <div className="modal-header">
+              <h2 style={{ marginBottom: 0 }}>🎤 Transkripsi Audio ke Text</h2>
+            </div>
+            <div style={{ padding: '1.5rem' }}>
+              <div className="form-group">
+                <label htmlFor="audioFile">Pilih File Audio</label>
+                <input
+                  type="file"
+                  id="audioFile"
+                  accept="audio/*"
+                  onChange={(e) => {
+                    setTranscribeFile(e.target.files?.[0] || null);
+                    setTranscribeError('');
+                    setTranscribeResult('');
+                  }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '0.75rem',
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '8px',
+                    color: 'var(--text)',
+                    cursor: 'pointer'
+                  }}
+                />
+                <small style={{ display: 'block', marginTop: '0.5rem', color: 'var(--text-muted)' }}>
+                  Format: MP3, WAV, M4A, OGG, WebM, dll. Max 25MB
+                </small>
+              </div>
+
+              {transcribeFile && (
+                <div style={{
+                  padding: '0.75rem',
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '1px solid rgba(34, 197, 94, 0.3)',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  color: 'var(--text)'
+                }}>
+                  <strong>File dipilih:</strong> {transcribeFile.name}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                <button
+                  type="button"
+                  onClick={handleTranscribeFile}
+                  disabled={!transcribeFile || transcribeLoading}
+                  className={`btn btn-sm ${transcribeLoading ? '' : 'btn-primary'}`}
+                  style={{ flex: 1 }}
+                >
+                  {transcribeLoading ? '⏳ Transkripsi...' : '🚀 Mulai Transkripsi'}
+                </button>
+              </div>
+
+              {transcribeError && (
+                <div style={{
+                  padding: '0.75rem',
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  color: '#f87171'
+                }}>
+                  <strong>Error:</strong> {transcribeError}
+                </div>
+              )}
+
+              {transcribeResult && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Hasil Transkripsi:</label>
+                  <textarea
+                    readOnly
+                    value={transcribeResult}
+                    style={{
+                      width: '100%',
+                      height: '200px',
+                      padding: '0.75rem',
+                      background: 'var(--bg)',
+                      color: 'var(--text)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      fontFamily: 'monospace',
+                      fontSize: '0.9rem',
+                      resize: 'vertical',
+                      marginBottom: '0.75rem'
+                    }}
+                  />
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={pasteTranscribeResult}
+                      className="btn btn-primary"
+                      style={{ flex: 1 }}
+                    >
+                      ✓ Paste ke Lirik
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(transcribeResult);
+                        alert('✓ Copied to clipboard');
+                      }}
+                      className="btn btn-sm"
+                    >
+                      📋 Copy
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAi && (
+        <AiAssistant
+          onClose={() => setShowAi(false)}
+          song={{
+            title: formData.title,
+            artist: formData.artist,
+            key: formData.key,
+            lyrics: formData.lyrics,
+          }}
+        />
+      )}
     </>
   );
 };
