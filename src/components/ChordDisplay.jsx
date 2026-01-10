@@ -41,6 +41,40 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
   
   let melodyBarCursor = 0;
 
+  // Function to render text with curly bracket highlighting
+  const renderTextWithBrackets = (text) => {
+    const parts = [];
+    const bracketRegex = /(\{[^}]*\})/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = bracketRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(
+          <span key={`text-${lastIndex}`}>
+            {text.substring(lastIndex, match.index)}
+          </span>
+        );
+      }
+      parts.push(
+        <span key={`bracket-${match.index}`} className="bracket-highlight">
+           {match[0].slice(1, -1)}
+        </span>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(
+        <span key={`text-${lastIndex}`}>
+          {text.substring(lastIndex)}
+        </span>
+      );
+    }
+
+    return parts.length > 0 ? parts : text;
+  };
+
   const renderLine = (lineData, index) => {
     if (lineData.type === 'empty') {
       return <div key={index} className="lyrics-line empty"></div>;
@@ -136,9 +170,10 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       
       while ((match = barRegex.exec(textWithBars)) !== null) {
         if (match.index > lastIndex) {
+          const textSegment = textWithBars.substring(lastIndex, match.index);
           textParts.push(
             <span key={`text-${lastIndex}`}>
-              {textWithBars.substring(lastIndex, match.index)}
+              {renderTextWithBrackets(textSegment)}
             </span>
           );
         }
@@ -151,9 +186,10 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       }
       
       if (lastIndex < textWithBars.length) {
+        const textSegment = textWithBars.substring(lastIndex);
         textParts.push(
           <span key={`text-${lastIndex}`}>
-            {textWithBars.substring(lastIndex)}
+            {renderTextWithBrackets(textSegment)}
           </span>
         );
       }
@@ -162,7 +198,7 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
         <div key={index} className="lyrics-line">
           <div className="chord-line">{chordLine}</div>
           <div className="text-line">
-            {textParts.length > 0 ? textParts : lineData.text}
+            {textParts.length > 0 ? textParts : renderTextWithBrackets(lineData.text)}
           </div>
           {/* Inline numeric notation (not angka) mapped by bars */}
           {melodyBars.length > 0 && (
@@ -196,7 +232,7 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
     
     return (
       <div key={index} className="lyrics-line">
-        <div className="text-line">{lineData.line}</div>
+        <div className="text-line">{renderTextWithBrackets(lineData.line)}</div>
       </div>
     );
   };
@@ -207,20 +243,25 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
         <h2>{parsedSong.metadata.title || song.title}</h2>
         <p className="artist">{parsedSong.metadata.artist || song.artist}</p>
         <div className="song-metadata">
-          {parsedSong.metadata.key && (
+          {(parsedSong.metadata.key || song.key) && (
             <span className="metadata-item">
-              <strong>Key:</strong> {transposeChord(parsedSong.metadata.key, transpose)}
-              {transpose !== 0 && ` (Original: ${parsedSong.metadata.key})`}
+              <strong>Key:</strong> {transposeChord(parsedSong.metadata.key || song.key, transpose)}
+              {transpose !== 0 && ` (Original: ${parsedSong.metadata.key || song.key})`}
+            </span>
+          )}
+          {(song.tempo || parsedSong.metadata.tempo) && (
+            <span className="metadata-item">
+              <strong>Tempo:</strong> {song.tempo || parsedSong.metadata.tempo} BPM
+            </span>
+          )}
+          {song.style && (
+            <span className="metadata-item">
+              <strong>Style:</strong> {song.style}
             </span>
           )}
           {parsedSong.metadata.time && (
             <span className="metadata-item">
               <strong>Time:</strong> {parsedSong.metadata.time}
-            </span>
-          )}
-          {parsedSong.metadata.tempo && (
-            <span className="metadata-item">
-              <strong>Tempo:</strong> {parsedSong.metadata.tempo} BPM
             </span>
           )}
           {parsedSong.metadata.capo && (

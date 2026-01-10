@@ -6,10 +6,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import ChordDisplay from './components/ChordDisplay';
 import YouTubeViewer from './components/YouTubeViewer';
 import AutoScroll from './components/AutoScroll';
-
-import SetListManager from './components/SetListManager';
 import HelpModal from './components/HelpModal';
 import SongFormBaru from './components/SongForm';
+import SetListForm from './components/SetListForm';
 import SongListItem from './components/SongListItem';
 import { initialSongs, initialSetLists } from './data/songs';
 import './App.css';
@@ -73,7 +72,8 @@ function App() {
   const [currentSetList, setCurrentSetList] = useState(null);
   const [showSongForm, setShowSongForm] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
-  const [showSetListManager, setShowSetListManager] = useState(false);
+  const [showSetListForm, setShowSetListForm] = useState(false);
+  const [editingSetList, setEditingSetList] = useState(null);
   const [showSetListMenu, setShowSetListMenu] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -235,7 +235,35 @@ function App() {
     };
     setSetLists(prevSetLists => [...prevSetLists, newSetList]);
     setCurrentSetList(newSetList.id);
-    setShowSetListManager(false);
+    setShowSetListForm(false);
+    setEditingSetList(null);
+  };
+
+  const handleUpdateSetList = async (id, name) => {
+    let updatedSetList = null;
+    setSetLists(prevSetLists => {
+      return prevSetLists.map(sl => {
+        if (sl.id === id) {
+          const next = { ...sl, name, updatedAt: Date.now() };
+          updatedSetList = next;
+          return next;
+        }
+        return sl;
+      });
+    });
+    if (updatedSetList) {
+      try {
+        await fetch(`/api/setlists/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, songs: updatedSetList.songs, updatedAt: updatedSetList.updatedAt })
+        });
+      } catch (err) {
+        console.error('Gagal update setlist:', err);
+      }
+    }
+    setShowSetListForm(false);
+    setEditingSetList(null);
   };
 
   const handleDeleteSetList = async (id) => {
@@ -465,13 +493,20 @@ function App() {
               className={`nav-btn ${activeNav === 'songs' ? 'active' : ''}`}
               onClick={() => setActiveNav('songs')}
             >
-              📋 Daftar Lagu
+              📋 Lagu
             </button>
             <button
               className={`nav-btn ${activeNav === 'setlists' ? 'active' : ''}`}
               onClick={() => setActiveNav('setlists')}
             >
               🎵 Setlist
+            </button>
+            <button
+              className={`nav-btn ${!selectedSong ? '' : 'active'}`}
+              onClick={() => setSelectedSong(null)}
+              title="Kembali ke daftar"
+            >
+              ← Kembali
             </button>
             <button
               className="nav-btn"
@@ -484,161 +519,209 @@ function App() {
           </nav>
 
           <div className="content-wrapper">
-            {/* Left Panel - Songs or Setlists */}
-            <aside className="left-panel">
-              {activeNav === 'songs' && (
-                <div className="songs-panel">
-                  <div className="panel-header">
-                    <button onClick={() => setShowSongForm(true)} className="btn btn-sm btn-primary" style={{ width: '100%' }}>
-                      ➕ Tambah Lagu
-                    </button>
-                  </div>
-                  <div className="search-box">
-                    <span className="search-icon">🔍</span>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Cari lagu..."
-                      aria-label="Cari lagu"
-                    />
-                  </div>
-                  <div className="sort-box">
-                    <select
-                      className="setlist-select"
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                    >
-                      <option value="title-asc">📋 Judul A-Z</option>
-                      <option value="title-desc">📋 Judul Z-A</option>
-                      <option value="artist-asc">🎤 Artis A-Z</option>
-                      <option value="newest">🕒 Terbaru</option>
-                    </select>
-                  </div>
-                  <div className="songs-list">
-                    {displaySongs.length === 0 ? (
-                      <div style={{ padding: '1rem', textAlign: 'center', color: '#666', fontSize: '0.9rem' }}>
-                        {songs.length === 0 ? 'Tidak ada lagu. Klik ➕ untuk tambah.' : 'Tidak ada hasil pencarian.'}
-                      </div>
-                    ) : (
-                      displaySongs.map(song => (
-                        <SongListItem
-                          key={song.id}
-                          song={song}
-                          isActive={selectedSong?.id === song.id}
-                          onSelect={() => handleSelectSong(song)}
-                          onEdit={() => handleEditSong(song)}
-                          onDelete={() => handleDeleteSong(song.id)}
-                          setLists={setLists}
-                          onAddToSetLists={slIds => slIds.forEach(slId => handleAddSongToSetList(slId, song.id))}
-                          onRemoveFromSetList={handleRemoveSongFromSetList}
-                        />
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeNav === 'setlists' && (
-                <div className="setlists-panel">
-                  <div className="panel-header">
-                    <button onClick={() => setShowSetListMenu(true)} className="btn btn-sm btn-primary" style={{ width: '100%' }}>
-                      ➕ Buat Setlist
-                    </button>
-                  </div>
-                  <div className="setlists-list">
-                    {setLists.length === 0 ? (
-                      <div style={{ padding: '1rem', textAlign: 'center', color: '#666', fontSize: '0.9rem' }}>
-                        Tidak ada setlist. Klik ➕ untuk membuat.
-                      </div>
-                    ) : (
-                      setLists.map(setList => (
-                        <div
-                          key={setList.id}
-                          className={`setlist-item ${currentSetList === setList.id ? 'active' : ''}`}
-                          onClick={() => setCurrentSetList(setList.id)}
-                        >
-                          <div className="setlist-info">
-                            <div className="setlist-name">📋 {setList.name}</div>
-                            <div className="setlist-count">{setList.songs?.length || 0} lagu</div>
-                          </div>
-                          <button
-                            className="btn btn-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowSetListMenu(true);
-                            }}
-                            title="Edit"
-                          >
-                            ✎
-                          </button>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </aside>
-
-            {/* Right Panel - Main Content */}
-            <main className="main">
+            {/* Main Content Area */}
+            {!selectedSong ? (
+              // Songs or Setlists View
               <>
-                {selectedSong && (
-                  <div className="controls controls-compact">
-                    {/* Transpose Group */}
-                    <button onClick={() => handleTranspose(-1)} className="btn btn-xs" title="Transpose turun (♭)">♭</button>
-                    <span className="transpose-value" style={{ minWidth: 32, textAlign: 'center' }} title="Nilai transpose">{transpose > 0 ? `+${transpose}` : transpose}</span>
-                    <button onClick={() => handleTranspose(1)} className="btn btn-xs" title="Transpose naik (♯)">♯</button>
-                    <button onClick={() => setTranspose(0)} className="btn btn-xs" title="Reset transpose">⟳</button>
-                    <span className="divider" />
-                    {/* Auto Scroll Group */}
-                    <button
-                      onClick={() => setAutoScrollActive(!autoScrollActive)}
-                      className={`btn btn-xs ${autoScrollActive ? 'btn-primary' : ''}`}
-                      title={autoScrollActive ? 'Matikan Auto Scroll' : 'Aktifkan Auto Scroll'}
-                    >
-                      {autoScrollActive ? '⏸' : '▶'}
-                    </button>
-                    {autoScrollActive && (
-                      <>
-                        <button onClick={() => setScrollSpeed(Math.max(0.5, scrollSpeed - 0.5))} className="btn btn-xs" title="Kurangi kecepatan scroll">−</button>
-                        <span className="speed-value" style={{ minWidth: 28, textAlign: 'center' }} title="Kecepatan scroll">{scrollSpeed.toFixed(1)}x</span>
-                        <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="btn btn-xs" title="Tambah kecepatan scroll">+</button>
-                      </>
-                    )}
-                    <span className="divider" />
-                    {/* YouTube Toggle */}
-                    <button
-                      onClick={() => setShowYouTube(!showYouTube)}
-                      className={`btn btn-xs ${showYouTube ? 'btn-primary' : ''}`}
-                      title={showYouTube ? 'Sembunyikan YouTube' : 'Tampilkan YouTube'}
-                    >
-                      📺
-                    </button>
+                {activeNav === 'songs' && (
+                  <div className="main-content songs-view">
+                    <div className="view-header">
+                      <div>
+                        <h2>📋 Lagu</h2>
+                        {currentSetList && (
+                          <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                            Setlist: {setLists.find(sl => sl.id === currentSetList)?.name}
+                            <button 
+                              onClick={() => setCurrentSetList(null)}
+                              style={{ marginLeft: '0.5rem', background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', fontSize: '0.8rem' }}
+                            >
+                              ✕ Lihat Semua
+                            </button>
+                          </p>
+                        )}
+                      </div>
+                      <button onClick={() => setShowSongForm(true)} className="btn btn-sm btn-primary">
+                        ➕ Tambah Lagu
+                      </button>
+                    </div>
+                    
+                    <div className="filters-bar">
+                      <div className="search-box" style={{ flex: 1 }}>
+                        <span className="search-icon">🔍</span>
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Cari lagu..."
+                          aria-label="Cari lagu"
+                        />
+                      </div>
+                      <select
+                        className="setlist-select"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                      >
+                        <option value="title-asc">📋 Judul A-Z</option>
+                        <option value="title-desc">📋 Judul Z-A</option>
+                        <option value="artist-asc">🎤 Artis A-Z</option>
+                        <option value="newest">🕒 Terbaru</option>
+                      </select>
+                    </div>
+
+                    <div className="songs-cards-grid">
+                      {displaySongs.length === 0 ? (
+                        <div className="empty-state">
+                          {songs.length === 0 ? 'Tidak ada lagu. Klik ➕ untuk tambah.' : 'Tidak ada hasil pencarian.'}
+                        </div>
+                      ) : (
+                        displaySongs.map(song => (
+                          <SongListItem
+                            key={song.id}
+                            song={song}
+                            isActive={selectedSong?.id === song.id}
+                            onSelect={() => handleSelectSong(song)}
+                            onEdit={() => handleEditSong(song)}
+                            onDelete={() => handleDeleteSong(song.id)}
+                            setLists={setLists}
+                            onAddToSetLists={slIds => slIds.forEach(slId => handleAddSongToSetList(slId, song.id))}
+                            onRemoveFromSetList={handleRemoveSongFromSetList}
+                          />
+                        ))
+                      )}
+                    </div>
                   </div>
                 )}
-                {showYouTube && selectedSong?.youtubeId && (
-                  <div className="youtube-section">
-                    <YouTubeViewer videoId={selectedSong.youtubeId} />
+
+                {activeNav === 'setlists' && (
+                  <div className="main-content setlists-view">
+                    <div className="view-header">
+                      <h2>🎵 Setlist</h2>
+                      <button onClick={() => { setEditingSetList(null); setShowSetListForm(true); }} className="btn btn-sm btn-primary">
+                        ➕ Buat Setlist
+                      </button>
+                    </div>
+
+                    <div className="setlists-cards-grid">
+                      {setLists.length === 0 ? (
+                        <div className="empty-state">
+                          Tidak ada setlist. Klik ➕ untuk membuat.
+                        </div>
+                      ) : (
+                        setLists.map(setList => (
+                          <div
+                            key={setList.id}
+                            className={`setlist-card ${currentSetList === setList.id ? 'active' : ''}`}
+                            onClick={() => {
+                              setCurrentSetList(setList.id);
+                              setActiveNav('songs');
+                            }}
+                          >
+                            <div className="setlist-card-header">
+                              <h3>📋 {setList.name}</h3>
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                  className="btn btn-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingSetList(setList);
+                                    setShowSetListForm(true);
+                                  }}
+                                  title="Edit Setlist"
+                                >
+                                  ✎
+                                </button>
+                                <button
+                                  className="btn btn-xs btn-danger"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteSetList(setList.id);
+                                  }}
+                                  title="Hapus Setlist"
+                                >
+                                  🗑
+                                </button>
+                              </div>
+                            </div>
+                            <div className="setlist-card-body">
+                              <p className="song-count">{setList.songs?.length || 0} lagu</p>
+                              {setList.songs && setList.songs.length > 0 && (
+                                <ul className="song-preview">
+                                  {setList.songs.slice(0, 3).map((songId) => {
+                                    const song = songs.find(s => s.id === songId);
+                                    return song ? <li key={songId}>{song.title}</li> : null;
+                                  })}
+                                  {setList.songs.length > 3 && <li>...</li>}
+                                </ul>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 )}
-                {/* Tombol fullscreen dan lirik fullscreen */}
-                <div className="lyrics-section" ref={scrollRef}>
-                  {selectedSong ? (
-                    <ChordDisplay song={selectedSong} transpose={transpose} />
-                  ) : (
-                    <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
-                      <h3>Pilih lagu dari daftar untuk melihat chord dan lirik</h3>
+              </>
+            ) : (
+              // Song Detail View
+              <main className="main">
+                <>
+                  {selectedSong && (
+                    <div className="controls controls-compact">
+                      {/* Transpose Group */}
+                      <button onClick={() => handleTranspose(-1)} className="btn btn-xs" title="Transpose turun (♭)">♭</button>
+                      <span className="transpose-value" style={{ minWidth: 32, textAlign: 'center' }} title="Nilai transpose">{transpose > 0 ? `+${transpose}` : transpose}</span>
+                      <button onClick={() => handleTranspose(1)} className="btn btn-xs" title="Transpose naik (♯)">♯</button>
+                      <button onClick={() => setTranspose(0)} className="btn btn-xs" title="Reset transpose">⟳</button>
+                      <span className="divider" />
+                      {/* Auto Scroll Group */}
+                      <button
+                        onClick={() => setAutoScrollActive(!autoScrollActive)}
+                        className={`btn btn-xs ${autoScrollActive ? 'btn-primary' : ''}`}
+                        title={autoScrollActive ? 'Matikan Auto Scroll' : 'Aktifkan Auto Scroll'}
+                      >
+                        {autoScrollActive ? '⏸' : '▶'}
+                      </button>
+                      {autoScrollActive && (
+                        <>
+                          <button onClick={() => setScrollSpeed(Math.max(0.5, scrollSpeed - 0.5))} className="btn btn-xs" title="Kurangi kecepatan scroll">−</button>
+                          <span className="speed-value" style={{ minWidth: 28, textAlign: 'center' }} title="Kecepatan scroll">{scrollSpeed.toFixed(1)}x</span>
+                          <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="btn btn-xs" title="Tambah kecepatan scroll">+</button>
+                        </>
+                      )}
+                      <span className="divider" />
+                      {/* YouTube Toggle */}
+                      <button
+                        onClick={() => setShowYouTube(!showYouTube)}
+                        className={`btn btn-xs ${showYouTube ? 'btn-primary' : ''}`}
+                        title={showYouTube ? 'Sembunyikan YouTube' : 'Tampilkan YouTube'}
+                      >
+                        📺
+                      </button>
                     </div>
                   )}
-                </div>
-                <AutoScroll
-                  isActive={autoScrollActive}
-                  speed={scrollSpeed}
-                  scrollRef={scrollRef}
-                />
-              </>
-            </main>
+                  {showYouTube && selectedSong?.youtubeId && (
+                    <div className="youtube-section">
+                      <YouTubeViewer videoId={selectedSong.youtubeId} />
+                    </div>
+                  )}
+                  {/* Tombol fullscreen dan lirik fullscreen */}
+                  <div className="lyrics-section" ref={scrollRef}>
+                    {selectedSong ? (
+                      <ChordDisplay song={selectedSong} transpose={transpose} />
+                    ) : (
+                      <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
+                        <h3>Pilih lagu dari daftar untuk melihat chord dan lirik</h3>
+                      </div>
+                    )}
+                  </div>
+                  <AutoScroll
+                    isActive={autoScrollActive}
+                    speed={scrollSpeed}
+                    scrollRef={scrollRef}
+                  />
+                </>
+              </main>
+            )}
           </div>
         </div>
 
@@ -653,17 +736,19 @@ function App() {
           />
         )}
 
-        {showSetListMenu && (
-          <SetListManager
-            setLists={setLists}
-            songs={songs}
-            onCreateSetList={handleCreateSetList}
-            onDeleteSetList={handleDeleteSetList}
-            onAddSongToSetList={handleAddSongToSetList}
-            onRemoveSongFromSetList={handleRemoveSongFromSetList}
-            onSelectSetList={(id) => {
-              setCurrentSetList(id);
-              setShowSetListMenu(false);
+        {showSetListForm && (
+          <SetListForm
+            setList={editingSetList}
+            onSave={(name) => {
+              if (editingSetList) {
+                handleUpdateSetList(editingSetList.id, name);
+              } else {
+                handleCreateSetList(name);
+              }
+            }}
+            onCancel={() => {
+              setShowSetListForm(false);
+              setEditingSetList(null);
             }}
           />
         )}

@@ -9,6 +9,9 @@ export const initialSongs = [
     title: "Kasih Putih",
     artist: "Glenn Fredly",
     youtubeId: "K8jVKqz0fYw",
+    key: "C",
+    tempo: "90",
+    style: "Pop Ballad",
     createdAt: "2025-12-28T00:00:00.000Z",
     melody: "5 5 5 3 5 | 6 5 3 2 1 | 5 5 5 3 5 | 6 5 3 2 |",
     lyrics: `{title: Kasih Putih}

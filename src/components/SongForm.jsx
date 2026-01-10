@@ -6,6 +6,9 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     title: '',
     artist: '',
     youtubeId: '',
+    key: '',
+    tempo: '',
+    style: '',
     lyrics: ''
   });
   const [errors, setErrors] = useState({});
@@ -19,6 +22,9 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
         title: song.title || '',
         artist: song.artist || '',
         youtubeId: song.youtubeId || '',
+        key: song.key || '',
+        tempo: song.tempo || '',
+        style: song.style || '',
         lyrics: song.lyrics || ''
       });
     }
@@ -48,6 +54,9 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       title: formData.title.trim(),
       artist: formData.artist.trim(),
       youtubeId: formData.youtubeId.trim(),
+      key: formData.key.trim(),
+      tempo: formData.tempo.trim(),
+      style: formData.style.trim(),
       lyrics: formData.lyrics.trim(),
       createdAt: song?.createdAt || new Date().toISOString()
     };
@@ -67,6 +76,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
       const calculatedBpm = Math.round(60000 / avgInterval);
       setBpm(calculatedBpm);
+      setFormData(prev => ({ ...prev, tempo: String(calculatedBpm) }));
     }
 
     setTimeout(() => {
@@ -82,6 +92,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const resetTapTempo = () => {
     setTapTimes([]);
     setBpm(null);
+    setFormData(prev => ({ ...prev, tempo: '' }));
   };
 
   // ...existing code...
@@ -139,45 +150,40 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
               </div>
             </div>
             <div className="form-row" style={{ gap: 8, marginBottom: 8 }}>
-              <button
-                type="button"
-                className="btn btn-sm btn-secondary"
-                onClick={() => {
-                  const q = encodeURIComponent(`${formData.title} ${formData.artist} lirik`);
-                  window.open(`https://www.google.com/search?q=${q}`, '_blank');
-                }}
-                disabled={!formData.title && !formData.artist}
-              >
-                🔍 Cari Lirik di Google
-              </button>
-              <button
-                type="button"
-                className="btn btn-sm btn-secondary"
-                onClick={() => {
-                  const q = encodeURIComponent(`${formData.title} ${formData.artist}`);
-                  window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
-                }}
-                disabled={!formData.title && !formData.artist}
-              >
-                🎵 Cari Lagu di YouTube
-              </button>
-            </div>
-            <div className="form-row">
               <div className="form-group" style={{ flex: 1 }}>
-                <label>🎵 Tap Tempo (Ketuk Irama)</label>
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <label htmlFor="key">🎼 Key (Kunci)</label>
+                <input
+                  type="text"
+                  id="key"
+                  name="key"
+                  value={formData.key}
+                  onChange={handleChange}
+                  placeholder="Contoh: C, D, Em, G#m"
+                />
+              </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label htmlFor="tempo">⏱️ Tempo (BPM)</label>
+                <input
+                  type="text"
+                  id="tempo"
+                  name="tempo"
+                  value={formData.tempo}
+                  onChange={handleChange}
+                  placeholder="Contoh: 120"
+                />
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                   <button
                     type="button"
                     className="btn btn-primary"
                     onClick={handleTapTempo}
-                    style={{ minWidth: '120px', fontSize: '1.1rem' }}
+                    style={{ minWidth: '120px', fontSize: '1.05rem' }}
                   >
-                    👆 TAP
+                    👆 TAP Tempo
                   </button>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                     {bpm && (
                       <>
-                        <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>
+                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
                           {bpm} BPM
                         </span>
                         <button
@@ -202,6 +208,43 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   </div>
                 </div>
               </div>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label htmlFor="style">🎵 Style</label>
+                <input
+                  type="text"
+                  id="style"
+                  name="style"
+                  value={formData.style}
+                  onChange={handleChange}
+                  placeholder="Contoh: Pop, Rock, Jazz"
+                />
+              </div>
+            </div>
+            <div className="form-row" style={{ gap: 8, marginBottom: 8 }}>
+              <button
+                type="button"
+                className="btn btn-sm btn-secondary"
+                onClick={() => {
+                  const q = encodeURIComponent(`${formData.title} ${formData.artist} lirik`);
+                  window.open(`https://www.google.com/search?q=${q}`, '_blank');
+                }}
+                disabled={!formData.title && !formData.artist}
+              >
+                🔍 Cari Lirik di Google
+              </button>
+              <button
+                type="button"
+                className="btn btn-sm btn-secondary"
+                onClick={() => {
+                  const q = encodeURIComponent(`${formData.title} ${formData.artist}`);
+                  window.open(`https://www.youtube.com/results?search_query=${q}`, '_blank');
+                }}
+                disabled={!formData.title && !formData.artist}
+              >
+                🎵 Cari Lagu di YouTube
+              </button>
+            </div>
+            <div className="form-row">
               <div className="form-group" style={{ flex: 1 }}>
                 <label htmlFor="youtubeId">YouTube Video ID (Opsional)</label>
                 <input
