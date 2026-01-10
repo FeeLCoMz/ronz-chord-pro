@@ -203,6 +203,17 @@ export const parseChordPro = (text) => {
       continue;
     }
     
+    // Check for plain text metadata format (e.g., "Original Key: G")
+    const plainMetaMatch = line.match(/^(Original Key|Capo|Time Signature|Duration|BPM|Tempo):\s*(.+)$/i);
+    if (plainMetaMatch) {
+      const [, key, value] = plainMetaMatch;
+      const keyNormalized = key.trim().toLowerCase().replace(/\s+/g, '_');
+      metadata[keyNormalized] = value.trim();
+      // Also render it as a comment so it appears in the display
+      parsed.push({ type: 'comment', text: `${key}: ${value.trim()}` });
+      continue;
+    }
+    
     const metaMatch = line.match(/^\{([^:}]+):\s*([^}]+)\}/);
     if (metaMatch) {
       const [, key, value] = metaMatch;

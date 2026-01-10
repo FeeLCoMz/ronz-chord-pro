@@ -259,6 +259,11 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
               {transpose !== 0 && ` (Original: ${parsedSong.metadata.key || song.key})`}
             </span>
           )}
+          {parsedSong.metadata.original_key && (
+            <span className="metadata-item">
+              <strong>Original Key:</strong> {parsedSong.metadata.original_key}
+            </span>
+          )}
           {(song.tempo || parsedSong.metadata.tempo) && (
             <span className="metadata-item">
               <strong>Tempo:</strong> {song.tempo || parsedSong.metadata.tempo} BPM
