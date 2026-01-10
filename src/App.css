@@ -2022,6 +2022,25 @@ body {
   gap: 0.5rem;
 }
 
+.tap-tempo-controls {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.tap-tempo-controls .bpm-display {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.tap-tempo-controls .tap-hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
 .form-group input,
 .form-group textarea {
   width: 100%;

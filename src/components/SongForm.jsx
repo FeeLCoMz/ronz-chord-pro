@@ -120,6 +120,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
             <h2 style={{ marginBottom: 0 }}>{song ? '✏️ Edit Lagu' : '✨ Tambah Lagu Baru'}</h2>
           </div>
           <form onSubmit={handleSubmit} className="song-form-grid">
+            {/* Section 1: Basic Information */}
             <div className="form-row">
               <div className="form-group" style={{ flex: 1 }}>
                 <label htmlFor="title">Judul Lagu *</label>
@@ -149,7 +150,9 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                 {errors.artist && <span className="error-message">{errors.artist}</span>}
               </div>
             </div>
-            <div className="form-row" style={{ gap: 8, marginBottom: 8 }}>
+
+            {/* Section 2: Metadata (Key, Tempo, Style) */}
+            <div className="form-row">
               <div className="form-group" style={{ flex: 1 }}>
                 <label htmlFor="key">🎼 Key (Kunci)</label>
                 <input
@@ -171,41 +174,32 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   onChange={handleChange}
                   placeholder="Contoh: 120"
                 />
-                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                <div className="tap-tempo-controls">
                   <button
                     type="button"
                     className="btn btn-primary"
                     onClick={handleTapTempo}
-                    style={{ minWidth: '120px', fontSize: '1.05rem' }}
                   >
-                    👆 TAP Tempo
+                    👆 TAP
                   </button>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {bpm && (
-                      <>
-                        <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)' }}>
-                          {bpm} BPM
-                        </span>
-                        <button
-                          type="button"
-                          className="btn btn-sm"
-                          onClick={resetTapTempo}
-                        >
-                          🔄 Reset
-                        </button>
-                      </>
-                    )}
-                    {!bpm && tapTimes.length > 0 && (
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        Ketuk {2 - tapTimes.length} kali lagi...
-                      </span>
-                    )}
-                    {!bpm && tapTimes.length === 0 && (
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                        Ketuk tombol TAP mengikuti irama lagu
-                      </span>
-                    )}
-                  </div>
+                  {bpm && (
+                    <>
+                      <span className="bpm-display">{bpm} BPM</span>
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        onClick={resetTapTempo}
+                      >
+                        🔄
+                      </button>
+                    </>
+                  )}
+                  {!bpm && tapTimes.length > 0 && (
+                    <span className="tap-hint">Ketuk {2 - tapTimes.length}x lagi</span>
+                  )}
+                  {!bpm && tapTimes.length === 0 && (
+                    <span className="tap-hint">Ketuk irama lagu</span>
+                  )}
                 </div>
               </div>
               <div className="form-group" style={{ flex: 1 }}>
@@ -220,7 +214,9 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                 />
               </div>
             </div>
-            <div className="form-row" style={{ gap: 8, marginBottom: 8 }}>
+
+            {/* Section 3: Search Helpers */}
+            <div className="form-row">
               <button
                 type="button"
                 className="btn btn-sm btn-secondary"
@@ -230,7 +226,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                 }}
                 disabled={!formData.title && !formData.artist}
               >
-                🔍 Cari Lirik di Google
+                🔍 Cari Lirik
               </button>
               <button
                 type="button"
@@ -241,12 +237,14 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                 }}
                 disabled={!formData.title && !formData.artist}
               >
-                🎵 Cari Lagu di YouTube
+                🎵 Cari YouTube
               </button>
             </div>
+
+            {/* Section 4: YouTube Video */}
             <div className="form-row">
               <div className="form-group" style={{ flex: 1 }}>
-                <label htmlFor="youtubeId">YouTube Video ID (Opsional)</label>
+                <label htmlFor="youtubeId">🎬 YouTube Video ID</label>
                 <input
                   type="text"
                   id="youtubeId"
@@ -255,16 +253,16 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   onChange={handleChange}
                   placeholder="Contoh: dQw4w9WgXcQ"
                 />
-                <small>ID adalah kode setelah "v=" di URL YouTube</small>
-                <div className="form-youtube-row" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 0 }}>
-                  {formData.youtubeId && (
-                    <div className="youtube-viewer-section" style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                      <YouTubeViewer videoId={formData.youtubeId} />
-                    </div>
-                  )}
-                </div>
+                <small style={{ display: 'block', marginTop: '0.35rem' }}>ID adalah kode setelah "v=" di URL YouTube</small>
+                {formData.youtubeId && (
+                  <div className="youtube-viewer-section">
+                    <YouTubeViewer videoId={formData.youtubeId} />
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Section 5: Lyrics & Chord */}
             <div className="form-group">
               <div className="textarea-header">
                 <label htmlFor="lyrics" style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
@@ -272,18 +270,13 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   <span className="help-popover-container">
                     <span className="help-icon" tabIndex="0">❓</span>
                     <span className="help-popover">
-                      <strong>Format Pengisian Lirik, Chord, dan Notasi:</strong>
+                      <strong>Format Pengisian:</strong>
                       <ul>
-                        <li><b>ChordPro:</b> <code>[C]Lirik baris pertama</code> (chord di dalam tanda [ ] sebelum kata)</li>
-                        <li><b>Standar:</b> <code>C   G   Am   F</code> (chord di atas lirik, baris bawah liriknya)</li>
-                        <li><b>Bar/ketukan:</b> Gunakan <code>|</code> untuk pemisah bar, contoh: <code>[C]Lirik | [G]bar berikut</code></li>
-                        <li><b>Lirik multi-baris:</b> Pisahkan tiap baris dengan enter.</li>
-                        <li><b>Notasi Angka:</b> <code>1 2 3 4 | 5 5 6 5</code> (spasi antar not, | untuk bar, . untuk rendah, ' untuk tinggi, - untuk panjang, m untuk minor)</li>
-                        <li><b>Notasi Balok:</b> <code>C4 D4 E4 F4 | G4 G4 A4 G4</code> (format standar not balok, angka setelah huruf menunjukkan oktaf)</li>
-                        <li><b>Contoh ChordPro:</b> <br /><code>[C]Ku ingin [G]selalu [Am]bersamamu [F]selamanya</code></li>
-                        <li><b>Contoh Standar:</b><br /><code>C   G   Am   F<br />Ku ingin selalu bersamamu selamanya</code></li>
-                        <li><b>Contoh Notasi Angka:</b><br /><code>1 2 3 4 | 5 5 6 5 | 4 3 2 1</code></li>
-                        <li><b>Contoh Notasi Balok:</b><br /><code>C4 D4 E4 F4 | G4 G4 A4 G4</code></li>
+                        <li><b>ChordPro:</b> <code>[C]Lirik baris pertama</code></li>
+                        <li><b>Standar:</b> Chord di atas, lirik di bawah</li>
+                        <li><b>Bar:</b> <code>|</code> untuk pemisah bar</li>
+                        <li><b>Notasi Angka:</b> <code>1 2 3 4 | 5 5 6 5</code></li>
+                        <li><b>Notasi Balok:</b> <code>C4 D4 E4 F4</code></li>
                       </ul>
                     </span>
                   </span>
@@ -303,24 +296,25 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                 value={formData.lyrics}
                 onChange={handleChange}
                 className={errors.lyrics ? 'error' : ''}
-                placeholder="Copy-paste dari situs lain (chord di atas lirik) atau gunakan format ChordPro [C]lirik..."
-                rows={12}
+                placeholder="Copy-paste dari situs lain atau gunakan format ChordPro [C]lirik..."
+                rows={14}
               />
               {errors.lyrics && <span className="error-message">{errors.lyrics}</span>}
             </div>
+
+            {/* Action Buttons */}
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
                 💾 {song ? 'Update Lagu' : 'Simpan Lagu'}
               </button>
-              <button type="button" onClick={onCancel} className="btn">
+              <button type="button" onClick={onCancel} className="btn" style={{ flex: 1 }}>
                 Batal
               </button>
             </div>
           </form>
-        
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-export default SongFormBaru;
+  export default SongFormBaru;
