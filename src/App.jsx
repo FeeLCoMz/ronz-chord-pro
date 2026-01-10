@@ -592,6 +592,19 @@ function App() {
                       </div>
                       <select
                         className="setlist-select"
+                        value={currentSetList || ''}
+                        onChange={(e) => setCurrentSetList(e.target.value || null)}
+                        title="Pilih setlist untuk filter lagu"
+                      >
+                        <option value="">📋 Semua Lagu</option>
+                        {setLists.map(setList => (
+                          <option key={setList.id} value={setList.id}>
+                            🎵 {setList.name} ({setList.songs?.length || 0})
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        className="setlist-select"
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
                       >
