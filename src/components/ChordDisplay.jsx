@@ -80,6 +80,16 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       return <div key={index} className="lyrics-line empty"></div>;
     }
     
+    if (lineData.type === 'comment') {
+      return (
+        <div key={index} className="lyrics-line comment-line">
+          <div className="text-line">
+            <span className="bracket-highlight">{lineData.text}</span>
+          </div>
+        </div>
+      );
+    }
+    
     if (lineData.type === 'structure_start') {
       return (
         <div key={index} className="structure-marker structure-start">

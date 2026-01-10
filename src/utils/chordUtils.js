@@ -181,7 +181,14 @@ export const parseChordPro = (text) => {
     const metaMatch = line.match(/^\{([^:}]+):\s*([^}]+)\}/);
     if (metaMatch) {
       const [, key, value] = metaMatch;
-      metadata[key] = value.trim();
+      const keyLower = key.trim().toLowerCase();
+      const val = value.trim();
+      // Treat {comment: ...} (and {c: ...}) as renderable comment lines
+      if (keyLower === 'comment' || keyLower === 'c') {
+        parsed.push({ type: 'comment', text: val });
+      } else {
+        metadata[key] = val;
+      }
       continue;
     }
     

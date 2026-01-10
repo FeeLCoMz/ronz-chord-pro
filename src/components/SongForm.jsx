@@ -211,14 +211,48 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     // Regex untuk mendeteksi chord (dengan atau tanpa dash/modifier)
     const chordRegex = /-?[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*/g;
     
-    // Function to check if a line is primarily chords
+    // Function to check if line is chord chart format (with bars |)
+    const isChordChartLine = (line) => {
+      const trimmed = line.trim();
+      // Must have multiple pipes and contain chords or dots
+      return trimmed.includes('|') && 
+             (trimmed.match(/\|/g) || []).length >= 2 &&
+             /[A-G][#b]?[mM]?|\./.test(trimmed);
+    };
+
+    // Function to convert chord chart line (Gm | . | F | Cm)
+    const convertChordChartLine = (line) => {
+      const parts = line.split('|').map(p => p.trim()).filter(p => p);
+      const chords = [];
+      let lastChord = '';
+
+      for (const part of parts) {
+        if (part === '.') {
+          // Dot means repeat last chord
+          if (lastChord) chords.push(lastChord);
+        } else if (/^[A-G][#b]?[mM]?[0-9]?[sus]?[dim]?[aug]?[add]?[0-9]*$/.test(part)) {
+          // This is a chord
+          chords.push(part);
+          lastChord = part;
+        }
+      }
+
+      return chords.map(c => `[${c}]`).join(' | ');
+    };
+
+    // Function to check if a line is primarily chords (lyrics format)
     const isChordLine = (line) => {
       const trimmed = line.trim();
       if (!trimmed) return false;
       
       // Skip section labels
-      if (/^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik)\s*:/i.test(trimmed)) {
+      if (/^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik|Lead|Strings|Brass|Suling|Mandolin|Coda|Ending|Back to)\s*:?/i.test(trimmed)) {
         return false;
+      }
+
+      // Check if it's chord chart format first
+      if (isChordChartLine(trimmed)) {
+        return false; // Will be handled separately
       }
       
       // Remove all valid chords and check what's left
@@ -230,19 +264,37 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
 
     while (i < lines.length) {
       const currentLine = lines[i];
+      const trimmed = currentLine.trim();
       const nextLine = lines[i + 1];
 
-      // Check for section labels
-      if (/^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik)\s*:/i.test(currentLine.trim())) {
-        result.push(currentLine);
+      // Check for metadata line (contains | with tempo/style info)
+      if (trimmed.includes('|') && /\d+\s*(Bpm|bpm)/i.test(trimmed)) {
+        // Parse metadata
+        const parts = trimmed.split('|').map(p => p.trim());
+        result.push(`{comment: ${parts.join(' - ')}}`);
         i++;
         continue;
       }
 
-      // Check if current line is a chord line
+      // Check for section labels (ALL CAPS or with colon)
+      if (/^[A-Z\s]+$/.test(trimmed) || /^(Intro|Verse|Chorus|Reff|Bridge|Outro|Int\.|Musik|Lead|Strings|Brass|Suling|Mandolin|Coda|Ending|Back to)/i.test(trimmed)) {
+        result.push(`{comment: ${trimmed}}`);
+        i++;
+        continue;
+      }
+
+      // Check if line is chord chart format
+      if (isChordChartLine(currentLine)) {
+        const converted = convertChordChartLine(currentLine);
+        if (converted) result.push(converted);
+        i++;
+        continue;
+      }
+
+      // Check if current line is a chord line (lyrics format)
       if (isChordLine(currentLine)) {
         // Check if next line exists and is lyrics (not chords, not empty)
-        if (nextLine && nextLine.trim() && !isChordLine(nextLine)) {
+        if (nextLine && nextLine.trim() && !isChordLine(nextLine) && !isChordChartLine(nextLine)) {
           // This is chord + lyrics pattern
           const chordLine = currentLine;
           const lyricLine = nextLine;
