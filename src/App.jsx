@@ -60,8 +60,8 @@ function App() {
         if (parsed.length > 0) return parsed;
       }
     } catch { }
-    // Fallback ke seed bawaan agar sidebar tidak kosong/blank
-    return sanitizeSongs(initialSongs);
+    // Return empty array - no sample songs
+    return [];
   };
   const getInitialSetLists = () => {
     try {
@@ -71,7 +71,8 @@ function App() {
         if (parsed.length > 0) return parsed;
       }
     } catch { }
-    return sanitizeSetLists(initialSetLists);
+    // Return empty array - no sample setlists
+    return [];
   };
   const [songs, setSongs] = useState(getInitialSongs);
   const [setLists, setSetLists] = useState(getInitialSetLists);
