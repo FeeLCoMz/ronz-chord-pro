@@ -116,6 +116,14 @@ function App() {
   const scrollRef = useRef(null);
   const isInitialLoad = useRef(true);
 
+  // Normalize mixed timestamp formats (number ms vs ISO string) to millis
+  const toTimestamp = (v) => {
+    if (!v) return 0;
+    if (typeof v === 'number') return v;
+    const t = Date.parse(v);
+    return Number.isNaN(t) ? 0 : t;
+  };
+
   // Pastikan state setlist selalu bersih (tanpa untitled) setelah mount
   useEffect(() => {
     setSetLists(prev => sanitizeSetLists(prev));
@@ -137,7 +145,9 @@ function App() {
               remoteSongs.forEach(remote => {
                 const localIdx = merged.findIndex(s => s.id === remote.id);
                 if (localIdx > -1) {
-                  merged[localIdx] = (remote.updatedAt > (merged[localIdx].updatedAt || 0)) ? remote : merged[localIdx];
+                  const remoteTs = toTimestamp(remote.updatedAt);
+                  const localTs = toTimestamp(merged[localIdx].updatedAt);
+                  merged[localIdx] = (remoteTs > localTs) ? remote : merged[localIdx];
                 } else {
                   merged.push(remote);
                 }
@@ -153,7 +163,9 @@ function App() {
               remoteSetlists.forEach(remote => {
                 const localIdx = merged.findIndex(s => s.id === remote.id);
                 if (localIdx > -1) {
-                  merged[localIdx] = (remote.updatedAt > (merged[localIdx].updatedAt || 0)) ? remote : merged[localIdx];
+                  const remoteTs = toTimestamp(remote.updatedAt);
+                  const localTs = toTimestamp(merged[localIdx].updatedAt);
+                  merged[localIdx] = (remoteTs > localTs) ? remote : merged[localIdx];
                 } else {
                   merged.push(remote);
                 }
@@ -161,6 +173,10 @@ function App() {
               return merged;
             });
           }
+        })
+        .finally(() => {
+          // Allow subsequent changes to sync after initial remote merge
+          isInitialLoad.current = false;
         })
         .catch(err => console.warn('Failed to fetch from Turso:', err));
     }
@@ -173,7 +189,8 @@ function App() {
       localStorage.setItem('ronz_songs', JSON.stringify(songs));
     } catch { }
     // Push ke backend jika online
-    if (navigator.onLine && songs.length > 0) {
+    // Hindari overwrite awal dengan data lokal yang stale sebelum merge remote
+    if (!isInitialLoad.current && navigator.onLine && songs.length > 0) {
       fetch('/api/songs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
