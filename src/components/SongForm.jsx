@@ -33,6 +33,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [transcribeLoading, setTranscribeLoading] = useState(false);
   const [transcribeError, setTranscribeError] = useState('');
   const [transcribeResult, setTranscribeResult] = useState('');
+  const [showFormatHelp, setShowFormatHelp] = useState(false);
   // ...existing code...
 
   useEffect(() => {
@@ -286,12 +287,14 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   // ...existing code...
 
   const insertTemplate = () => {
-    const template = `{title: ${formData.title || 'Judul Lagu'}}\n{artist: ${formData.artist || 'Nama Artis'}}\n{key: C}\n{time: 4/4}\n{tempo: 120}\n{capo: 0}\n\n{start_of_intro}\n[C]Intro baris | [G]dengan chord |\n{end_of_intro}\n\n{start_of_verse}\n[C]Lirik baris | [G]pertama dengan | [Am]chord dan | [F]bar |\n[C]Lirik baris | [G]kedua dengan | [Am]chord dan | [F]bar |\n{end_of_verse}\n\n{start_of_pre-chorus}\n[Dm]Pre-chorus | [G]dengan lirik |\n{end_of_pre-chorus}\n\n{start_of_chorus}\n[C]Ini bagian | [G]chorus |\n[Am]Dengan lirik | [F]yang catchy |\n{end_of_chorus}\n\n{start_of_bridge}\n[Em]Bridge | [F]bagian |\n{end_of_bridge}\n\n{start_of_outro}\n[C]Outro | [G]bagian |\n{end_of_outro}`;
+    const baseKey = formData.key || 'C';
+    const template = `{title: ${formData.title || 'Judul Lagu'}}\n{artist: ${formData.artist || 'Nama Artis'}}\n{key: ${baseKey}}\n{original_key: ${baseKey}}\n{time: 4/4}\n{tempo: 120}\n{capo: 0}\n{comment: Gunakan bracket [C] untuk menaruh chord di dalam lirik}\n\n{start_of_intro}\n[C]Intro baris pertama\n{end_of_intro}\n\n{start_of_verse}\n[C]Baris pertama dengan [G]inline chord\n[Am]Baris kedua lanjut [F]progression\n{end_of_verse}\n\n{start_of_chorus}\n[C]Hook utama ada di [G]chorus\n[Am]Baris kedua [F]chorus\n{end_of_chorus}\n\n{start_of_bridge}\n[Em]Bridge untuk perubahan [F]warna\n{end_of_bridge}\n\n{start_of_outro}\n[C]Outro penutup [G]lagu\n{end_of_outro}`;
     setFormData(prev => ({ ...prev, lyrics: template }));
   };
 
   const insertStandardTemplate = () => {
-    const template = `Title: ${formData.title || 'Judul Lagu'}\nArtist: ${formData.artist || 'Nama Artis'}\nKey: C\nTime: 4/4\nTempo: 120\nCapo: 0\n\nIntro:\nC              G\nIntro baris dengan chord\n\nVerse:\nC              G              Am             F\nLirik baris | pertama dengan | chord dan | bar |\nC              G              Am             F\nLirik baris | kedua dengan | chord dan | bar |\n\nPre-Chorus:\nDm             G\nPre-chorus dengan lirik\n\nChorus:\nC              G              Am             F\nIni bagian | chorus |\nAm             F\nDengan lirik | yang catchy |\n\nBridge:\nEm             F\nBridge bagian\n\nOutro:\nC              G\nOutro bagian`;
+    const baseKey = formData.key || 'C';
+    const template = `Title: ${formData.title || 'Judul Lagu'}\nArtist: ${formData.artist || 'Nama Artis'}\nKey: ${baseKey}\nOriginal Key: ${baseKey}\nTime: 4/4\nTempo: 120\nCapo: 0\n\nIntro:\nC               G\nIntro baris pertama dengan chord\n\nVerse:\nC               G               Am              F\nBaris pertama lirik dengan chord di atas lirik\nC               G               Am              F\nBaris kedua lirik dengan chord di atas lirik\n\nChorus:\nC               G               Am              F\nHook utama chorus\nAm              F\nBaris penutup chorus\n\nBridge:\nEm              F\nBridge untuk variasi\n\nOutro:\nC               G\nOutro penutup lagu`;
     setFormData(prev => ({ ...prev, lyrics: template }));
   };
 
@@ -885,6 +888,46 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                 <label htmlFor="lyrics" style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
                   Lirik & Chord *
                 </label>
+                <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
+                  <button
+                    type="button"
+                    className="btn btn-xs"
+                    onClick={() => setShowFormatHelp(prev => !prev)}
+                    title="Lihat format yang didukung"
+                    style={{ padding: '0.35rem 0.45rem', minWidth: 'auto' }}
+                  >
+                    ❓
+                  </button>
+                  {showFormatHelp && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 6px)',
+                        left: 0,
+                        minWidth: '320px',
+                        maxWidth: '420px',
+                        zIndex: 20,
+                        background: 'var(--card)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '8px',
+                        padding: '0.75rem',
+                        boxShadow: '0 12px 28px rgba(0,0,0,0.18)',
+                        color: 'var(--text)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <strong>Format yang didukung</strong>
+                        <button type="button" className="btn btn-xs" onClick={() => setShowFormatHelp(false)} title="Tutup">
+                          ✕
+                        </button>
+                      </div>
+                      <ul style={{ margin: '0.35rem 0 0 1.2rem', padding: 0, listStyle: 'disc', lineHeight: 1.45, color: 'var(--text-muted)' }}>
+                        <li><b>ChordPro:</b> metadata ({'{title}'}, {'{artist}'}, {'{key}'}, {'{original_key}'}, {'{time}'}, {'{tempo}'}, {'{capo}'}), penanda bagian ({'{start_of_verse}'}/{'{end_of_verse}'}, chorus, bridge, intro, outro), komentar {'{comment: ...}'}, dan inline chord [C] di dalam lirik.</li>
+                        <li><b>Standard:</b> header metadata (Title, Artist, Key, Original Key, Time, Tempo, Capo), chord di atas lirik dengan penanda bagian ("Intro:", "Verse:", "Chorus:", dll.). Chord chart (baris hanya chord) juga boleh dicampur dengan lirik.</li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
                 <div className="template-buttons">
                   <button type="button" onClick={insertTemplate} className="btn btn-sm">
                     📋 ChordPro

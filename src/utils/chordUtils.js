@@ -84,6 +84,59 @@ const isChordLine = (line) => {
 // Fungsi untuk mengkonversi format standard (chord di atas lirik) ke ChordPro-like format
 const parseStandardFormat = (lines) => {
   const parsed = [];
+  let currentSection = null;
+
+  const normalizeSection = (name) => {
+    const n = name.toLowerCase().trim();
+    // Handle abbreviations
+    const abbrevMap = {
+      'int': 'intro',
+      'ver': 'verse',
+      'pre': 'pre-chorus',
+      'cho': 'chorus',
+      'ch': 'chorus',
+      'bri': 'bridge',
+      'brig': 'bridge',
+      'out': 'outro',
+      'sol': 'solo',
+      'ref': 'refrain',
+      'inter': 'interlude'
+    };
+    
+    if (abbrevMap[n]) return abbrevMap[n];
+    
+    if (n.includes('intro')) return 'intro';
+    if (n.includes('verse')) return 'verse';
+    if (n.includes('pre') && n.includes('chorus')) return 'pre-chorus';
+    if (n.includes('chorus')) return 'chorus';
+    if (n.includes('bridge')) return 'bridge';
+    if (n.includes('outro')) return 'outro';
+    if (n.includes('interlude')) return 'interlude';
+    if (n.includes('solo')) return 'solo';
+    if (n.includes('refrain')) return 'refrain';
+    return null;
+  };
+
+  const extractChordWithDots = (text) => {
+    // Parse chords with optional dots for duration (e.g., "G..", "G..C..", "G..C")
+    const chordTokenPattern = '[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:/[A-G][#b]?)?';
+    const chordWithDotsRegex = new RegExp(`(${chordTokenPattern})+(\\.*)`, 'gi');
+    const chords = [];
+    let position = 0;
+    
+    for (const match of text.matchAll(chordWithDotsRegex)) {
+      const chord = match[0].replace(/\.+$/, '').trim(); // Remove trailing dots
+      if (chord && /^[A-G]/.test(chord)) {
+        chords.push({
+          chord,
+          position: position,
+          duration: (match[0].match(/\.+$/) || [''])[0].length
+        });
+        position += match[0].length + 1;
+      }
+    }
+    return chords.length > 0 ? chords : null;
+  };
   
   for (let i = 0; i < lines.length; i++) {
     const currentLine = lines[i];
@@ -97,11 +150,72 @@ const parseStandardFormat = (lines) => {
     // Deteksi metadata sederhana
     if (currentLine.includes(':') && currentLine.length < 50) {
       const colonIndex = currentLine.indexOf(':');
-      const key = currentLine.substring(0, colonIndex).trim().toLowerCase();
+      const keyRaw = currentLine.substring(0, colonIndex).trim().toLowerCase();
       const value = currentLine.substring(colonIndex + 1).trim();
-      
-      if (['title', 'artist', 'key', 'tempo', 'capo', 'time'].includes(key)) {
-        parsed.push({ type: 'metadata', key, value });
+
+      const normalizedKey = (() => {
+        if (['original key', 'original_key'].includes(keyRaw)) return 'original_key';
+        if (keyRaw === 'time signature') return 'time';
+        return keyRaw;
+      })();
+
+      if (['title', 'artist', 'key', 'tempo', 'capo', 'time', 'original_key'].includes(normalizedKey)) {
+        parsed.push({ type: 'metadata', key: normalizedKey, value });
+        continue;
+      }
+
+      // Section header detection (e.g., "Verse:", "Chorus:", or "Intro: G..")
+      const sectionName = normalizeSection(keyRaw);
+      if (sectionName) {
+        if (currentSection) {
+          parsed.push({ type: 'structure_end', structure: currentSection });
+        }
+        parsed.push({ type: 'structure_start', structure: sectionName });
+        currentSection = sectionName;
+        
+        // Check if there are chords after the colon (e.g., "Intro: G..")
+        if (value.trim()) {
+          const chords = extractChordWithDots(value);
+          if (chords) {
+            parsed.push({
+              type: 'line_with_chords',
+              chords,
+              text: ''
+            });
+          }
+        }
+        continue;
+      }
+    }
+
+    // Check for abbreviated section headers without colon (e.g., "Int. G..C..")
+    // Pattern: abbreviation with optional dot, then space(s), then chords
+    const abbrevMatch = currentLine.match(/^([a-z]+)\.?\s+(.+)$/i);
+    if (abbrevMatch) {
+      const abbrevName = abbrevMatch[1].toLowerCase();
+      const sectionName = normalizeSection(abbrevName);
+      if (sectionName) {
+        const remainder = abbrevMatch[2].trim();
+        if (currentSection && sectionName !== currentSection) {
+          parsed.push({ type: 'structure_end', structure: currentSection });
+        }
+        parsed.push({ type: 'structure_start', structure: sectionName });
+        currentSection = sectionName;
+        
+        // Check if there are chords in the remainder (e.g., "Int. G..C..")
+        if (remainder) {
+          const chords = extractChordWithDots(remainder);
+          if (chords) {
+            parsed.push({
+              type: 'line_with_chords',
+              chords,
+              text: ''
+            });
+          } else if (!isChordLine(remainder)) {
+            // If not chords, treat as text
+            parsed.push({ type: 'text', line: remainder });
+          }
+        }
         continue;
       }
     }
@@ -160,6 +274,10 @@ const parseStandardFormat = (lines) => {
         line: currentLine
       });
     }
+  }
+
+  if (currentSection) {
+    parsed.push({ type: 'structure_end', structure: currentSection });
   }
   
   return parsed;
