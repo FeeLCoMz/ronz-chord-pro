@@ -40,11 +40,12 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
   
   let melodyBarCursor = 0;
 
-  // Function to render text with curly bracket and instrument highlighting
+  // Function to render text with curly bracket, instrument, and repeat sign highlighting
   const renderTextWithBrackets = (text) => {
     const parts = [];
     const bracketRegex = /(\{[^}]*\})/g;
     const instrumentRegex = /\b(Guitar|Bass|Piano|Drums|Violin|Saxophone|Sax|Trumpet|Flute|Clarinet|Cello|Organ|Synth|Keyboard|Vocals|Gitar|Bas|Drum|Biola|Vokal|Suling|Seruling|Strings|Brass)\b/gi;
+    const repeatSignRegex = /(\|:|:\||\b(?:D\.S\.|D\.C\.|Da Capo|Dal Segno|Fine|Coda|To Coda|Repeat|%)\b)/gi;
     
     let lastIndex = 0;
     let match;
@@ -62,7 +63,7 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       segments.push({ type: 'text', value: text.substring(lastIndex) });
     }
 
-    // Then highlight instruments in text segments
+    // Then highlight instruments and repeat signs in text segments
     segments.forEach((segment, segIdx) => {
       if (segment.type === 'bracket') {
         parts.push(
@@ -71,24 +72,62 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
           </span>
         );
       } else {
-        // Highlight instruments in this text segment
-        let instrLastIndex = 0;
+        // Highlight instruments and repeat signs in this text segment
+        let textLastIndex = 0;
         let instrMatch;
+        let repeatMatch;
         const textParts = [];
         
+        // Create a combined list of all matches with their type
+        const allMatches = [];
+        
+        // Find all instrument matches
         while ((instrMatch = instrumentRegex.exec(segment.value)) !== null) {
-          if (instrMatch.index > instrLastIndex) {
-            textParts.push(segment.value.substring(instrLastIndex, instrMatch.index));
+          allMatches.push({ index: instrMatch.index, length: instrMatch[0].length, type: 'instrument', text: instrMatch[0] });
+        }
+        
+        // Reset regex global state
+        instrumentRegex.lastIndex = 0;
+        
+        // Find all repeat sign matches
+        while ((repeatMatch = repeatSignRegex.exec(segment.value)) !== null) {
+          allMatches.push({ index: repeatMatch.index, length: repeatMatch[0].length, type: 'repeat', text: repeatMatch[0] });
+        }
+        
+        // Reset regex global state
+        repeatSignRegex.lastIndex = 0;
+        
+        // Sort matches by index
+        allMatches.sort((a, b) => a.index - b.index);
+        
+        // Remove overlapping matches
+        const uniqueMatches = [];
+        for (const match of allMatches) {
+          const isOverlapping = uniqueMatches.some(m => 
+            (match.index >= m.index && match.index < m.index + m.length) ||
+            (m.index >= match.index && m.index < match.index + match.length)
+          );
+          if (!isOverlapping) {
+            uniqueMatches.push(match);
           }
+        }
+        
+        // Render with highlights
+        textLastIndex = 0;
+        for (const match of uniqueMatches) {
+          if (match.index > textLastIndex) {
+            textParts.push(segment.value.substring(textLastIndex, match.index));
+          }
+          const highlightClass = match.type === 'instrument' ? 'instrument-highlight' : 'repeat-sign-highlight';
           textParts.push(
-            <span key={`instr-${segIdx}-${instrMatch.index}`} className="instrument-highlight">
-              {instrMatch[0]}
+            <span key={`${match.type}-${segIdx}-${match.index}`} className={highlightClass}>
+              {match.text}
             </span>
           );
-          instrLastIndex = instrMatch.index + instrMatch[0].length;
+          textLastIndex = match.index + match.length;
         }
-        if (instrLastIndex < segment.value.length) {
-          textParts.push(segment.value.substring(instrLastIndex));
+        if (textLastIndex < segment.value.length) {
+          textParts.push(segment.value.substring(textLastIndex));
         }
         
         if (textParts.length > 0) {
