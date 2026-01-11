@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import YouTubeViewer from './YouTubeViewer';
-import AiAssistant from './AiAssistant';
 import { transcribeAudio } from '../apiClient';
 
 const SongFormBaru = ({ song, onSave, onCancel }) => {
@@ -29,7 +28,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [isLoadingChord, setIsLoadingChord] = useState(false);
   const [chordError, setChordError] = useState('');
   const [copiedChord, setCopiedChord] = useState(false);
-  const [showAi, setShowAi] = useState(false);
   const [showTranscribe, setShowTranscribe] = useState(false);
   const [transcribeFile, setTranscribeFile] = useState(null);
   const [transcribeLoading, setTranscribeLoading] = useState(false);
@@ -624,52 +622,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     setFormData(prev => ({ ...prev, lyrics: result.join('\n') }));
   };
 
-  const formatChords = () => {
-    const text = formData.lyrics || '';
-    const chordBase = '[A-G][#b]?';
-    const chordQuality = '(?:maj7?|maj9?|maj11?|maj13?|mM7|mM9|mM11|mM13|m7b5|maj|min|m|dim7?|aug|sus[24]?|add[0-9]+)?';
-    const chordExtension = '(?:6|7|9|11|13)?';
-    const chordAlteration = '(?:[#b](?:5|9|11|13))?';
-    const chordSlash = '(?:\/-?[A-G][#b]?)?';
-    const chordDots = '\\.*';
-    const chordToken = new RegExp(`^-?${chordBase}${chordQuality}${chordExtension}${chordAlteration}${chordSlash}${chordDots}$`, 'i');
-
-    const isChordHeavy = (line) => {
-      const tokens = line.trim().split(/\s+/).filter(Boolean);
-      if (tokens.length === 0) return false;
-      const chordish = tokens.filter(t => t === '.' || chordToken.test(t)).length;
-      return chordish / tokens.length >= 0.6;
-    };
-
-    const formatLine = (line) => {
-      const trimmed = line.trim();
-      if (!trimmed) return '';
-
-      if (trimmed.includes('|')) {
-        const parts = trimmed
-          .split('|')
-          .map(p => p.trim())
-          .filter((p, idx, arr) => p || idx === 0 || idx === arr.length - 1);
-        return parts.join(' | ');
-      }
-
-      if (isChordHeavy(trimmed)) {
-        return trimmed.replace(/\s+/g, ' ');
-      }
-
-      return trimmed.replace(/\s+/g, ' ');
-    };
-
-    const formatted = [];
-    for (const line of text.split('\n')) {
-      const next = formatLine(line);
-      if (next === '' && formatted.at(-1) === '') continue;
-      formatted.push(next);
-    }
-
-    setFormData(prev => ({ ...prev, lyrics: formatted.join('\n') }));
-  };
-
   // Convert inline ChordPro ([C]Lyric) to chord-above-lyrics format
   const handleTranscribeFile = async () => {
     if (!transcribeFile) {
@@ -953,14 +905,8 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   <button type="button" onClick={insertStandardTemplate} className="btn btn-sm">
                     📋 Standard
                   </button>
-                  <button type="button" onClick={formatChords} className="btn btn-sm btn-secondary">
-                    ✨ Format Chord
-                  </button>
                   <button type="button" onClick={convertStandardToChordPro} className="btn btn-sm btn-primary">
                     🔄 Convert ke ChordPro
-                  </button>
-                  <button type="button" onClick={() => setShowAi(true)} className="btn btn-sm btn-secondary">
-                    🤖 AI
                   </button>
                   <button type="button" onClick={() => setShowTranscribe(true)} className="btn btn-sm">
                     🎤 Transkripsi
@@ -991,20 +937,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
           </form>
         </div>
       </div>
-
-      {showAi && (
-        <AiAssistant
-          onClose={() => setShowAi(false)}
-          song={{
-            title: formData.title,
-            artist: formData.artist,
-            key: formData.key,
-            lyrics: formData.lyrics,
-          }}
-        />
-      )}
-
-
 
       {/* YouTube Search Modal */}
       {showYouTubeSearch && (
@@ -1474,17 +1406,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
         </div>
       )}
 
-      {showAi && (
-        <AiAssistant
-          onClose={() => setShowAi(false)}
-          song={{
-            title: formData.title,
-            artist: formData.artist,
-            key: formData.key,
-            lyrics: formData.lyrics,
-          }}
-        />
-      )}
     </>
   );
 };

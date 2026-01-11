@@ -64,94 +64,6 @@
   display: flex;
   gap: 0.5rem;
 }
-/* ===== Form dan YouTube berdampingan di SongForm ===== */
-.form-youtube-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 2rem;
-  width: 100%;
-  margin-bottom: 1rem;
-}
-.form-youtube-row .youtube-viewer-section {
-  flex: 1;
-  width: 100%;
-  max-width: 900px;
-  min-width: 260px;
-}
-@media (max-width: 900px) {
-  .form-youtube-row {
-    flex-direction: column;
-    gap: 1.2rem;
-  }
-  .form-youtube-row .youtube-viewer-section {
-    margin-left: 0;
-    width: 100%;
-    max-width: 100%;
-  }
-}
-/* ===== Help Popover (Bantuan Format) ===== */
-.help-popover-container {
-  position: relative;
-  display: inline-block;
-}
-.help-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5em;
-  height: 1.5em;
-  background: var(--primary);
-  color: #fff;
-  border-radius: 50%;
-  font-size: 1em;
-  cursor: pointer;
-  margin-left: 0.2em;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-  transition: background 0.2s;
-  border: none;
-  outline: none;
-}
-.help-icon:focus,
-.help-icon:hover {
-  background: var(--primary-dark);
-}
-.help-popover {
-  display: none;
-  position: absolute;
-  left: 50%;
-  top: 120%;
-  transform: translateX(-50%);
-  min-width: 260px;
-  background: var(--card-hover);
-  color: var(--text-muted);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-lg);
-  padding: 1rem 1.2rem;
-  z-index: 20;
-  font-size: 0.97em;
-  border-left: 4px solid var(--primary);
-}
-.help-popover-container:hover .help-popover,
-.help-popover-container:focus-within .help-popover {
-  display: block;
-}
-/* ===== Lyrics Help (Tips Bantuan) ===== */
-.lyrics-help {
-  background: var(--card-hover);
-  color: var(--text-muted);
-  font-size: 0.95rem;
-  border-radius: var(--radius);
-  margin-top: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-left: 4px solid var(--primary);
-}
-.lyrics-help ul {
-  margin: 0.25rem 0 0 1.2rem;
-  padding: 0;
-}
-.lyrics-help code {
-  background: var(--bg-dark);
   color: var(--primary);
   padding: 0.1em 0.4em;
   border-radius: 4px;
@@ -433,80 +345,31 @@ body {
     grid-column: 1 / -1;
     width: 100%;
   }
-  .filters-bar .search-box input {
-    width: 100%;
-  }
-  .setlist-select {
-    width: 100%;
-    min-width: 0;
-  }
-  .filters-bar .btn-icon {
-    justify-self: start;
-  }
 }
 
-/* ===== Songs Cards Grid ===== */
+/* Songs cards grid & view modes */
 .songs-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-@media (max-width: 540px) {
-  .songs-cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.9rem;
-  }
-  .view-header h2 {
-    font-size: 1.25rem;
-  }
-}
-
-/* View Mode: Compact */
-.songs-cards-grid.view-mode-compact {
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.75rem;
-}
-
-.view-mode-compact .song-item {
-  padding: 0.75rem;
-}
-
-.view-mode-compact .song-title {
-  font-size: 0.95rem;
-}
-
-.view-mode-compact .song-artist {
-  font-size: 0.8rem;
-}
-
-.view-mode-compact .song-meta {
-  font-size: 0.75rem !important;
-  margin-top: 0.25rem !important;
-}
-
-/* View Mode: Detailed */
-.songs-cards-grid.view-mode-detailed {
-  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
-.view-mode-detailed .song-item {
-  display: flex;
-  align-items: center;
-  padding: 1rem 1.25rem;
+.songs-cards-grid.view-mode-compact {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
-.view-mode-detailed .song-info {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+.view-mode-compact .song-item {
+  padding: 0.75rem 0.9rem;
+  gap: 0.4rem;
 }
 
-.view-mode-detailed .song-title {
-  font-size: 1.1rem;
-  min-width: 200px;
+.view-mode-compact .song-artist {
+  display: none;
+}
+
+.view-mode-compact .song-meta {
+  font-size: 0.82rem;
+  margin-top: 0.25rem;
 }
 
 .view-mode-detailed .song-artist {
@@ -518,13 +381,6 @@ body {
   display: flex !important;
   gap: 1rem !important;
   font-size: 0.9rem !important;
-}
-
-.view-mode-detailed .song-actions {
-  position: static;
-  opacity: 1;
-  display: flex;
-  gap: 0.5rem;
 }
 
 /* ===== Setlists Cards Grid ===== */
@@ -1608,84 +1464,6 @@ body {
   cursor: pointer;
 }
 
-.piano-chord-badge .piano-chord-popup {
-  display: none;
-  position: absolute;
-  left: 50%;
-  top: 110%;
-  transform: translateX(-50%);
-  z-index: 10;
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: 0.5rem 1rem 0.7rem 1rem;
-  min-width: 120px;
-  min-height: 60px;
-  margin-top: 0.5rem;
-}
-
-.piano-chord-badge:hover .piano-chord-popup {
-  display: block;
-}
-
-.piano-diagram {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0.2rem 0;
-}
-.white-keys {
-  display: flex;
-  position: relative;
-  z-index: 1;
-}
-.white-key {
-  width: 22px;
-  height: 60px;
-  background: #fff;
-  border: 1px solid #bbb;
-  border-radius: 0 0 5px 5px;
-  margin-right: 2px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  font-size: 0.7rem;
-  color: #333;
-  position: relative;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-}
-.white-key.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary-dark);
-}
-.black-keys {
-  display: flex;
-  position: absolute;
-  left: 10px;
-  top: 0;
-  z-index: 2;
-  pointer-events: none;
-}
-.black-key {
-  width: 14px;
-  height: 36px;
-  background: #222;
-  margin-left: -7px;
-  margin-right: -7px;
-  border-radius: 0 0 3px 3px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  font-size: 0.6rem;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-}
-.black-key.active {
-  background: var(--accent);
-  color: #fff;
-}
 .black-key.empty {
   background: transparent;
   box-shadow: none;
@@ -2045,103 +1823,6 @@ body {
   transform: rotate(90deg);
 }
 
-/* ===== Virtual Piano in Form ===== */
-.virtual-piano {
-  background: var(--bg-dark);
-  padding: 1.5rem;
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--border);
-}
-
-.piano-keys-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 2px;
-  position: relative;
-  height: 140px;
-  margin-bottom: 0.5rem;
-}
-
-.piano-key {
-  cursor: pointer;
-  border: none;
-  font-weight: 600;
-  transition: all 0.1s ease;
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 0.5rem;
-  user-select: none;
-}
-
-.piano-key.white {
-  width: 50px;
-  height: 140px;
-  background: linear-gradient(to bottom, #ffffff 0%, #f0f0f0 100%);
-  border: 2px solid #333;
-  border-radius: 0 0 6px 6px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  z-index: 1;
-}
-
-.piano-key.white:hover {
-  background: linear-gradient(to bottom, #f8f8f8 0%, #e8e8e8 100%);
-}
-
-.piano-key.white.active {
-  background: linear-gradient(to bottom, var(--primary-light) 0%, var(--primary) 100%);
-  color: white;
-  box-shadow: 0 0 20px var(--primary);
-}
-
-.piano-key.black {
-  width: 35px;
-  height: 90px;
-  background: linear-gradient(to bottom, #2a2a2a 0%, #0a0a0a 100%);
-  border: 1px solid #000;
-  border-radius: 0 0 4px 4px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.4);
-  color: white;
-  position: absolute;
-  z-index: 2;
-  margin-left: -18px;
-}
-
-.piano-key.black:hover {
-  background: linear-gradient(to bottom, #3a3a3a 0%, #1a1a1a 100%);
-}
-
-.piano-key.black.active {
-  background: linear-gradient(to bottom, var(--chord) 0%, var(--accent) 100%);
-  box-shadow: 0 0 20px var(--chord);
-}
-
-.piano-key:nth-child(2) { left: 38px; }
-.piano-key:nth-child(4) { left: 90px; }
-.piano-key:nth-child(7) { left: 194px; }
-.piano-key:nth-child(9) { left: 246px; }
-.piano-key:nth-child(11) { left: 298px; }
-
-.note-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  pointer-events: none;
-}
-
-.piano-key.white .note-label {
-  color: #333;
-}
-
-.piano-key.white.active .note-label {
-  color: white;
-}
-
-.piano-key.black .note-label {
-  color: #ccc;
-}
-
 /* ===== Forms ===== */
 .song-form-modal {
   width: 100%;
@@ -2400,6 +2081,21 @@ body {
 
 .btn-delete:hover {
   background: #c53030;
+}
+
+.btn-duplicate {
+  padding: 0.375rem 0.625rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.btn-duplicate:hover {
+  background: #6b7fd7;
 }
 
 .song-selector {

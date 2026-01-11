@@ -300,50 +300,17 @@ Catatan: Sinkronisasi otomatis create/update/delete dari UI hanya aktif jika `VI
 
 ---
 
-## 🤖 AI Assistant (Gemini)
+## 🎤 Audio Transcription
 
-Fitur AI berbasis Google Gemini untuk membantu:
+Fitur transkripsi audio untuk mengkonversi file audio menjadi teks lirik:
 
-- Menyarankan progresi chord yang cocok
-- Memperbaiki/merapikan format ChordPro
-- Memberi saran transposisi dan ringkas lirik
+- Upload file audio (MP3, WAV, dll)
+- Transkripsi otomatis menggunakan backend API
+- Hasil dapat langsung dipaste ke editor lagu
 
 ### Cara Pakai
 
-- Klik tombol "🤖 AI" di panel navigasi.
-- Pilih model (Gemini 2.5 Flash/Pro), tulis prompt, dan (opsional) sertakan konteks lagu terpilih.
-
-### Konfigurasi
-
-Tambahkan environment variable berikut di lokal/hosting:
-
-```
-GEMINI_API_KEY=your-google-ai-studio-key
-```
-
-Kunci ini digunakan oleh backend route `/api/ai` (proxy aman), sehingga tidak diekspos ke frontend.
-
-### Menjalankan Backend API (Lokal)
-
-Untuk menggunakan fitur AI, backend API harus berjalan di port 3000. Ada beberapa cara:
-
-1. **Otomatis (dengan concurrently):**
-
-```bash
-npm run dev:full
-```
-
-2. **Manual (dua terminal terpisah):**
-   Terminal 1 (Backend):
-
-```bash
-npm run dev:api
-```
-
-Terminal 2 (Frontend):
-
-```bash
-npm run dev
-```
-
-Backend API akan tersedia di `http://localhost:3000/api/*` dan Vite dev server akan proxy request `/api/*` ke backend.
+- Di form edit/tambah lagu, klik tombol "🎤 Transkripsi"
+- Upload file audio
+- Tunggu proses transkripsi selesai
+- Paste hasil ke field lirik

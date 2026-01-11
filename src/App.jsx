@@ -4,7 +4,6 @@ import { getTransposeSteps } from './utils/chordUtils';
 import YouTubeViewer from './components/YouTubeViewer';
 import AutoScroll from './components/AutoScroll';
 import HelpModal from './components/HelpModal';
-import AiAssistant from './components/AiAssistant';
 import SongFormBaru from './components/SongForm';
 import SetListForm from './components/SetListForm';
 import SongListItem from './components/SongListItem';
@@ -116,7 +115,6 @@ function App() {
     }
   });
   const [showHelp, setShowHelp] = useState(false);
-  const [showAI, setShowAI] = useState(false);
   const scrollRef = useRef(null);
   const isInitialLoad = useRef(true);
 
@@ -403,6 +401,34 @@ function App() {
       await fetch(`/api/setlists/${id}`, { method: 'DELETE' });
     } catch (err) {
       console.error('Gagal menghapus setlist:', err);
+    }
+  };
+
+  const handleDuplicateSetList = async (id) => {
+    const originalSetList = setLists.find(sl => sl.id === id);
+    if (!originalSetList) return;
+
+    const now = Date.now();
+    const duplicatedSetList = {
+      id: now.toString(),
+      name: `${originalSetList.name} (Copy)`,
+      songs: [...originalSetList.songs],
+      songKeys: { ...(originalSetList.songKeys || {}) },
+      createdAt: new Date().toISOString(),
+      updatedAt: now
+    };
+
+    setSetLists(prevSetLists => [...prevSetLists, duplicatedSetList]);
+
+    // Sync to database
+    try {
+      await fetch('/api/setlists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(duplicatedSetList)
+      });
+    } catch (err) {
+      console.error('Gagal menduplikat setlist di database:', err);
     }
   };
 
@@ -768,10 +794,10 @@ function App() {
             </button>
             <button
               className="nav-btn"
-              onClick={() => setShowAI(true)}
-              title="AI Assistant (Gemini)"
+              onClick={() => setShowHelp(true)}
+              title="Bantuan & Panduan"
             >
-              🤖 AI
+              ❓ Bantuan
             </button>
           </nav>
 
@@ -939,6 +965,16 @@ function App() {
                                   ✎
                                 </button>
                                 <button
+                                  className="btn btn-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDuplicateSetList(setList.id);
+                                  }}
+                                  title="Duplikat Setlist"
+                                >
+                                  📋
+                                </button>
+                                <button
                                   className="btn btn-xs btn-danger"
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -1079,13 +1115,6 @@ function App() {
               setShowSongForm(false);
               setEditingSong(null);
             }}
-          />
-        )}
-
-        {showAI && (
-          <AiAssistant
-            song={selectedSong || null}
-            onClose={() => setShowAI(false)}
           />
         )}
 

@@ -166,6 +166,15 @@ Hatiku berbunga mekar seribu`}</CodeBlock>
           <p style={{ color: '#94a3b8' }}>💡 Copy-paste dari situs chord (ultimate-guitar, dll), aplikasi akan mendeteksi dan merender dengan benar. Transpose dan fitur lain tetap bekerja.</p>
         </Section>
 
+        <Section title="Tombol Bantu Format Chord" icon="✨">
+          <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
+            <ListItem><strong>Convert ke ChordPro:</strong> Konversi format standard (chord di atas lirik) ke format ChordPro bracket. Deteksi otomatis untuk chord lines.</ListItem>
+            <ListItem><strong>ChordPro Template:</strong> Masukkan template ChordPro standar dengan metadata dan struktur dasar.</ListItem>
+            <ListItem><strong>Standard Template:</strong> Masukkan template format standard (chord di atas lirik) dengan struktur dasar.</ListItem>
+            <ListItem><strong>Transkripsi:</strong> Upload file audio untuk mentranskrip melodi dan lirik.</ListItem>
+          </ul>
+        </Section>
+
         <Section title="Format Not Angka (Lengkap)" icon="🎵">
           <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
             <ListItem><strong>Angka 1–7:</strong> do–si. Pisahkan dengan spasi.</ListItem>
@@ -204,15 +213,6 @@ Hatiku ber- bunga mekar | seribu |
             <ListItem><strong>Setlist:</strong> buat/hapus, tambah/kurangi lagu, pilih setlist aktif.</ListItem>
             <ListItem><strong>Export/Import:</strong> ekspor seluruh database ke JSON; impor untuk memulihkan.</ListItem>
             <ListItem><strong>Sync ke DB:</strong> kirim data ke backend (Turso) untuk backup cloud.</ListItem>
-          </ul>
-        </Section>
-
-        <Section title="Tips Audio Piano" icon="🎹">
-          <ul style={{ margin: 0, paddingLeft: '1.2rem' }}>
-            <ListItem>Klik sekali pada halaman agar audio diizinkan oleh browser (autoplay policy).</ListItem>
-            <ListItem>Pastikan tab/browser tidak mute dan volume sistem cukup.</ListItem>
-            <ListItem>Piano virtual memakai oscillator Web Audio (timbre sederhana) untuk saat ini.</ListItem>
-            <ListItem>Klik tuts untuk memutar nada; melodi popup menampilkan diagram piano chord.</ListItem>
           </ul>
         </Section>
 

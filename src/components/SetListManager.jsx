@@ -5,6 +5,7 @@ const SetListManager = ({
   songs, 
   onCreateSetList, 
   onDeleteSetList, 
+  onDuplicateSetList,
   onAddSongToSetList, 
   onRemoveSongFromSetList,
   onSelectSetList
@@ -81,6 +82,16 @@ const SetListManager = ({
                       <span className="setlist-name">{setList.name}</span>
                       <span className="song-count">({setList.songs.length})</span>
                     </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDuplicateSetList(setList.id);
+                      }}
+                      className="btn-duplicate"
+                      title="Duplikat Setlist"
+                    >
+                      📋
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
