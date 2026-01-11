@@ -105,6 +105,16 @@ function App() {
       return 'default';
     }
   });
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ronz_dark_mode');
+      if (saved !== null) return saved === 'true';
+      // Auto-detect system preference
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch {
+      return false;
+    }
+  });
   const [showHelp, setShowHelp] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const scrollRef = useRef(null);
@@ -198,6 +208,14 @@ function App() {
       localStorage.setItem('ronz_setlists', JSON.stringify(sanitized));
     } catch { }
   }, [setLists]);
+
+  // Save dark mode preference
+  useEffect(() => {
+    try {
+      localStorage.setItem('ronz_dark_mode', darkMode.toString());
+      document.documentElement.classList.toggle('dark-mode', darkMode);
+    } catch { }
+  }, [darkMode]);
 
   // Sync setLists to backend (debounced to avoid too many requests)
   useEffect(() => {
@@ -743,6 +761,13 @@ function App() {
             </button>
             <button
               className="nav-btn"
+              onClick={() => setDarkMode(!darkMode)}
+              title={darkMode ? 'Light Mode' : 'Dark Mode'}
+            >
+              {darkMode ? '☀️' : '🌙'}
+            </button>
+            <button
+              className="nav-btn"
               onClick={() => setShowAI(true)}
               title="AI Assistant (Gemini)"
             >
@@ -970,6 +995,15 @@ function App() {
                         title={showYouTube ? 'Sembunyikan YouTube' : 'Tampilkan YouTube'}
                       >
                         📺
+                      </button>
+                      <span className="divider" />
+                      {/* Print Button */}
+                      <button
+                        onClick={() => window.print()}
+                        className="btn btn-xs"
+                        title="Cetak/Print (PDF)"
+                      >
+                        🖨️
                       </button>
                     </div>
                   )}

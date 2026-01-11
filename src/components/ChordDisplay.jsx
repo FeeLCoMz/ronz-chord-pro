@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { parseChordPro, transposeChord, getAllChords } from '../utils/chordUtils';
 import { parseMelodyString, transposeMelody, formatNoteDisplay, extractMelodyFromLyrics } from '../utils/musicNotationUtils';
-// ...existing code...
+import ChordDiagramModal from './ChordDiagramModal';
 
 const ChordDisplay = ({ song, transpose = 0 }) => {
   const [parsedSong, setParsedSong] = useState(null);
   const [allChords, setAllChords] = useState([]);
   // Precompute melody bars for inline numeric notation
   const [melodyBars, setMelodyBars] = useState([]);
+  const [selectedChord, setSelectedChord] = useState(null);
   
   useEffect(() => {
     if (song && song.lyrics) {
@@ -163,7 +164,13 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
         
         const transposedChord = transposeChord(chord, transpose);
         chordLine.push(
-          <span key={`chord-${idx}`} className="chord">
+          <span
+            key={`chord-${idx}`}
+            className="chord"
+            onClick={() => setSelectedChord(chord)}
+            style={{ cursor: 'pointer' }}
+            title="Click untuk melihat diagram"
+          >
             {transposedChord}
           </span>
         );
@@ -305,6 +312,13 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       <div className="lyrics-content">
         {parsedSong.lines.map((line, index) => renderLine(line, index))}
       </div>
+
+      {selectedChord && (
+        <ChordDiagramModal
+          chordName={selectedChord}
+          onClose={() => setSelectedChord(null)}
+        />
+      )}
     </div>
   );
 };

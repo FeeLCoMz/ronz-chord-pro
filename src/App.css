@@ -240,6 +240,66 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ===== Dark Mode Theme ===== */
+html.dark-mode {
+  --primary: #818cf8;
+  --primary-dark: #6366f1;
+  --primary-light: #a5b4fc;
+  --secondary: #a78bfa;
+  --accent: #f472b6;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+  --bg: #0a0e1a;
+  --bg-dark: #050811;
+  --bg-elevated: #12172a;
+  --card: #0f1419;
+  --card-hover: #161b26;
+  --text: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border: #1e293b;
+  --border-light: #334155;
+  --chord: #f472b6;
+  --chord-alt: #fb923c;
+  --structure: #a78bfa;
+}
+
+/* ===== Light Mode Theme ===== */
+html:not(.dark-mode) {
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --primary-light: #6366f1;
+  --secondary: #7c3aed;
+  --accent: #db2777;
+  --success: #059669;
+  --warning: #d97706;
+  --info: #2563eb;
+  --bg: #f8fafc;
+  --bg-dark: #f1f5f9;
+  --bg-elevated: #ffffff;
+  --card: #ffffff;
+  --card-hover: #f8fafc;
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --border-light: #cbd5e1;
+  --chord: #db2777;
+  --chord-alt: #ea580c;
+  --structure: #7c3aed;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 40px -8px rgba(0, 0, 0, 0.2);
+}
+
+html:not(.dark-mode) body {
+  background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
+}
+
 body {
   background: linear-gradient(135deg, #232946 0%, #181c24 100%);
   color: var(--text);
@@ -259,23 +319,23 @@ body {
 
 /* ===== Header ===== */
 .header {
-  background: #1a1f2e;
-  color: white;
+  background: var(--bg-elevated);
+  color: var(--text);
   padding: 2rem 2.5rem;
-  border-bottom: 1px solid #2d3548;
+  border-bottom: 1px solid var(--border);
 }
 
 .header-content h1 {
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
-  color: #f8fafc;
+  color: var(--text);
   letter-spacing: -0.5px;
 }
 
 .header-content p {
   font-size: 0.9rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
