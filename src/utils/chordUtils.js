@@ -6,8 +6,8 @@
 const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const NOTES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 
-// Regex untuk mendeteksi chord
-const CHORD_REGEX = /^([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?$/;
+// Regex untuk mendeteksi chord (termasuk leading dash untuk passing chord dan trailing dots untuk durasi)
+const CHORD_REGEX = /^-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?$/;
 
 export const transposeChord = (chord, steps) => {
   if (!chord || steps === 0) return chord;
@@ -63,22 +63,23 @@ export const getTransposeSteps = (fromKey, toKey) => {
 const isChordLine = (line) => {
   if (!line.trim()) return false;
   
-  // Split berdasarkan whitespace
-  const tokens = line.trim().split(/\s+/);
+  // Try to extract all chords using regex pattern matching
+  const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
+  const matches = [...line.matchAll(chordPattern)];
   
-  // Jika tidak ada token atau terlalu banyak kata, bukan chord line
-  if (tokens.length === 0 || tokens.length > 15) return false;
+  if (matches.length === 0) return false;
   
-  // Hitung berapa banyak token yang merupakan chord
-  let chordCount = 0;
-  for (const token of tokens) {
-    if (CHORD_REGEX.test(token)) {
-      chordCount++;
-    }
+  // Calculate how much of the line is covered by chords
+  let totalChordLength = 0;
+  for (const match of matches) {
+    totalChordLength += match[0].length;
   }
   
-  // Jika lebih dari 50% adalah chord, anggap sebagai chord line
-  return chordCount > 0 && (chordCount / tokens.length) >= 0.5;
+  // Remove spaces to get actual character count
+  const lineWithoutSpaces = line.replace(/\s+/g, '');
+  
+  // If more than 50% of non-space characters are chords, treat as chord line
+  return totalChordLength > 0 && (totalChordLength / lineWithoutSpaces.length) >= 0.5;
 };
 
 // Fungsi untuk mengkonversi format standard (chord di atas lirik) ke ChordPro-like format
@@ -87,16 +88,17 @@ const parseStandardFormat = (lines) => {
   let currentSection = null;
 
   const normalizeSection = (name) => {
-    const n = name.toLowerCase();
+    const n = name.toLowerCase().replace(/[.:]+$/, ''); // Remove trailing dots/colons
     if (n.includes('intro')) return 'intro';
     if (n.includes('verse')) return 'verse';
     if (n.includes('pre') && n.includes('chorus')) return 'pre-chorus';
     if (n.includes('chorus')) return 'chorus';
     if (n.includes('bridge')) return 'bridge';
     if (n.includes('outro')) return 'outro';
-    if (n.includes('interlude')) return 'interlude';
+    if (n.includes('interlude') || n === 'int') return 'interlude';
     if (n.includes('solo')) return 'solo';
-    if (n.includes('refrain')) return 'refrain';
+    if (n.includes('refrain') || n.includes('reff')) return 'refrain';
+    if (n.includes('musik')) return 'musik';
     return null;
   };
   
@@ -107,6 +109,62 @@ const parseStandardFormat = (lines) => {
     if (!currentLine.trim()) {
       parsed.push({ type: 'empty', line: '' });
       continue;
+    }
+    
+    // Check for standalone section header (e.g., "Int." or "Intro" on its own line)
+    const standaloneSectionMatch = currentLine.trim().match(/^([A-Za-z.]+)\s*$/);
+    if (standaloneSectionMatch) {
+      const possibleSection = standaloneSectionMatch[1].trim();
+      const normalizedSectionName = normalizeSection(possibleSection);
+      
+      if (normalizedSectionName) {
+        if (currentSection) {
+          parsed.push({ type: 'structure_end', structure: currentSection });
+        }
+        parsed.push({ type: 'structure_start', structure: normalizedSectionName });
+        currentSection = normalizedSectionName;
+        continue;
+      }
+    }
+    
+    // Check for section header with inline chords (e.g., "Int. C G Am")
+    const sectionWithChordsMatch = currentLine.trim().match(/^([A-Za-z.]+)\s+(.+)$/);
+    if (sectionWithChordsMatch) {
+      const possibleSection = sectionWithChordsMatch[1].trim();
+      const possibleChords = sectionWithChordsMatch[2].trim();
+      const normalizedSectionName = normalizeSection(possibleSection);
+      
+      // If section matches, always treat it as section (even if rest is not chords)
+      if (normalizedSectionName) {
+        if (currentSection) {
+          parsed.push({ type: 'structure_end', structure: currentSection });
+        }
+        parsed.push({ type: 'structure_start', structure: normalizedSectionName });
+        currentSection = normalizedSectionName;
+        
+        // Parse the chord line using regex matching
+        const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
+        const matches = [...possibleChords.matchAll(chordPattern)];
+        const chords = matches.map(match => ({
+          chord: match[0],
+          position: match.index + possibleSection.length + 1
+        }));
+        
+        // Add chord line to parsed
+        // Check if next line exists and is lyrics (not chord line, not empty)
+        let lyricText = '';
+        if (nextLine && nextLine.trim() && !isChordLine(nextLine)) {
+          lyricText = nextLine;
+          i++; // Skip next line since we consumed it
+        }
+        
+        parsed.push({
+          type: 'line_with_chords',
+          chords,
+          text: lyricText
+        });
+        continue;
+      }
     }
     
     // Deteksi metadata sederhana
@@ -142,19 +200,13 @@ const parseStandardFormat = (lines) => {
     if (isChordLine(currentLine)) {
       // Jika ada baris berikutnya dan bukan chord line, gabungkan
       if (nextLine && !isChordLine(nextLine) && nextLine.trim()) {
-        const chords = [];
-        const tokens = currentLine.split(/(\s+)/);
-        let position = 0;
-        
-        for (const token of tokens) {
-          if (token.trim() && CHORD_REGEX.test(token.trim())) {
-            chords.push({
-              chord: token.trim(),
-              position: position
-            });
-          }
-          position += token.length;
-        }
+        // Extract chords using regex pattern matching
+        const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
+        const matches = [...currentLine.matchAll(chordPattern)];
+        const chords = matches.map(match => ({
+          chord: match[0],
+          position: match.index
+        }));
         
         parsed.push({
           type: 'line_with_chords',
@@ -165,19 +217,12 @@ const parseStandardFormat = (lines) => {
         i++; // Skip next line karena sudah diproses
       } else {
         // Chord line tanpa lirik di bawahnya
-        const chords = [];
-        const tokens = currentLine.split(/(\s+)/);
-        let position = 0;
-        
-        for (const token of tokens) {
-          if (token.trim() && CHORD_REGEX.test(token.trim())) {
-            chords.push({
-              chord: token.trim(),
-              position: position
-            });
-          }
-          position += token.length;
-        }
+        const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
+        const matches = [...currentLine.matchAll(chordPattern)];
+        const chords = matches.map(match => ({
+          chord: match[0],
+          position: match.index
+        }));
         
         parsed.push({
           type: 'line_with_chords',
