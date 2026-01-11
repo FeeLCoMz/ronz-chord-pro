@@ -1,7 +1,3 @@
-import SettingsModal from './components/SettingsModal';
-// ...existing code...
-
-// Render SettingsModal di dalam return utama
 import React, { useState, useRef, useEffect } from 'react';
 import ChordDisplay from './components/ChordDisplay';
 import { getTransposeSteps } from './utils/chordUtils';
@@ -12,7 +8,7 @@ import AiAssistant from './components/AiAssistant';
 import SongFormBaru from './components/SongForm';
 import SetListForm from './components/SetListForm';
 import SongListItem from './components/SongListItem';
-import { initialSongs, initialSetLists } from './data/songs';
+import SettingsModal from './components/SettingsModal';
 import './App.css';
 
 function sanitizeSongs(list = []) {
@@ -95,7 +91,6 @@ function App() {
   const [editingSong, setEditingSong] = useState(null);
   const [showSetListForm, setShowSetListForm] = useState(false);
   const [editingSetList, setEditingSetList] = useState(null);
-  const [showSetListMenu, setShowSetListMenu] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncingToDb, setSyncingToDb] = useState(false);
@@ -110,7 +105,6 @@ function App() {
       return 'default';
     }
   });
-  // const [showSidebarNav, setShowSidebarNav] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const scrollRef = useRef(null);
@@ -778,8 +772,8 @@ function App() {
                           </p>
                         )}
                       </div>
-                      <button onClick={() => setShowSongForm(true)} className="btn btn-sm btn-primary">
-                        ➕ Tambah Lagu
+                      <button onClick={() => setShowSongForm(true)} className="btn btn-sm btn-primary" title="Tambah Lagu">
+                        ➕
                       </button>
                     </div>
                     
@@ -933,15 +927,6 @@ function App() {
                             </div>
                             <div className="setlist-card-body">
                               <p className="song-count">{setList.songs?.length || 0} lagu</p>
-                              {setList.songs && setList.songs.length > 0 && (
-                                <ul className="song-preview">
-                                  {setList.songs.slice(0, 3).map((songId) => {
-                                    const song = songs.find(s => s.id === songId);
-                                    return song ? <li key={songId}>{song.title}</li> : null;
-                                  })}
-                                  {setList.songs.length > 3 && <li>...</li>}
-                                </ul>
-                              )}
                             </div>
                           </div>
                         ))

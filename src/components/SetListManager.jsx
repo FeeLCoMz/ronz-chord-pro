@@ -36,8 +36,9 @@ const SetListManager = ({
         <button 
           onClick={() => setShowCreateForm(!showCreateForm)}
           className="btn btn-primary btn-block"
+          title="Buat Set List Baru"
         >
-          + Buat Set List Baru
+          ➕
         </button>
         
         {showCreateForm && (
@@ -49,11 +50,11 @@ const SetListManager = ({
               onChange={(e) => setNewSetListName(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleCreateSetList()}
             />
-            <button onClick={handleCreateSetList} className="btn btn-success">
-              Simpan
+            <button onClick={handleCreateSetList} className="btn btn-success" title="Simpan">
+              💾
             </button>
-            <button onClick={() => setShowCreateForm(false)} className="btn">
-              Batal
+            <button onClick={() => setShowCreateForm(false)} className="btn" title="Batal">
+              ✕
             </button>
           </div>
         )}
@@ -107,8 +108,9 @@ const SetListManager = ({
               <button 
                 onClick={() => setShowSongSelector(!showSongSelector)}
                 className="btn btn-secondary btn-block"
+                title="Tambah Lagu"
               >
-                + Tambah Lagu
+                ➕
               </button>
               
               {showSongSelector && (

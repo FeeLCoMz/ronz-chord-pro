@@ -981,11 +981,11 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
 
             {/* Action Buttons */}
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-                💾 {song ? 'Update Lagu' : 'Simpan Lagu'}
+              <button type="submit" className="btn btn-primary" style={{ flex: 1 }} title={song ? 'Update Lagu' : 'Simpan Lagu'}>
+                💾
               </button>
-              <button type="button" onClick={onCancel} className="btn" style={{ flex: 1 }}>
-                Batal
+              <button type="button" onClick={onCancel} className="btn" style={{ flex: 1 }} title="Batal">
+                ✕
               </button>
             </div>
           </form>

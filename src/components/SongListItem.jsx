@@ -131,7 +131,7 @@ export default function SongListItem({ song, isActive, onSelect, onEdit, onDelet
               )}
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', padding: '1rem 1.5rem' }}>
-              <button className="btn" onClick={handleCancel}>Tutup</button>
+              <button className="btn" onClick={handleCancel} title="Tutup">✕</button>
             </div>
           </div>
         </div>

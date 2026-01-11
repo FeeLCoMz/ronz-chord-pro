@@ -61,11 +61,11 @@ const SetListForm = ({ setList, onSave, onCancel }) => {
             {error && <span className="error-message">{error}</span>}
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-            <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>
-              💾 {setList ? 'Update Setlist' : 'Buat Setlist'}
+            <button type="submit" className="btn btn-primary" style={{ flex: 1 }} title={setList ? 'Update Setlist' : 'Buat Setlist'}>
+              💾
             </button>
-            <button type="button" onClick={onCancel} className="btn" style={{ flex: 1 }}>
-              Batal
+            <button type="button" onClick={onCancel} className="btn" style={{ flex: 1 }} title="Batal">
+              ✕
             </button>
           </div>
         </form>
