@@ -105,12 +105,15 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       const chordLine = [];
       let currentPos = 0;
       
+      // Use original chord line for bar positions if available
+      const sourceForBars = lineData.originalChordLine || lineData.text;
+      
       lineData.chords.forEach(({ chord, position }, idx) => {
         const spacesNeeded = position - currentPos;
         if (spacesNeeded > 0) {
           const spacesText = '\u00A0'.repeat(spacesNeeded);
-          // Check if spaces contain bar lines
-          const textBeforeChord = lineData.text.substring(currentPos, position);
+          // Check if spaces contain bar lines from original chord line
+          const textBeforeChord = sourceForBars.substring(currentPos, position);
           if (textBeforeChord.includes('|')) {
             const parts = spacesText.split('');
             let barPositions = [];
@@ -172,6 +175,28 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
         
         currentPos = position + chord.length;
       });
+      
+      // Add trailing bars from original chord line
+      if (sourceForBars && currentPos < sourceForBars.length) {
+        const trailing = sourceForBars.substring(currentPos);
+        if (trailing.includes('|')) {
+          for (let i = 0; i < trailing.length; i++) {
+            if (trailing[i] === '|') {
+              chordLine.push(
+                <span key={`bar-trailing-${i}`} className="bar-line">
+                  {' |'}
+                </span>
+              );
+            } else if (trailing[i] !== ' ') {
+              chordLine.push(
+                <span key={`trailing-${i}`} className="chord-space">
+                  {trailing[i]}
+                </span>
+              );
+            }
+          }
+        }
+      }
       
       // Process text with bar lines
       const textParts = [];
