@@ -63,26 +63,11 @@ export const getTransposeSteps = (fromKey, toKey) => {
 const isChordLine = (line) => {
   if (!line.trim()) return false;
   
-  // Check if line has bar notation (pipes)
-  const hasBars = line.includes('|');
-  
   // Try to extract all chords using regex pattern matching
   const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
   const matches = [...line.matchAll(chordPattern)];
   
-  // Count dots (which represent chord repetitions in bar notation)
-  const dotTokens = line.split(/[\s|]+/).filter(t => t === '.').length;
-  
-  if (matches.length === 0 && dotTokens === 0) return false;
-  
-  // If has bars and pipes, check if it's chord chart format
-  if (hasBars) {
-    // Count chords and dots vs total tokens
-    const tokens = line.split(/[\s|]+/).filter(Boolean);
-    const chordAndDotCount = matches.length + dotTokens;
-    // If most tokens are chords or dots, it's a chord line
-    return chordAndDotCount > 0 && (chordAndDotCount / tokens.length) >= 0.5;
-  }
+  if (matches.length === 0) return false;
   
   // Calculate how much of the line is covered by chords
   let totalChordLength = 0;
@@ -90,8 +75,8 @@ const isChordLine = (line) => {
     totalChordLength += match[0].length;
   }
   
-  // Remove spaces and pipes to get actual character count
-  const lineWithoutSpaces = line.replace(/[\s|]+/g, '');
+  // Remove spaces to get actual character count
+  const lineWithoutSpaces = line.replace(/\s+/g, '');
   
   // If more than 50% of non-space characters are chords, treat as chord line
   return totalChordLength > 0 && (totalChordLength / lineWithoutSpaces.length) >= 0.5;
@@ -226,8 +211,7 @@ const parseStandardFormat = (lines) => {
         parsed.push({
           type: 'line_with_chords',
           chords,
-          text: nextLine,
-          originalChordLine: currentLine // Preserve original for bar display
+          text: nextLine
         });
         
         i++; // Skip next line karena sudah diproses
@@ -243,8 +227,7 @@ const parseStandardFormat = (lines) => {
         parsed.push({
           type: 'line_with_chords',
           chords,
-          text: '',
-          originalChordLine: currentLine // Preserve original for bar display
+          text: ''
         });
       }
     } else {
