@@ -483,28 +483,64 @@ function App() {
   };
 
   const handleSyncToDatabase = async () => {
-    if (songs.length === 0) {
-      alert('Tidak ada lagu untuk disinkronkan.');
+    if (songs.length === 0 && setLists.length === 0) {
+      alert('Tidak ada lagu atau setlist untuk disinkronkan.');
       return;
     }
 
     setSyncingToDb(true);
     try {
-      const response = await fetch('/api/songs/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ songs })
-      });
+      // Sync songs
+      let songResult = { inserted: 0, updated: 0 };
+      if (songs.length > 0) {
+        const songResponse = await fetch('/api/songs/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ songs })
+        });
 
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result?.error || 'Sync gagal');
+        songResult = await songResponse.json();
+        if (!songResponse.ok) {
+          throw new Error(songResult?.error || 'Sync lagu gagal');
+        }
       }
 
-      alert(`Sync selesai. ${result.inserted || 0} disisipkan, ${result.updated || 0} diperbarui.`);
+      // Sync setlists (filter out untitled)
+      let setlistResult = { inserted: 0, updated: 0, skipped: 0 };
+      const validSetLists = setLists.filter(sl => 
+        sl.name && 
+        sl.name.trim() !== '' && 
+        !sl.name.toLowerCase().includes('untitled')
+      );
+      
+      if (validSetLists.length > 0) {
+        const setlistResponse = await fetch('/api/setlists/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ setlists: validSetLists })
+        });
+
+        setlistResult = await setlistResponse.json();
+        if (!setlistResponse.ok) {
+          throw new Error(setlistResult?.error || 'Sync setlist gagal');
+        }
+      }
+
+      const messages = [];
+      if (songs.length > 0) {
+        messages.push(`Lagu: ${songResult.inserted || 0} disisipkan, ${songResult.updated || 0} diperbarui`);
+      }
+      if (validSetLists.length > 0) {
+        messages.push(`Setlist: ${setlistResult.inserted || 0} disisipkan, ${setlistResult.updated || 0} diperbarui`);
+      }
+      if (setlistResult.skipped > 0) {
+        messages.push(`${setlistResult.skipped} setlist dilewati (untitled)`);
+      }
+
+      alert(`Sync selesai.\n${messages.join('\n')}`);
     } catch (error) {
       console.error('Sync error:', error);
-      alert('Gagal sync ke database. Coba lagi nanti.');
+      alert('Gagal sync ke database. Cek console untuk detail.');
     } finally {
       setSyncingToDb(false);
     }
