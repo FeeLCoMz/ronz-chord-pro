@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function SongListItem({ song, isActive, onSelect, onEdit, onDelete, setLists, onAddToSetLists, onRemoveFromSetList, currentSetList, overrideKey, onSetListKeyChange }) {
+export default function SongListItem({ song, isActive, onSelect, onEdit, onDelete, setLists, onAddToSetLists, onRemoveFromSetList, currentSetList, overrideKey, onSetListKeyChange, viewMode }) {
   const [showSetListPopup, setShowSetListPopup] = useState(false);
   const [selectedSetLists, setSelectedSetLists] = useState([]);
   const [tempKey, setTempKey] = useState(overrideKey || '');

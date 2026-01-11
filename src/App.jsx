@@ -97,6 +97,13 @@ function App() {
   const [sortBy, setSortBy] = useState('title-asc');
   const [selectedSetListsForAdd, setSelectedSetListsForAdd] = useState([]);
   const [showSetListPopup, setShowSetListPopup] = useState(false);
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return localStorage.getItem('ronz_view_mode') || 'default';
+    } catch {
+      return 'default';
+    }
+  });
   // const [showSidebarNav, setShowSidebarNav] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [showAI, setShowAI] = useState(false);
@@ -448,6 +455,18 @@ function App() {
     setShowSongForm(true);
   };
 
+  const handleToggleViewMode = () => {
+    const modes = ['default', 'compact', 'detailed'];
+    const currentIndex = modes.indexOf(viewMode);
+    const nextMode = modes[(currentIndex + 1) % modes.length];
+    setViewMode(nextMode);
+    try {
+      localStorage.setItem('ronz_view_mode', nextMode);
+    } catch (e) {
+      console.error('Failed to save view mode:', e);
+    }
+  };
+
   const handleDeleteSong = async (songId) => {
     if (!confirm('Hapus lagu ini?')) return;
     setSongs(prevSongs => prevSongs.filter(s => s.id !== songId));
@@ -733,9 +752,16 @@ function App() {
                         <option value="artist-asc">🎤 Artis A-Z</option>
                         <option value="newest">🕒 Terbaru</option>
                       </select>
+                      <button
+                        className="btn btn-icon"
+                        onClick={handleToggleViewMode}
+                        title={`Gaya tampilan: ${viewMode === 'default' ? 'Default' : viewMode === 'compact' ? 'Compact' : 'Detailed'}`}
+                      >
+                        {viewMode === 'compact' ? '📇' : viewMode === 'detailed' ? '📋' : '🎴'}
+                      </button>
                     </div>
 
-                    <div className="songs-cards-grid">
+                    <div className={`songs-cards-grid view-mode-${viewMode}`}>
                       {displaySongs.length === 0 ? (
                         <div className="empty-state">
                           {songs.length === 0 ? 'Tidak ada lagu. Klik ➕ untuk tambah.' : 'Tidak ada hasil pencarian.'}
@@ -746,6 +772,7 @@ function App() {
                             key={song.id}
                             song={song}
                             isActive={selectedSong?.id === song.id}
+                            viewMode={viewMode}
                             onSelect={() => handleSelectSong(song)}
                             onEdit={() => handleEditSong(song)}
                             onDelete={() => handleDeleteSong(song.id)}

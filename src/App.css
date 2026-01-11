@@ -364,6 +364,71 @@ body {
   gap: 1.5rem;
 }
 
+/* View Mode: Compact */
+.songs-cards-grid.view-mode-compact {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.view-mode-compact .song-item {
+  padding: 0.75rem;
+}
+
+.view-mode-compact .song-title {
+  font-size: 0.95rem;
+}
+
+.view-mode-compact .song-artist {
+  font-size: 0.8rem;
+}
+
+.view-mode-compact .song-meta {
+  font-size: 0.75rem !important;
+  margin-top: 0.25rem !important;
+}
+
+/* View Mode: Detailed */
+.songs-cards-grid.view-mode-detailed {
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.view-mode-detailed .song-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+}
+
+.view-mode-detailed .song-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.view-mode-detailed .song-title {
+  font-size: 1.1rem;
+  min-width: 200px;
+}
+
+.view-mode-detailed .song-artist {
+  font-size: 0.95rem;
+  min-width: 150px;
+}
+
+.view-mode-detailed .song-meta {
+  display: flex !important;
+  gap: 1rem !important;
+  font-size: 0.9rem !important;
+}
+
+.view-mode-detailed .song-actions {
+  position: static;
+  opacity: 1;
+  display: flex;
+  gap: 0.5rem;
+}
+
 /* ===== Setlists Cards Grid ===== */
 .setlists-cards-grid {
   display: grid;
