@@ -100,7 +100,8 @@ const parseStandardFormat = (lines) => {
       'out': 'outro',
       'sol': 'solo',
       'ref': 'refrain',
-      'inter': 'interlude'
+      'inter': 'interlude',
+      'cod': 'coda'
     };
     
     if (abbrevMap[n]) return abbrevMap[n];
@@ -114,6 +115,7 @@ const parseStandardFormat = (lines) => {
     if (n.includes('interlude')) return 'interlude';
     if (n.includes('solo')) return 'solo';
     if (n.includes('refrain')) return 'refrain';
+    if (n.includes('coda')) return 'coda';
     return null;
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import YouTubeViewer from './YouTubeViewer';
 import { transcribeAudio } from '../apiClient';
+import { parseChordPro } from '../utils/chordUtils';
 
 const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -34,6 +35,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [transcribeError, setTranscribeError] = useState('');
   const [transcribeResult, setTranscribeResult] = useState('');
   const [showFormatHelp, setShowFormatHelp] = useState(false);
+  const [detectedFormat, setDetectedFormat] = useState(null);
   // ...existing code...
 
   useEffect(() => {
@@ -56,6 +58,13 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    // Detect format when lyrics change
+    if (name === 'lyrics' && value.trim()) {
+      const parsed = parseChordPro(value);
+      setDetectedFormat(parsed.format);
+    } else if (name === 'lyrics' && !value.trim()) {
+      setDetectedFormat(null);
     }
   };
 
@@ -885,9 +894,25 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
             {/* Section 5: Lyrics & Chord */}
             <div className="form-group">
               <div className="textarea-header">
-                <label htmlFor="lyrics" style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
-                  Lirik & Chord *
-                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <label htmlFor="lyrics" style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
+                    Lirik & Chord *
+                  </label>
+                  {detectedFormat && (
+                    <span style={{
+                      background: 'var(--primary)',
+                      color: 'white',
+                      padding: '0.25rem 0.6rem',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {detectedFormat === 'chordpro' ? 'ChordPro' : detectedFormat === 'standard' ? 'Standard' : 'Unknown'}
+                    </span>
+                  )}
+                </div>
                 <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
                   <button
                     type="button"
