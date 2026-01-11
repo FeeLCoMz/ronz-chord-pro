@@ -87,25 +87,7 @@ const parseStandardFormat = (lines) => {
   let currentSection = null;
 
   const normalizeSection = (name) => {
-    const n = name.toLowerCase().trim();
-    // Handle abbreviations
-    const abbrevMap = {
-      'int': 'intro',
-      'ver': 'verse',
-      'pre': 'pre-chorus',
-      'cho': 'chorus',
-      'ch': 'chorus',
-      'bri': 'bridge',
-      'brig': 'bridge',
-      'out': 'outro',
-      'sol': 'solo',
-      'ref': 'refrain',
-      'inter': 'interlude',
-      'cod': 'coda'
-    };
-    
-    if (abbrevMap[n]) return abbrevMap[n];
-    
+    const n = name.toLowerCase();
     if (n.includes('intro')) return 'intro';
     if (n.includes('verse')) return 'verse';
     if (n.includes('pre') && n.includes('chorus')) return 'pre-chorus';
@@ -115,29 +97,7 @@ const parseStandardFormat = (lines) => {
     if (n.includes('interlude')) return 'interlude';
     if (n.includes('solo')) return 'solo';
     if (n.includes('refrain')) return 'refrain';
-    if (n.includes('coda')) return 'coda';
     return null;
-  };
-
-  const extractChordWithDots = (text) => {
-    // Parse chords with optional dots for duration (e.g., "G..", "G..C..", "G..C")
-    const chordTokenPattern = '[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:/[A-G][#b]?)?';
-    const chordWithDotsRegex = new RegExp(`(${chordTokenPattern})+(\\.*)`, 'gi');
-    const chords = [];
-    let position = 0;
-    
-    for (const match of text.matchAll(chordWithDotsRegex)) {
-      const chord = match[0].replace(/\.+$/, '').trim(); // Remove trailing dots
-      if (chord && /^[A-G]/.test(chord)) {
-        chords.push({
-          chord,
-          position: position,
-          duration: (match[0].match(/\.+$/) || [''])[0].length
-        });
-        position += match[0].length + 1;
-      }
-    }
-    return chords.length > 0 ? chords : null;
   };
   
   for (let i = 0; i < lines.length; i++) {
@@ -166,7 +126,7 @@ const parseStandardFormat = (lines) => {
         continue;
       }
 
-      // Section header detection (e.g., "Verse:", "Chorus:", or "Intro: G..")
+      // Section header detection (e.g., "Verse:", "Chorus:")
       const sectionName = normalizeSection(keyRaw);
       if (sectionName) {
         if (currentSection) {
@@ -174,50 +134,6 @@ const parseStandardFormat = (lines) => {
         }
         parsed.push({ type: 'structure_start', structure: sectionName });
         currentSection = sectionName;
-        
-        // Check if there are chords after the colon (e.g., "Intro: G..")
-        if (value.trim()) {
-          const chords = extractChordWithDots(value);
-          if (chords) {
-            parsed.push({
-              type: 'line_with_chords',
-              chords,
-              text: ''
-            });
-          }
-        }
-        continue;
-      }
-    }
-
-    // Check for abbreviated section headers without colon (e.g., "Int. G..C..")
-    // Pattern: abbreviation with optional dot, then space(s), then chords
-    const abbrevMatch = currentLine.match(/^([a-z]+)\.?\s+(.+)$/i);
-    if (abbrevMatch) {
-      const abbrevName = abbrevMatch[1].toLowerCase();
-      const sectionName = normalizeSection(abbrevName);
-      if (sectionName) {
-        const remainder = abbrevMatch[2].trim();
-        if (currentSection && sectionName !== currentSection) {
-          parsed.push({ type: 'structure_end', structure: currentSection });
-        }
-        parsed.push({ type: 'structure_start', structure: sectionName });
-        currentSection = sectionName;
-        
-        // Check if there are chords in the remainder (e.g., "Int. G..C..")
-        if (remainder) {
-          const chords = extractChordWithDots(remainder);
-          if (chords) {
-            parsed.push({
-              type: 'line_with_chords',
-              chords,
-              text: ''
-            });
-          } else if (!isChordLine(remainder)) {
-            // If not chords, treat as text
-            parsed.push({ type: 'text', line: remainder });
-          }
-        }
         continue;
       }
     }
@@ -286,7 +202,7 @@ const parseStandardFormat = (lines) => {
 };
 
 export const parseChordPro = (text) => {
-  if (!text) return { metadata: {}, lines: [], format: 'unknown' };
+  if (!text) return { metadata: {}, lines: [] };
   
   const lines = text.split('\n');
   
@@ -310,7 +226,7 @@ export const parseChordPro = (text) => {
       return true;
     });
     
-    return { metadata, lines: contentLines, format: 'standard' };
+    return { metadata, lines: contentLines };
   }
   
   // Parse ChordPro format
@@ -389,7 +305,7 @@ export const parseChordPro = (text) => {
     }
   }
   
-  return { metadata, lines: parsed, format: 'chordpro' };
+  return { metadata, lines: parsed };
 };
 
 export const getAllChords = (parsedSong) => {
