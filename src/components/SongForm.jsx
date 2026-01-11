@@ -884,19 +884,6 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
               <div className="textarea-header">
                 <label htmlFor="lyrics" style={{ display: 'flex', alignItems: 'center', gap: '0.5em' }}>
                   Lirik & Chord *
-                  <span className="help-popover-container">
-                    <span className="help-icon" tabIndex="0">❓</span>
-                    <span className="help-popover">
-                      <strong>Format Pengisian:</strong>
-                      <ul>
-                        <li><b>ChordPro:</b> <code>[C]Lirik baris pertama</code></li>
-                        <li><b>Standar:</b> Chord di atas, lirik di bawah</li>
-                        <li><b>Bar:</b> <code>|</code> untuk pemisah bar</li>
-                        <li><b>Notasi Angka:</b> <code>1 2 3 4 | 5 5 6 5</code></li>
-                        <li><b>Notasi Balok:</b> <code>C4 D4 E4 F4</code></li>
-                      </ul>
-                    </span>
-                  </span>
                 </label>
                 <div className="template-buttons">
                   <button type="button" onClick={insertTemplate} className="btn btn-sm">
