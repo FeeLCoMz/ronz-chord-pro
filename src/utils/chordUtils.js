@@ -63,6 +63,10 @@ export const getTransposeSteps = (fromKey, toKey) => {
 const isChordLine = (line) => {
   if (!line.trim()) return false;
   
+  // Check for compact chord format with .. separator (e.g., D..Gm..Bb)
+  const compactPattern = /^(?:-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/[A-G][#b]?)?)(?:\.\.(?:-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/[A-G][#b]?)?))+$/;
+  if (compactPattern.test(line.trim())) return true;
+  
   // Try to extract all chords using regex pattern matching
   const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
   const matches = [...line.matchAll(chordPattern)];
@@ -80,6 +84,18 @@ const isChordLine = (line) => {
   
   // If more than 50% of non-space characters are chords, treat as chord line
   return totalChordLength > 0 && (totalChordLength / lineWithoutSpaces.length) >= 0.5;
+};
+
+// Fungsi untuk expand compact chord format (D..Gm..Bb) menjadi format spaced
+const expandCompactChords = (line) => {
+  // Check if line contains compact format (chord..chord..chord)
+  const compactPattern = /(-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/[A-G][#b]?)?)(\.\.)/g;
+  
+  if (!compactPattern.test(line)) return line;
+  
+  // Split by .. and join with spaces for proper spacing
+  const chords = line.split('..').map(c => c.trim()).filter(c => c);
+  return chords.join('   '); // Add spacing between chords
 };
 
 // Fungsi untuk mengkonversi format standard (chord di atas lirik) ke ChordPro-like format
@@ -111,8 +127,8 @@ const parseStandardFormat = (lines) => {
       continue;
     }
     
-    // Check for standalone section header (e.g., "Int." or "Intro" on its own line)
-    const standaloneSectionMatch = currentLine.trim().match(/^([A-Za-z.]+)\s*$/);
+    // Check for standalone section header (e.g., "Int.", "Intro", "Intro:", "Intro :" on its own line)
+    const standaloneSectionMatch = currentLine.trim().match(/^([A-Za-z.]+)\s*:?\s*$/);
     if (standaloneSectionMatch) {
       const possibleSection = standaloneSectionMatch[1].trim();
       const normalizedSectionName = normalizeSection(possibleSection);
@@ -127,8 +143,8 @@ const parseStandardFormat = (lines) => {
       }
     }
     
-    // Check for section header with inline chords (e.g., "Int. C G Am")
-    const sectionWithChordsMatch = currentLine.trim().match(/^([A-Za-z.]+)\s+(.+)$/);
+    // Check for section header with inline chords (e.g., "Int. C G Am", "Int: C G Am", "Int : D..Gm..Bb")
+    const sectionWithChordsMatch = currentLine.trim().match(/^([A-Za-z.]+)\s*:?\s+(.+)$/);
     if (sectionWithChordsMatch) {
       const possibleSection = sectionWithChordsMatch[1].trim();
       const possibleChords = sectionWithChordsMatch[2].trim();
@@ -142,9 +158,12 @@ const parseStandardFormat = (lines) => {
         parsed.push({ type: 'structure_start', structure: normalizedSectionName });
         currentSection = normalizedSectionName;
         
+        // Expand compact format if present
+        const expandedChords = expandCompactChords(possibleChords);
+        
         // Parse the chord line using regex matching
         const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
-        const matches = [...possibleChords.matchAll(chordPattern)];
+        const matches = [...expandedChords.matchAll(chordPattern)];
         const chords = matches.map(match => ({
           chord: match[0],
           position: match.index + possibleSection.length + 1
@@ -162,7 +181,7 @@ const parseStandardFormat = (lines) => {
           type: 'line_with_chords',
           chords,
           text: lyricText,
-          barText: possibleChords // Preserve bars and chord spacing source
+          barText: expandedChords // Preserve bars and chord spacing source
         });
         continue;
       }
@@ -199,11 +218,14 @@ const parseStandardFormat = (lines) => {
     
     // Cek apakah baris ini adalah baris chord
     if (isChordLine(currentLine)) {
+      // Expand compact format if present (D..Gm..Bb -> D   Gm   Bb)
+      const expandedLine = expandCompactChords(currentLine);
+      
       // Jika ada baris berikutnya dan bukan chord line, gabungkan
       if (nextLine && !isChordLine(nextLine) && nextLine.trim()) {
         // Extract chords using regex pattern matching
         const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
-        const matches = [...currentLine.matchAll(chordPattern)];
+        const matches = [...expandedLine.matchAll(chordPattern)];
         const chords = matches.map(match => ({
           chord: match[0],
           position: match.index
@@ -213,14 +235,14 @@ const parseStandardFormat = (lines) => {
           type: 'line_with_chords',
           chords,
           text: nextLine,
-          barText: currentLine // Keep original chord line for bar detection
+          barText: expandedLine // Keep expanded chord line for bar detection
         });
         
         i++; // Skip next line karena sudah diproses
       } else {
         // Chord line tanpa lirik di bawahnya
         const chordPattern = /-?([A-G][#b]?)(m|maj|min|dim|aug|sus|add)?([0-9]*)?(\/[A-G][#b]?)?(\.+)?/g;
-        const matches = [...currentLine.matchAll(chordPattern)];
+        const matches = [...expandedLine.matchAll(chordPattern)];
         const chords = matches.map(match => ({
           chord: match[0],
           position: match.index
@@ -230,7 +252,7 @@ const parseStandardFormat = (lines) => {
           type: 'line_with_chords',
           chords,
           text: '',
-          barText: currentLine // Use bar markers from chord line
+          barText: expandedLine // Use bar markers from expanded chord line
         });
       }
     } else {

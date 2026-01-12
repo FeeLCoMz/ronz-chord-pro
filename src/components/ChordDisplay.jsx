@@ -46,8 +46,9 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
     const bracketRegex = /(\{[^}]*\})/g;
     const instrumentRegex = /\b(Guitar|Bass|Piano|Drums|Violin|Saxophone|Sax|Trumpet|Flute|Clarinet|Cello|Organ|Synth|Keyboard|Vocals|Gitar|Bas|Drum|Biola|Vokal|Suling|Seruling|Strings|Brass)\b/gi;
     const repeatSignRegex = /(\|:|:\||\b(?:D\.S\.|D\.C\.|Da Capo|Dal Segno|Fine|Coda|To Coda|Repeat|%)\b)/gi;
-    // Inline chord detection inside bars/repeat symbols; requires boundary (space or bar) to reduce false positives in lyrics
-    const chordRegex = /(^|[\s|:])(-?[A-G][#b]?(?:maj|min|dim|aug|sus|add|m)?[0-9]*(?:\/[A-G][#b]?)?(?:\.+)?)(?=$|[\s|:])/gi;
+    // Inline chord detection inside bars/repeat symbols
+    // Updated to support compact format: D..Gm..Bb
+    const chordRegex = /(^|[\s|:])(-?[A-G][#b]?(?:maj|min|dim|aug|sus|add|m)?[0-9]*(?:\/[A-G][#b]?)?(?:\.\.|-?[A-G][#b]?(?:maj|min|dim|aug|sus|add|m)?[0-9]*(?:\/[A-G][#b]?)?)*)(?=$|[\s|:])/gi;
     
     let lastIndex = 0;
     let match;

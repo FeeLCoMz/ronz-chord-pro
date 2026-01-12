@@ -48,6 +48,11 @@ function sanitizeSetLists(list = []) {
     }));
 }
 
+// Generate unique ID dengan timestamp + random
+const generateUniqueId = () => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
 function App() {
   const [showSidebar, setShowSidebar] = useState(true);
   const [showLyricsFullscreen, setShowLyricsFullscreen] = useState(false);
@@ -254,7 +259,7 @@ function App() {
       const message = event?.message || event?.reason?.message || 'Unknown error';
       const detail = event?.error?.stack || event?.reason?.stack || '';
       setRuntimeErrors(prev => {
-        const next = [{ id: Date.now(), message, detail }, ...prev];
+        const next = [{ id: generateUniqueId(), message, detail }, ...prev];
         return next.slice(0, 4);
       });
     };
@@ -301,7 +306,7 @@ function App() {
 
   const handleSaveSong = async (songData) => {
     const isEditMode = !!editingSong;
-    const songId = isEditMode ? editingSong.id : Date.now().toString();
+    const songId = isEditMode ? editingSong.id : generateUniqueId();
     const now = Date.now();
     const updatedSong = { ...songData, id: songId, updatedAt: now };
     
@@ -341,7 +346,7 @@ function App() {
   const handleCreateSetList = async (name) => {
     const now = Date.now();
     const newSetList = {
-      id: now.toString(),
+      id: generateUniqueId(),
       name,
       songs: [],
       createdAt: new Date().toISOString(),
@@ -410,7 +415,7 @@ function App() {
 
     const now = Date.now();
     const duplicatedSetList = {
-      id: now.toString(),
+      id: generateUniqueId(),
       name: `${originalSetList.name} (Copy)`,
       songs: [...originalSetList.songs],
       songKeys: { ...(originalSetList.songKeys || {}) },
