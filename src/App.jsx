@@ -148,11 +148,27 @@ function App() {
   // Saat online/load, merge data backend dan lokal berdasarkan updatedAt
   useEffect(() => {
     if (navigator.onLine) {
+      // Check if localStorage was empty before fetch
+      const wasLocalStorageEmpty = !localStorage.getItem('ronz_setlists') || 
+                                     localStorage.getItem('ronz_setlists') === '[]';
+      
+      console.log('[FETCH] Starting data fetch from backend...');
+      console.log('[FETCH] LocalStorage empty:', wasLocalStorageEmpty);
+      
       Promise.all([
-        fetch('/api/songs').then(res => res.json()),
-        fetch('/api/setlists').then(res => res.json())
+        fetch('/api/songs').then(res => {
+          if (!res.ok) throw new Error(`Songs fetch failed: ${res.status}`);
+          return res.json();
+        }),
+        fetch('/api/setlists').then(res => {
+          if (!res.ok) throw new Error(`Setlists fetch failed: ${res.status}`);
+          return res.json();
+        })
       ])
         .then(([songsData, setlistsData]) => {
+          console.log('[FETCH] Songs from backend:', songsData?.length || 0);
+          console.log('[FETCH] Setlists from backend:', setlistsData?.length || 0);
+          
           const localSongs = sanitizeSongs(songs);
           const localSetLists = sanitizeSetLists(setLists);
           
@@ -171,15 +187,18 @@ function App() {
                   merged.push(remote);
                 }
               });
+              console.log('[MERGE] Songs merged:', merged.length);
               return merged;
             });
           }
           // Merge setlists
           if (Array.isArray(setlistsData)) {
             const remoteSetlists = sanitizeSetLists(setlistsData);
+            console.log('[MERGE] Remote setlists cleaned:', remoteSetlists.length);
+            
             setSetLists(prev => {
               const merged = [...sanitizeSetLists(prev)];
-              let hasRecoveredData = false;
+              console.log('[MERGE] Local setlists before merge:', merged.length);
               
               remoteSetlists.forEach(remote => {
                 const localIdx = merged.findIndex(s => s.id === remote.id);
@@ -189,12 +208,14 @@ function App() {
                   merged[localIdx] = (remoteTs > localTs) ? remote : merged[localIdx];
                 } else {
                   merged.push(remote);
-                  hasRecoveredData = true; // New data from cloud
                 }
               });
               
+              console.log('[MERGE] Setlists after merge:', merged.length);
+              
               // Show notification if local was empty but cloud has data
-              if (localSetLists.length === 0 && merged.length > 0 && hasRecoveredData) {
+              if (wasLocalStorageEmpty && merged.length > 0) {
+                console.log('[RECOVERY] Showing recovery notification');
                 setRecoveryNotification({
                   type: 'setlists',
                   count: merged.length,
@@ -211,8 +232,33 @@ function App() {
         .finally(() => {
           // Allow subsequent changes to sync after initial remote merge
           isInitialLoad.current = false;
+          console.log('[FETCH] Data fetch completed');
         })
-        .catch(err => console.warn('Failed to fetch from Turso:', err));
+        .catch(err => {
+          console.error('[FETCH] Failed to fetch from backend:', err);
+          // Show error notification
+          if (wasLocalStorageEmpty) {
+            setRecoveryNotification({
+              type: 'error',
+              count: 0,
+              message: 'Failed to connect to cloud. Data will sync when online.'
+            });
+            setTimeout(() => setRecoveryNotification(null), 5000);
+          }
+        });
+    } else {
+      console.log('[FETCH] Offline - skipping backend fetch');
+      // If offline and local storage empty, show offline warning
+      const wasLocalStorageEmpty = !localStorage.getItem('ronz_setlists') || 
+                                     localStorage.getItem('ronz_setlists') === '[]';
+      if (wasLocalStorageEmpty) {
+        setRecoveryNotification({
+          type: 'warning',
+          count: 0,
+          message: 'Offline: Data will be recovered when you go online.'
+        });
+        setTimeout(() => setRecoveryNotification(null), 5000);
+      }
     }
     // eslint-disable-next-line
   }, []);
@@ -934,11 +980,17 @@ function App() {
     <>
       {/* Recovery Notification */}
       {recoveryNotification && (
-        <div className="recovery-notification">
+        <div className={`recovery-notification ${recoveryNotification.type === 'error' ? 'notification-error' : recoveryNotification.type === 'warning' ? 'notification-warning' : ''}`}>
           <div className="recovery-content">
-            <span className="recovery-icon">☁️</span>
+            <span className="recovery-icon">
+              {recoveryNotification.type === 'error' ? '⚠️' : 
+               recoveryNotification.type === 'warning' ? '📡' : '☁️'}
+            </span>
             <div className="recovery-text">
-              <strong>Data Recovered!</strong>
+              <strong>
+                {recoveryNotification.type === 'error' ? 'Connection Error' :
+                 recoveryNotification.type === 'warning' ? 'Offline Mode' : 'Data Recovered!'}
+              </strong>
               <p>{recoveryNotification.message}</p>
             </div>
             <button 

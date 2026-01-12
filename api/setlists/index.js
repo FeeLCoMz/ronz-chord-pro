@@ -19,6 +19,7 @@ export default async function handler(req, res) {
     const client = getTursoClient();
 
     if (req.method === 'GET') {
+      // Create table if not exists
       await client.execute(
         `CREATE TABLE IF NOT EXISTS setlists (
           id TEXT PRIMARY KEY,
@@ -30,6 +31,16 @@ export default async function handler(req, res) {
           updatedAt TEXT
         )`
       );
+      
+      // Try to add completedSongs column if it doesn't exist (for existing tables)
+      try {
+        await client.execute(
+          `ALTER TABLE setlists ADD COLUMN completedSongs TEXT DEFAULT '{}'`
+        );
+      } catch (e) {
+        // Column already exists, ignore error
+      }
+      
       const rows = await client.execute(
         `SELECT id, name, songs, songKeys, completedSongs, createdAt, updatedAt
          FROM setlists

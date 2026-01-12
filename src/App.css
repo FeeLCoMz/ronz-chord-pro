@@ -28,6 +28,18 @@
   animation: slideDown 0.3s ease-out;
 }
 
+.recovery-notification.notification-error {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.95) 100%);
+  border-bottom-color: #ef4444;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3);
+}
+
+.recovery-notification.notification-warning {
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.95) 0%, rgba(249, 115, 22, 0.95) 100%);
+  border-bottom-color: #fb923c;
+  box-shadow: 0 4px 20px rgba(251, 146, 60, 0.3);
+}
+
 @keyframes slideDown {
   from {
     transform: translateY(-100%);
