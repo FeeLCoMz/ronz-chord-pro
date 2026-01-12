@@ -390,7 +390,13 @@ function App() {
         await fetch(`/api/setlists/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, songs: updatedSetList.songs, songKeys: updatedSetList.songKeys, updatedAt: updatedSetList.updatedAt })
+          body: JSON.stringify({ 
+            name, 
+            songs: updatedSetList.songs, 
+            songKeys: updatedSetList.songKeys, 
+            completedSongs: updatedSetList.completedSongs || {},
+            updatedAt: updatedSetList.updatedAt 
+          })
         });
       } catch (err) {
         console.error('Gagal update setlist:', err);

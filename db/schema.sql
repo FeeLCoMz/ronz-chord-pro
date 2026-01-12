@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS setlists (
   name TEXT NOT NULL,
   songs TEXT DEFAULT '[]',
   songKeys TEXT DEFAULT '{}',
+  completedSongs TEXT DEFAULT '{}',
   createdAt TEXT DEFAULT (datetime('now')),
   updatedAt TEXT
 );

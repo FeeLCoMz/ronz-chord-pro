@@ -36,6 +36,7 @@ export default async function handler(req, res) {
         name TEXT NOT NULL,
         songs TEXT,
         songKeys TEXT,
+        completedSongs TEXT DEFAULT '{}',
         createdAt TEXT DEFAULT (datetime('now')),
         updatedAt TEXT
       )`
@@ -58,21 +59,24 @@ export default async function handler(req, res) {
         const now = new Date().toISOString();
         const songsJson = JSON.stringify(setlist.songs || []);
         const songKeysJson = JSON.stringify(setlist.songKeys || {});
+        const completedSongsJson = JSON.stringify(setlist.completedSongs || {});
 
         // Try insert, if exists do update
         const result = await client.execute(
-          `INSERT INTO setlists (id, name, songs, songKeys, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?, ?)
+          `INSERT INTO setlists (id, name, songs, songKeys, completedSongs, createdAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
              name = excluded.name,
              songs = excluded.songs,
              songKeys = excluded.songKeys,
+             completedSongs = excluded.completedSongs,
              updatedAt = excluded.updatedAt`,
           [
             id,
             setlist.name.trim(),
             songsJson,
             songKeysJson,
+            completedSongsJson,
             setlist.createdAt || now,
             now,
           ]

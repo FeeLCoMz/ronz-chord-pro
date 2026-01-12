@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     const client = getTursoClient();
     if (req.method === 'GET') {
       const result = await client.execute(
-        `SELECT id, name, songs, songKeys, createdAt, updatedAt
+        `SELECT id, name, songs, songKeys, completedSongs, createdAt, updatedAt
          FROM setlists WHERE id = ? LIMIT 1`,
         [id.toString()]
       );
@@ -41,6 +41,7 @@ export default async function handler(req, res) {
         name: row.name,
         songs: row.songs ? JSON.parse(row.songs) : [],
         songKeys: row.songKeys ? JSON.parse(row.songKeys) : {},
+        completedSongs: row.completedSongs ? JSON.parse(row.completedSongs) : {},
         createdAt: row.createdAt,
         updatedAt: row.updatedAt
       });
@@ -52,18 +53,21 @@ export default async function handler(req, res) {
       const now = new Date().toISOString();
       const songsJson = body.songs ? JSON.stringify(body.songs) : null;
       const songKeysJson = body.songKeys ? JSON.stringify(body.songKeys) : null;
+      const completedSongsJson = body.completedSongs ? JSON.stringify(body.completedSongs) : null;
 
       await client.execute(
         `UPDATE setlists SET 
            name = COALESCE(?, name),
            songs = COALESCE(?, songs),
            songKeys = COALESCE(?, songKeys),
+           completedSongs = COALESCE(?, completedSongs),
            updatedAt = ?
          WHERE id = ?`,
         [
           body.name ?? null,
           songsJson,
           songKeysJson,
+          completedSongsJson,
           now,
           id.toString(),
         ]
