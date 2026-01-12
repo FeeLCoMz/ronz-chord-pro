@@ -99,6 +99,9 @@ function App() {
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [performanceMode, setPerformanceMode] = useState(false);
+  const [performanceTheme, setPerformanceTheme] = useState('dark-stage'); // dark-stage, bright, amber, high-contrast
+  const [showSetlistView, setShowSetlistView] = useState(true);
+  const [performanceFontSize, setPerformanceFontSize] = useState(100); // percentage
   const [syncingToDb, setSyncingToDb] = useState(false);
   const [runtimeErrors, setRuntimeErrors] = useState([]);
   const [sortBy, setSortBy] = useState('title-asc');
@@ -124,6 +127,9 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
   const scrollRef = useRef(null);
   const isInitialLoad = useRef(true);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchStartDistance = useRef(0);
 
   // Normalize mixed timestamp formats (number ms vs ISO string) to millis
   const toTimestamp = (v) => {
@@ -662,6 +668,58 @@ function App() {
           console.warn('Wake Lock failed:', err);
         }
       }
+    }
+  };
+
+  // Touch/Swipe Gesture Handlers
+  const handleTouchStart = (e) => {
+    if (!performanceMode) return;
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    
+    // For pinch zoom
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      touchStartDistance.current = Math.sqrt(dx * dx + dy * dy);
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (!performanceMode || !currentSetList) return;
+    
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - touchStartX.current;
+    const deltaY = touchEndY - touchStartY.current;
+    const threshold = 50;
+
+    // Swipe left (next song)
+    if (deltaX < -threshold && Math.abs(deltaY) < threshold / 2) {
+      navigateToNextSongInSetList();
+    }
+    // Swipe right (prev song)
+    else if (deltaX > threshold && Math.abs(deltaY) < threshold / 2) {
+      navigateToPrevSongInSetList();
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!performanceMode || e.touches.length !== 2) return;
+    
+    // Pinch zoom untuk font size
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const delta = distance - touchStartDistance.current;
+    
+    if (Math.abs(delta) > 10) {
+      if (delta > 0) {
+        setPerformanceFontSize(Math.min(150, performanceFontSize + 5));
+      } else {
+        setPerformanceFontSize(Math.max(80, performanceFontSize - 5));
+      }
+      touchStartDistance.current = distance;
     }
   };
 
@@ -1252,7 +1310,16 @@ function App() {
                             </button>
                           </div>
                         )}
-                        <ChordDisplay song={selectedSong} transpose={transpose} performanceMode={performanceMode} />
+                        <ChordDisplay 
+                          song={selectedSong} 
+                          transpose={transpose} 
+                          performanceMode={performanceMode}
+                          performanceFontSize={performanceFontSize}
+                          performanceTheme={performanceTheme}
+                          onTouchStart={handleTouchStart}
+                          onTouchMove={handleTouchMove}
+                          onTouchEnd={handleTouchEnd}
+                        />
                       </>
                     ) : (
                       <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
@@ -1265,6 +1332,42 @@ function App() {
                     speed={scrollSpeed}
                     scrollRef={scrollRef}
                   />
+                  
+                  {/* Performance Mode Setlist Sidebar */}
+                  {performanceMode && currentSetList && showSetlistView && (
+                    <div className="performance-setlist-sidebar">
+                      <div className="setlist-header">
+                        <div className="setlist-title">📋 Setlist</div>
+                        <button 
+                          onClick={() => setShowSetlistView(false)}
+                          className="btn-toggle-setlist"
+                          title="Tutup setlist"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <div className="setlist-songs">
+                        {getSetListSongs().map((song, idx) => {
+                          const isActive = song.id === selectedSong?.id;
+                          const isCompleted = currentSetList && setLists.find(sl => sl.id === currentSetList)?.completedSongs?.[song.id];
+                          return (
+                            <div
+                              key={song.id}
+                              className={`setlist-song-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
+                              onClick={() => setSelectedSong(song)}
+                            >
+                              <div className="song-number">{idx + 1}</div>
+                              <div className="song-info">
+                                <div className="song-title-small">{song.title}</div>
+                                <div className="song-artist-small">{song.artist}</div>
+                              </div>
+                              {isCompleted && <div className="completed-check">✓</div>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Performance Mode Footer Controls */}
                   {performanceMode && selectedSong && (
@@ -1326,6 +1429,37 @@ function App() {
                             </button>
                           </>
                         )}
+                        
+                        <span style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />
+                        
+                        {currentSetList && (
+                          <button 
+                            onClick={() => setShowSetlistView(!showSetlistView)}
+                            className={`perf-btn ${showSetlistView ? 'perf-btn-success' : ''}`}
+                            title={showSetlistView ? 'Tutup setlist' : 'Buka setlist'}
+                          >
+                            📋
+                          </button>
+                        )}
+                        
+                        <button 
+                          onClick={() => {
+                            const themes = ['dark-stage', 'bright', 'amber', 'high-contrast'];
+                            const currentIdx = themes.indexOf(performanceTheme);
+                            setPerformanceTheme(themes[(currentIdx + 1) % themes.length]);
+                          }}
+                          className="perf-btn"
+                          title="Ganti theme"
+                        >
+                          🎨
+                        </button>
+                        
+                        <button onClick={() => setPerformanceFontSize(Math.max(80, performanceFontSize - 10))} className="perf-btn">
+                          A−
+                        </button>
+                        <button onClick={() => setPerformanceFontSize(Math.min(150, performanceFontSize + 10))} className="perf-btn">
+                          A+
+                        </button>
                         
                         <span style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />
                         

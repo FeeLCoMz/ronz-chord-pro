@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { parseChordPro, transposeChord, getAllChords } from '../utils/chordUtils';
 import { parseMelodyString, transposeMelody, formatNoteDisplay, extractMelodyFromLyrics } from '../utils/musicNotationUtils';
 
-const ChordDisplay = ({ song, transpose = 0, performanceMode = false }) => {
+const ChordDisplay = ({ song, transpose = 0, performanceMode = false, performanceFontSize = 100, performanceTheme = 'dark-stage', onTouchStart, onTouchMove, onTouchEnd }) => {
   const [parsedSong, setParsedSong] = useState(null);
   const [allChords, setAllChords] = useState([]);
   // Precompute melody bars for inline numeric notation
@@ -180,8 +180,19 @@ const ChordDisplay = ({ song, transpose = 0, performanceMode = false }) => {
     }
     
     if (lineData.type === 'structure_start') {
+      const structureIcons = {
+        'INTRO': '🎸',
+        'VERSE': '📝',
+        'PRE-CHORUS': '🎶',
+        'CHORUS': '🎤',
+        'BRIDGE': '🌉',
+        'SOLO': '🎹',
+        'OUTRO': '🎼',
+      };
+      const icon = structureIcons[lineData.structure.toUpperCase()] || '📍';
       return (
-        <div key={index} className="structure-marker structure-start">
+        <div key={index} className={`structure-marker structure-start ${performanceMode ? 'performance-structure' : ''}`}>
+          <span className="structure-icon">{icon}</span>
           <span className="structure-label">{lineData.structure.toUpperCase()}</span>
         </div>
       );
@@ -351,7 +362,13 @@ const ChordDisplay = ({ song, transpose = 0, performanceMode = false }) => {
   };
   
   return (
-    <div className={`chord-display ${performanceMode ? 'performance-mode' : ''}`}>
+    <div 
+      className={`chord-display ${performanceMode ? 'performance-mode' : ''} theme-${performanceTheme}`}
+      style={performanceMode ? { fontSize: `${performanceFontSize}%` } : {}}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       <div className="song-header">
         <h2>{parsedSong.metadata.title || song.title}</h2>
         <p className="artist">{parsedSong.metadata.artist || song.artist}</p>
