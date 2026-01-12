@@ -889,7 +889,7 @@ function App() {
                     </div>
                     
                     <div className="filters-bar">
-                      <div className="search-box" style={{ flex: 1 }}>
+                      <div className="search-box" style={{ flex: 1, position: 'relative' }}>
                         <span className="search-icon">🔍</span>
                         <input
                           type="text"
@@ -898,6 +898,24 @@ function App() {
                           placeholder="Cari lagu..."
                           aria-label="Cari lagu"
                         />
+                        {searchQuery && (
+                          <button
+                            className="btn-icon-sm"
+                            onClick={() => setSearchQuery('')}
+                            style={{
+                              position: 'absolute',
+                              right: '0.5rem',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              padding: '0.25rem 0.5rem',
+                              fontSize: '0.85rem',
+                              opacity: 0.7
+                            }}
+                            title="Hapus pencarian"
+                          >
+                            ✕
+                          </button>
+                        )}
                       </div>
                       <select
                         className="setlist-select"
