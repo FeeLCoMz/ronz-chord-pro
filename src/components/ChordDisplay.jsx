@@ -40,12 +40,14 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
   
   let melodyBarCursor = 0;
 
-  // Function to render text with curly bracket, instrument, and repeat sign highlighting
+  // Function to render text with curly bracket, instrument, repeat sign, and inline chord highlighting
   const renderTextWithBrackets = (text) => {
     const parts = [];
     const bracketRegex = /(\{[^}]*\})/g;
     const instrumentRegex = /\b(Guitar|Bass|Piano|Drums|Violin|Saxophone|Sax|Trumpet|Flute|Clarinet|Cello|Organ|Synth|Keyboard|Vocals|Gitar|Bas|Drum|Biola|Vokal|Suling|Seruling|Strings|Brass)\b/gi;
     const repeatSignRegex = /(\|:|:\||\b(?:D\.S\.|D\.C\.|Da Capo|Dal Segno|Fine|Coda|To Coda|Repeat|%)\b)/gi;
+    // Inline chord detection inside bars/repeat symbols; requires boundary (space or bar) to reduce false positives in lyrics
+    const chordRegex = /(^|[\s|:])(-?[A-G][#b]?(?:maj|min|dim|aug|sus|add|m)?[0-9]*(?:\/[A-G][#b]?)?(?:\.+)?)(?=$|[\s|:])/gi;
     
     let lastIndex = 0;
     let match;
@@ -76,6 +78,7 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
         let textLastIndex = 0;
         let instrMatch;
         let repeatMatch;
+        let chordMatch;
         const textParts = [];
         
         // Create a combined list of all matches with their type
@@ -96,6 +99,16 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
         
         // Reset regex global state
         repeatSignRegex.lastIndex = 0;
+
+        // Find inline chord matches (between bars/repeat markers)
+        while ((chordMatch = chordRegex.exec(segment.value)) !== null) {
+          const chordText = chordMatch[2];
+          const chordIndex = chordMatch.index + chordMatch[1].length;
+          allMatches.push({ index: chordIndex, length: chordText.length, type: 'chord', text: chordText });
+        }
+
+        // Reset regex global state
+        chordRegex.lastIndex = 0;
         
         // Sort matches by index
         allMatches.sort((a, b) => a.index - b.index);
@@ -118,7 +131,11 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
           if (match.index > textLastIndex) {
             textParts.push(segment.value.substring(textLastIndex, match.index));
           }
-          const highlightClass = match.type === 'instrument' ? 'instrument-highlight' : 'repeat-sign-highlight';
+          const highlightClass = match.type === 'instrument'
+            ? 'instrument-highlight'
+            : match.type === 'repeat'
+              ? 'repeat-sign-highlight'
+              : 'inline-chord-highlight';
           textParts.push(
             <span key={`${match.type}-${segIdx}-${match.index}`} className={highlightClass}>
               {match.text}
@@ -169,6 +186,16 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
     }
     
     if (lineData.type === 'line_with_chords') {
+      // If there's no lyric text but we have barText (e.g., "Am | F | Bdim | Am |"), render as inline bar line only
+      if (!lineData.text && lineData.barText) {
+        return (
+          <div key={index} className="lyrics-line">
+            <div className="text-line">{renderTextWithBrackets(lineData.barText)}</div>
+          </div>
+        );
+      }
+
+      const barSource = lineData.barText || lineData.text || '';
       const chordLine = [];
       let currentPos = 0;
       
@@ -177,7 +204,7 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
         if (spacesNeeded > 0) {
           const spacesText = '\u00A0'.repeat(spacesNeeded);
           // Check if spaces contain bar lines
-          const textBeforeChord = lineData.text.substring(currentPos, position);
+          const textBeforeChord = barSource.substring(currentPos, position);
           if (textBeforeChord.includes('|')) {
             const parts = spacesText.split('');
             let barPositions = [];
@@ -242,7 +269,8 @@ const ChordDisplay = ({ song, transpose = 0 }) => {
       
       // Process text with bar lines
       const textParts = [];
-      const textWithBars = lineData.text;
+      // Only render bars in the text line when the lyric line itself contains them to avoid duplicating the chord bar row
+      const textWithBars = lineData.text || '';
       const barRegex = /(\|:?:?\|?)/g;
       let lastIndex = 0;
       let match;

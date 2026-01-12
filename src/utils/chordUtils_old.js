@@ -161,8 +161,7 @@ const parseStandardFormat = (lines) => {
         parsed.push({
           type: 'line_with_chords',
           chords,
-          text: lyricText,
-          barText: possibleChords // Preserve bars and chord spacing source
+          text: lyricText
         });
         continue;
       }
@@ -212,8 +211,7 @@ const parseStandardFormat = (lines) => {
         parsed.push({
           type: 'line_with_chords',
           chords,
-          text: nextLine,
-          barText: currentLine // Keep original chord line for bar detection
+          text: nextLine
         });
         
         i++; // Skip next line karena sudah diproses
@@ -229,8 +227,7 @@ const parseStandardFormat = (lines) => {
         parsed.push({
           type: 'line_with_chords',
           chords,
-          text: '',
-          barText: currentLine // Use bar markers from chord line
+          text: ''
         });
       }
     } else {

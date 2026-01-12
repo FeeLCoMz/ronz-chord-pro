@@ -1500,6 +1500,16 @@ body {
   font-weight: 800;
 }
 
+.inline-chord-highlight {
+  background: linear-gradient(120deg, rgba(244, 114, 182, 0.18), rgba(217, 70, 239, 0.18));
+  color: var(--chord);
+  padding: 0 0.3rem;
+  border-radius: 3px;
+  font-weight: 800;
+  border: 1px solid rgba(244, 114, 182, 0.25);
+  display: inline-block;
+}
+
 .text-line {
   font-size: 1rem;
   color: var(--text);
