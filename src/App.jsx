@@ -952,7 +952,7 @@ function App() {
                           >
                             <div className="setlist-card-header">
                               <h3>📋 {setList.name}</h3>
-                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <div className="setlist-card-actions">
                                 <button
                                   className="btn btn-xs"
                                   onClick={(e) => {

@@ -212,6 +212,125 @@ html:not(.dark-mode) body {
   background: linear-gradient(135deg, #e0e7ff 0%, #f1f5f9 100%);
 }
 
+/* Light Mode Component Overrides */
+html:not(.dark-mode) .sidebar {
+  background: rgba(255, 255, 255, 0.98);
+  border-right: 1.5px solid rgba(79, 70, 229, 0.12);
+  box-shadow: 0 4px 32px 0 rgba(15, 23, 42, 0.08);
+}
+
+html:not(.dark-mode) .sidebar-header {
+  background: rgba(248, 250, 252, 0.8);
+  border-bottom: 1px solid rgba(79, 70, 229, 0.15);
+}
+
+html:not(.dark-mode) .sidebar-search input {
+  border: 1.5px solid rgba(79, 70, 229, 0.2);
+  background: rgba(248, 250, 252, 0.9);
+  box-shadow: 0 2px 12px 0 rgba(79, 70, 229, 0.06);
+}
+
+html:not(.dark-mode) .sidebar-search input:focus {
+  border-color: #4f46e5;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 16px 0 rgba(79, 70, 229, 0.15);
+}
+
+html:not(.dark-mode) .song-list {
+  background: rgba(248, 250, 252, 0.5);
+  box-shadow: 0 2px 12px 0 rgba(79, 70, 229, 0.04);
+}
+
+html:not(.dark-mode) .song-item {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1.5px solid transparent;
+  box-shadow: 0 1px 6px 0 rgba(79, 70, 229, 0.05);
+}
+
+html:not(.dark-mode) .song-item:hover {
+  background: rgba(248, 250, 252, 0.95);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+html:not(.dark-mode) .song-item.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: #0f172a;
+  border-color: #6366f1;
+  box-shadow: 0 2px 12px 0 rgba(99, 102, 241, 0.2);
+}
+
+html:not(.dark-mode) .song-actions {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px 0 rgba(79, 70, 229, 0.12);
+}
+
+html:not(.dark-mode) .main {
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 32px 0 rgba(15, 23, 42, 0.06);
+}
+
+html:not(.dark-mode) .controls {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(79, 70, 229, 0.15);
+}
+
+html:not(.dark-mode) .transpose-value,
+html:not(.dark-mode) .speed-value {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: #4f46e5;
+}
+
+html:not(.dark-mode) .lyrics-section {
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(79, 70, 229, 0.15);
+}
+
+html:not(.dark-mode) .lyrics-section:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+html:not(.dark-mode) .btn-icon {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+html:not(.dark-mode) .btn-icon:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: #6366f1;
+}
+
+html:not(.dark-mode) .setlist-card {
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+}
+
+html:not(.dark-mode) .setlist-card:hover {
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+html:not(.dark-mode) .setlist-card.active {
+  background: rgba(99, 102, 241, 0.08);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
+html:not(.dark-mode) .song-list::-webkit-scrollbar-thumb,
+html:not(.dark-mode) .lyrics-section::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+html:not(.dark-mode) .all-chords {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.08) 0%, rgba(167, 139, 250, 0.08) 100%);
+}
+
+html:not(.dark-mode) .melody-controls {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.08) 0%, rgba(167, 139, 250, 0.08) 100%);
+}
+
+html:not(.dark-mode) .setlist-card-actions {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 2px 8px 0 rgba(79, 70, 229, 0.15);
+}
+
 body {
   background: linear-gradient(135deg, #232946 0%, #181c24 100%);
   color: var(--text);
@@ -430,6 +549,7 @@ body {
   align-items: start;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  position: relative;
 }
 
 .setlist-card-header h3 {
@@ -438,6 +558,34 @@ body {
   font-weight: 600;
   color: var(--text-primary);
   flex: 1;
+}
+
+.setlist-card-actions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: var(--card);
+  padding: 0.25rem;
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+}
+
+.setlist-card:hover .setlist-card-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.setlist-card-actions .btn {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.9rem;
+  border-radius: 4px;
 }
 
 .setlist-card-body {
@@ -632,14 +780,14 @@ body {
 /* ===== Sidebar ===== */
 .sidebar {
   width: 320px;
-  background: rgba(36, 41, 61, 0.98);
-  border-right: 1.5px solid rgba(99, 102, 241, 0.08);
+  background: var(--card);
+  border-right: 1.5px solid var(--border);
   padding: 1.5rem 1rem 1rem 1.5rem;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   border-radius: 1.25rem;
-  box-shadow: 0 4px 32px 0 rgba(36,41,61,0.10);
+  box-shadow: var(--shadow-md);
   margin: 0.75rem 0.5rem 0.75rem 0.75rem;
   transition: box-shadow 0.22s, background 0.22s;
 }
@@ -677,8 +825,8 @@ body {
 
 .sidebar-header {
   padding: 1.5rem;
-  background: rgba(30, 41, 59, 0.5);
-  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -691,12 +839,12 @@ body {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
   border-radius: 999px;
-  border: 1.5px solid rgba(99, 102, 241, 0.18);
-  background: rgba(15, 20, 31, 0.85);
+  border: 1.5px solid var(--border);
+  background: var(--bg);
   color: var(--text);
   outline: none;
   font-size: 0.98rem;
-  box-shadow: 0 2px 12px 0 rgba(99,102,241,0.07);
+  box-shadow: var(--shadow-sm);
   transition: border 0.22s, background 0.22s, box-shadow 0.22s;
 }
 .sidebar-search input::placeholder {
@@ -704,9 +852,9 @@ body {
   letter-spacing: 0.01em;
 }
 .sidebar-search input:focus {
-  border-color: #6366f1;
-  background: rgba(30, 41, 59, 0.98);
-  box-shadow: 0 4px 16px 0 rgba(99,102,241,0.13);
+  border-color: var(--primary);
+  background: var(--card);
+  box-shadow: var(--shadow-md);
 }
 .sidebar-search .search-icon {
   position: absolute;
@@ -754,8 +902,8 @@ body {
 .setlist-select:focus { outline: none; border-color: var(--primary); }
 
 .btn-icon {
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: var(--card-hover);
+  border: 1px solid var(--border);
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0.5rem;
@@ -766,11 +914,13 @@ body {
   justify-content: center;
   width: 42px;
   height: 42px;
+  color: var(--text);
 }
 
 .btn-icon:hover {
-  background: rgba(99, 102, 241, 0.3);
-  border-color: #6366f1;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
 }
 
 .setlist-badge {
@@ -933,21 +1083,21 @@ body {
   overflow-y: auto;
   max-height: calc(100vh - 400px);
   border-radius: 1rem;
-  background: rgba(255,255,255,0.02);
-  box-shadow: 0 2px 12px 0 rgba(99,102,241,0.04);
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
   padding: 0.5rem 0.25rem;
 }
 
 .song-item {
   padding: 1rem 1.25rem;
-  background: rgba(99, 102, 241, 0.07);
+  background: var(--card-hover);
   border-radius: 1rem;
   margin-bottom: 0.75rem;
   transition: background 0.18s, box-shadow 0.18s;
   border: 1.5px solid transparent;
   position: relative;
   display: block;
-  box-shadow: 0 1px 6px 0 rgba(99,102,241,0.04);
+  box-shadow: var(--shadow-sm);
 }
 
 .song-info {
@@ -963,9 +1113,9 @@ body {
   top: 0.5rem;
   transform: none;
   z-index: 2;
-  background: rgba(255,255,255,0.08);
+  background: var(--card);
   border-radius: 10px;
-  box-shadow: 0 2px 8px 0 rgba(99,102,241,0.08);
+  box-shadow: var(--shadow);
   padding: 0.1rem 0.15rem;
   opacity: 0;
   pointer-events: none;
@@ -978,8 +1128,8 @@ body {
 }
 
 .song-item:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(129, 140, 248, 0.5);
+  background: var(--card);
+  border-color: var(--primary-light);
 }
 
 .song-item:hover .song-actions {
@@ -987,10 +1137,10 @@ body {
 }
 
 .song-item.active {
-  background: rgba(99, 102, 241, 0.18);
+  background: var(--primary);
   color: white;
-  border-color: #6366f1;
-  box-shadow: 0 2px 12px 0 rgba(99,102,241,0.10);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
 }
 
 .song-item.active .song-actions {
@@ -1112,16 +1262,16 @@ body {
   flex: 1;
   padding: 2rem 2.5rem 2rem 2rem;
   overflow-y: auto;
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-elevated);
   border-radius: 1.25rem;
   margin: 0.75rem 0.75rem 0.75rem 0.5rem;
-  box-shadow: 0 4px 32px 0 rgba(36,41,61,0.08);
+  box-shadow: var(--shadow-md);
   min-width: 0;
   transition: box-shadow 0.22s, background 0.22s;
 }
 
 .controls {
-  background: rgba(22, 27, 38, 0.6);
+  background: var(--card);
   padding: 1.5rem 2rem;
   border-radius: 8px;
   margin-bottom: 2rem;
@@ -1129,7 +1279,7 @@ body {
   flex-wrap: wrap;
   gap: 2rem;
   align-items: center;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid var(--border);
 }
 
 .control-group {
@@ -1153,10 +1303,10 @@ body {
   font-weight: 700;
   min-width: 50px;
   text-align: center;
-  background: rgba(99, 102, 241, 0.15);
+  background: var(--card-hover);
   border-radius: 6px;
-  border: 1px solid rgba(129, 140, 248, 0.3);
-  color: #818cf8;
+  border: 1px solid var(--border);
+  color: var(--primary);
   font-size: 1rem;
 }
 
@@ -1211,18 +1361,18 @@ body {
 
 /* ===== Lyrics ===== */
 .lyrics-section {
-  background: rgba(22, 27, 38, 0.6);
+  background: var(--card);
   padding: 2.5rem;
   border-radius: 8px;
   max-height: 650px;
   overflow-y: auto;
   overflow-x: auto;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid var(--border);
   transition: border 0.2s;
 }
 
 .lyrics-section:hover {
-  border-color: rgba(129, 140, 248, 0.4);
+  border-color: var(--primary-light);
 }
 
 /* ===== Search & Preview Card ===== */
@@ -1655,15 +1805,15 @@ body {
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #232946 0%, #181c24 100%);
+  background: var(--card);
   border-radius: 1.25rem;
   padding: 2rem 2.5rem;
-  box-shadow: 0 8px 48px 0 rgba(99,102,241,0.18);
+  box-shadow: var(--shadow-xl);
   min-width: 320px;
   max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1.5px solid rgba(99,102,241,0.10);
+  border: 1.5px solid var(--border);
 }
 
 @media (max-width: 600px) {
