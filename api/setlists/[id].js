@@ -14,38 +14,51 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
-  const { id } = req.query || {};
+  const { id } = req.params || {};
 
-  if (!id) {
+  // Validate id parameter - be lenient, accept any non-empty string/number
+  const idStr = id ? String(id).trim() : '';
+  
+  if (!idStr) {
     res.status(400).json({ error: 'Missing setlist id' });
     return;
   }
 
   try {
-    const client = getTursoClient();
-    if (req.method === 'GET') {
-      const result = await client.execute(
-        `SELECT id, name, songs, songKeys, completedSongs, createdAt, updatedAt
-         FROM setlists WHERE id = ? LIMIT 1`,
-        [id.toString()]
-      );
-
-      const row = result.rows?.[0] || null;
-      if (!row) {
-        res.status(404).json({ error: 'Not found' });
-        return;
-      }
-
-      res.status(200).json({
-        id: row.id,
-        name: row.name,
-        songs: row.songs ? JSON.parse(row.songs) : [],
-        songKeys: row.songKeys ? JSON.parse(row.songKeys) : {},
-        completedSongs: row.completedSongs ? JSON.parse(row.completedSongs) : {},
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt
-      });
+    let client;
+    try {
+      client = getTursoClient();
+    } catch (clientErr) {
+      console.error(`[setlists/[id]] Failed to get Turso client:`, clientErr.message);
+      res.status(500).json({ error: 'Database connection error', details: clientErr.message });
       return;
+    }
+    if (req.method === 'GET') {
+      try {
+        const result = await client.execute(
+          `SELECT id, name, songs, songKeys, completedSongs, createdAt, updatedAt
+           FROM setlists WHERE id = ? LIMIT 1`,
+          [idStr]
+        );
+
+        const row = result.rows?.[0] || null;
+        if (!row) {
+          res.status(404).json({ error: 'Setlist not found' });
+          return;
+        }
+        res.status(200).json({
+          id: row.id,
+          name: row.name,
+          songs: row.songs ? JSON.parse(row.songs) : [],
+          songKeys: row.songKeys ? JSON.parse(row.songKeys) : {},
+          completedSongs: row.completedSongs ? JSON.parse(row.completedSongs) : {},
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt
+        });
+        return;
+      } catch (queryErr) {
+        throw queryErr;
+      }
     }
 
     if (req.method === 'PUT' || req.method === 'PATCH') {
@@ -69,7 +82,7 @@ export default async function handler(req, res) {
           songKeysJson,
           completedSongsJson,
           now,
-          id.toString(),
+          idStr,
         ]
       );
 
@@ -78,7 +91,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      await client.execute(`DELETE FROM setlists WHERE id = ?`, [id.toString()]);
+      await client.execute(`DELETE FROM setlists WHERE id = ?`, [idStr]);
       res.status(204).end();
       return;
     }
@@ -87,6 +100,6 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
     console.error('API /api/setlists/[id] error:', err);
-    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+    res.status(500).json({ error: 'Internal Server Error', message: err.message, details: process.env.NODE_ENV === 'development' ? err.stack : undefined });
   }
 }

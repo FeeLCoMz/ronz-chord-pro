@@ -99,6 +99,6 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
     console.error('API /api/songs error:', err);
-    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+    res.status(500).json({ error: 'Internal Server Error', message: err.message, details: process.env.NODE_ENV === 'development' ? err.stack : undefined });
   }
 }

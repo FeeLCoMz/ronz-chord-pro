@@ -61,25 +61,65 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
       const body = await readJson(req);
+      
+      // Validate required fields
+      if (!body.name || body.name.trim() === '') {
+        res.status(400).json({ error: 'Setlist name is required' });
+        return;
+      }
+      
       const id = body.id?.toString() || randomUUID();
       const now = new Date().toISOString();
-      const songsJson = JSON.stringify(body.songs || []);
-      const songKeysJson = JSON.stringify(body.songKeys || {});
-      const completedSongsJson = JSON.stringify(body.completedSongs || {});
-      await client.execute(
-        `INSERT INTO setlists (id, name, songs, songKeys, completedSongs, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          id,
-          body.name || 'Untitled Set List',
-          songsJson,
-          songKeysJson,
-          completedSongsJson,
-          body.createdAt || now,
-          now,
-        ]
-      );
-      res.status(201).json({ id });
+      
+      try {
+        const songsJson = JSON.stringify(body.songs || []);
+        const songKeysJson = JSON.stringify(body.songKeys || {});
+        const completedSongsJson = JSON.stringify(body.completedSongs || {});
+        
+        await client.execute(
+          `INSERT INTO setlists (id, name, songs, songKeys, completedSongs, createdAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            id,
+            body.name.trim() || 'Untitled Set List',
+            songsJson,
+            songKeysJson,
+            completedSongsJson,
+            body.createdAt || now,
+            now,
+          ]
+        );
+        res.status(201).json({ id });
+      } catch (insertErr) {
+        // Check if it's a duplicate key error
+        if (insertErr.message && insertErr.message.includes('UNIQUE')) {
+          // Setlist already exists, update instead
+          const songsJson = JSON.stringify(body.songs || []);
+          const songKeysJson = JSON.stringify(body.songKeys || {});
+          const completedSongsJson = JSON.stringify(body.completedSongs || {});
+          
+          await client.execute(
+            `UPDATE setlists SET 
+               name = ?, 
+               songs = ?, 
+               songKeys = ?, 
+               completedSongs = ?, 
+               updatedAt = ?
+             WHERE id = ?`,
+            [
+              body.name.trim() || 'Untitled Set List',
+              songsJson,
+              songKeysJson,
+              completedSongsJson,
+              now,
+              id,
+            ]
+          );
+          res.status(200).json({ id });
+        } else {
+          throw insertErr;
+        }
+      }
       return;
     }
 
@@ -87,6 +127,6 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
     console.error('API /api/setlists error:', err);
-    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+    res.status(500).json({ error: 'Internal Server Error', message: err.message, details: process.env.NODE_ENV === 'development' ? err.stack : undefined });
   }
 }

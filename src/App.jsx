@@ -319,23 +319,42 @@ function App() {
         try {
           // Check if setlist exists in backend
           const checkRes = await fetch(`/api/setlists/${setList.id}`);
-          if (checkRes.ok) {
+          if (checkRes.status === 200) {
             // Update existing
-            await fetch(`/api/setlists/${setList.id}`, {
+            const updateRes = await fetch(`/api/setlists/${setList.id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(setList)
             });
+            if (!updateRes.ok) {
+              const errData = await updateRes.json().catch(() => ({}));
+              console.warn(`Failed to update setlist ${setList.id}: ${updateRes.status} - ${errData.error || 'Unknown'}`);
+            }
           } else if (checkRes.status === 404) {
-            // Create new
-            await fetch('/api/setlists', {
+            // Create new - not found in backend
+            const createRes = await fetch('/api/setlists', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(setList)
             });
+            if (!createRes.ok) {
+              const errData = await createRes.json().catch(() => ({}));
+              console.warn(`Failed to create setlist ${setList.id}: ${createRes.status} - ${errData.error || 'Unknown'}`);
+            }
+          } else {
+            // Any other status (400, 500, etc) - try to create/sync anyway
+            const createRes = await fetch('/api/setlists', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(setList)
+            });
+            if (!createRes.ok) {
+              const errData = await createRes.json().catch(() => ({}));
+              console.warn(`Failed to sync setlist ${setList.id}: ${createRes.status} - ${errData.error || 'Unknown'}`);
+            }
           }
         } catch (err) {
-          console.error(`Failed to sync setlist ${setList.id}:`, err);
+          console.warn(`Failed to sync setlist ${setList.id}:`, err.message);
         }
       }
     }, 500); // Reduced debounce from 1000 to 500ms for faster sync

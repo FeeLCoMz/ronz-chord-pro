@@ -14,31 +14,45 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
-  const { id } = req.query || {};
+  const { id } = req.params || {};
 
-  if (!id) {
+  // Validate id parameter - be lenient, accept any non-empty string/number
+  const idStr = id ? String(id).trim() : '';
+  
+  if (!idStr) {
     res.status(400).json({ error: 'Missing song id' });
     return;
   }
 
   try {
-    const client = getTursoClient();
-    if (req.method === 'GET') {
-      const result = await client.execute(
-        `SELECT id, title, artist, youtubeId, lyrics, key, tempo, style, timestamps, createdAt, updatedAt
-         FROM songs WHERE id = ? LIMIT 1`,
-        [id.toString()]
-      );
-      const row = result.rows?.[0] || null;
-      if (!row) {
-        res.status(404).json({ error: 'Not found' });
-        return;
-      }
-      res.status(200).json({
-        ...row,
-        timestamps: row.timestamps ? JSON.parse(row.timestamps) : []
-      });
+    let client;
+    try {
+      client = getTursoClient();
+    } catch (clientErr) {
+      console.error(`[songs/[id]] Failed to get Turso client:`, clientErr.message);
+      res.status(500).json({ error: 'Database connection error', details: clientErr.message });
       return;
+    }
+    if (req.method === 'GET') {
+      try {
+        const result = await client.execute(
+          `SELECT id, title, artist, youtubeId, lyrics, key, tempo, style, timestamps, createdAt, updatedAt
+           FROM songs WHERE id = ? LIMIT 1`,
+          [idStr]
+        );
+        const row = result.rows?.[0] || null;
+        if (!row) {
+          res.status(404).json({ error: 'Song not found' });
+          return;
+        }
+        res.status(200).json({
+          ...row,
+          timestamps: row.timestamps ? JSON.parse(row.timestamps) : []
+        });
+        return;
+      } catch (queryErr) {
+        throw queryErr;
+      }
     }
 
     if (req.method === 'PUT' || req.method === 'PATCH') {
@@ -67,7 +81,7 @@ export default async function handler(req, res) {
           body.style ?? null,
           (Array.isArray(body.timestamps) ? JSON.stringify(body.timestamps) : (body.timestamps ?? null)),
           now,
-          id.toString(),
+          idStr,
         ]
       );
 
@@ -76,7 +90,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      await client.execute(`DELETE FROM songs WHERE id = ?`, [id.toString()]);
+      await client.execute(`DELETE FROM songs WHERE id = ?`, [idStr]);
       res.status(204).end();
       return;
     }
@@ -85,6 +99,6 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
     console.error('API /api/songs/[id] error:', err);
-    res.status(500).json({ error: 'Internal Server Error', message: err.message });
+    res.status(500).json({ error: 'Internal Server Error', message: err.message, details: process.env.NODE_ENV === 'development' ? err.stack : undefined });
   }
 }
