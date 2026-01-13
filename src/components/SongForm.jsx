@@ -60,7 +60,8 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
   const [transcribeResult, setTranscribeResult] = useState('');
   const [showFormatHelp, setShowFormatHelp] = useState(false);
   const [detectedFormat, setDetectedFormat] = useState(null);
-  // ...existing code...
+  const [showConvertMenu, setShowConvertMenu] = useState(false);
+  const [showTemplateMenu, setShowTemplateMenu] = useState(false);
 
   useEffect(() => {
     if (song) {
@@ -688,6 +689,134 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     setFormData(prev => ({ ...prev, lyrics: result.join('\n') }));
   };
 
+  // Convert ChordPro format to Standard format
+  const convertChordProToStandard = () => {
+    const text = formData.lyrics;
+    if (!text.trim()) return;
+
+    const lines = text.split('\n');
+    const result = [];
+    let currentSection = '';
+    let chordLines = [];
+    let lyricLines = [];
+
+    const sectionPatterns = {
+      intro: /\{start_of_intro\}|\[intro\]|^intro\s*:?/i,
+      verse: /\{start_of_verse\}|\[verse\]|^verse\s*:?/i,
+      chorus: /\{start_of_chorus\}|\[chorus\]|^chorus\s*:?/i,
+      bridge: /\{start_of_bridge\}|\[bridge\]|^bridge\s*:?/i,
+      outro: /\{start_of_outro\}|\[outro\]|^outro\s*:?/i,
+      pre_chorus: /\{start_of_pre_chorus\}|\[pre_chorus\]|^pre.?chorus\s*:?/i
+    };
+
+    const sectionLabels = {
+      intro: 'Intro:',
+      verse: 'Verse:',
+      chorus: 'Chorus:',
+      bridge: 'Bridge:',
+      outro: 'Outro:',
+      pre_chorus: 'Pre-Chorus:'
+    };
+
+    // Skip metadata lines
+    let startIdx = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.match(/^\{[^}]+\}/) || line.match(/^(Title|Artist|Key|Original Key|Time|Tempo|Capo):/i)) {
+        result.push(line);
+        startIdx = i + 1;
+      } else {
+        break;
+      }
+    }
+
+    // Process lyrics and chords
+    for (let i = startIdx; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // Check for section markers
+      let foundSection = false;
+      for (const [sectionKey, pattern] of Object.entries(sectionPatterns)) {
+        if (pattern.test(trimmed)) {
+          // Flush previous section
+          if (chordLines.length > 0 || lyricLines.length > 0) {
+            if (currentSection) result.push(currentSection);
+            for (let j = 0; j < Math.max(chordLines.length, lyricLines.length); j++) {
+              if (chordLines[j]) result.push(chordLines[j]);
+              if (lyricLines[j]) result.push(lyricLines[j]);
+            }
+            chordLines = [];
+            lyricLines = [];
+          }
+          currentSection = sectionLabels[sectionKey];
+          foundSection = true;
+          break;
+        }
+      }
+
+      if (foundSection || trimmed.match(/^\{end_of_\w+\}/) || trimmed.match(/^\{comment:/)) {
+        continue; // Skip section markers and comments
+      }
+
+      // Check if line is chord line (contains [C] or similar patterns)
+      const hasChordPro = /\[[A-G][#b]?[^\]]*\]/.test(line);
+
+      if (hasChordPro) {
+        // This is a chord line in ChordPro format - convert to standard
+        let chordLine = '';
+        let lyricLine = '';
+        let pos = 0;
+
+        const chordMatches = [];
+        const chordRegex = /\[([^\]]+)\]/g;
+        let match;
+        while ((match = chordRegex.exec(line)) !== null) {
+          chordMatches.push({ chord: match[1], index: match.index });
+        }
+
+        const textWithoutChords = line.replace(/\[([^\]]+)\]/g, '').trim();
+
+        // Build chord line
+        if (chordMatches.length > 0) {
+          let spaces = 0;
+          const firstChord = chordMatches[0].chord;
+          chordLine = firstChord;
+          spaces = Math.max(15 - firstChord.length, 1);
+
+          for (let j = 1; j < chordMatches.length; j++) {
+            const chord = chordMatches[j].chord;
+            spaces = Math.max(15 - chord.length, 1);
+            chordLine += ' '.repeat(spaces) + chord;
+          }
+        }
+
+        if (chordLine) {
+          chordLines.push(chordLine);
+          if (textWithoutChords) {
+            lyricLines.push(textWithoutChords);
+          }
+        } else {
+          lyricLines.push(trimmed);
+        }
+      } else if (trimmed) {
+        // Regular lyric line
+        lyricLines.push(trimmed);
+      }
+    }
+
+    // Flush last section
+    if (chordLines.length > 0 || lyricLines.length > 0) {
+      if (currentSection) result.push(currentSection);
+      for (let j = 0; j < Math.max(chordLines.length, lyricLines.length); j++) {
+        if (chordLines[j]) result.push(chordLines[j]);
+        if (lyricLines[j]) result.push(lyricLines[j]);
+      }
+    }
+
+    setFormData(prev => ({ ...prev, lyrics: result.join('\n') }));
+  };
+
   // Convert inline ChordPro ([C]Lyric) to chord-above-lyrics format
   const handleTranscribeFile = async () => {
     if (!transcribeFile) {
@@ -992,15 +1121,138 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                   )}
                 </div>
                 <div className="template-buttons">
-                  <button type="button" onClick={insertTemplate} className="btn btn-sm">
-                    📋 ChordPro
-                  </button>
-                  <button type="button" onClick={insertStandardTemplate} className="btn btn-sm">
-                    📋 Standard
-                  </button>
-                  <button type="button" onClick={convertStandardToChordPro} className="btn btn-sm btn-primary">
-                    🔄 Convert ke ChordPro
-                  </button>
+                  <div style={{ position: 'relative' }}>
+                    <button type="button" onClick={() => setShowTemplateMenu(!showTemplateMenu)} className="btn btn-sm">
+                      📋 Template ▼
+                    </button>
+                    {showTemplateMenu && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        marginTop: '0.5rem',
+                        minWidth: '150px',
+                        zIndex: 20,
+                        background: 'var(--card)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        boxShadow: '0 12px 28px rgba(0,0,0,0.18)'
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            insertTemplate();
+                            setShowTemplateMenu(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--text)',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--border)',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={e => e.target.style.background = 'var(--card-hover)'}
+                          onMouseLeave={e => e.target.style.background = 'transparent'}
+                          title="Sisipkan template ChordPro"
+                        >
+                          ChordPro
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            insertStandardTemplate();
+                            setShowTemplateMenu(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--text)',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={e => e.target.style.background = 'var(--card-hover)'}
+                          onMouseLeave={e => e.target.style.background = 'transparent'}
+                          title="Sisipkan template Standard"
+                        >
+                          Standard
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <button type="button" onClick={() => setShowConvertMenu(!showConvertMenu)} className="btn btn-sm btn-primary">
+                      � Convert ▼
+                    </button>
+                    {showConvertMenu && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        marginTop: '0.5rem',
+                        minWidth: '180px',
+                        zIndex: 20,
+                        background: 'var(--card)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        boxShadow: '0 12px 28px rgba(0,0,0,0.18)'
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            convertStandardToChordPro();
+                            setShowConvertMenu(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--text)',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid var(--border)',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={e => e.target.style.background = 'var(--card-hover)'}
+                          onMouseLeave={e => e.target.style.background = 'transparent'}
+                          title="Konversi Standard ke ChordPro"
+                        >
+                          → ke ChordPro
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            convertChordProToStandard();
+                            setShowConvertMenu(false);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--text)',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseEnter={e => e.target.style.background = 'var(--card-hover)'}
+                          onMouseLeave={e => e.target.style.background = 'transparent'}
+                          title="Konversi ChordPro ke Standard"
+                        >
+                          → ke Standard
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <button type="button" onClick={() => setShowTranscribe(true)} className="btn btn-sm">
                     🎤 Transkripsi
                   </button>
