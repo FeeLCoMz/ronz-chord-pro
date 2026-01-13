@@ -464,24 +464,52 @@ body {
 
 /* ===== Header ===== */
 .header {
-  background: var(--bg-elevated);
-  color: var(--text);
-  padding: 2rem 2.5rem;
-  border-bottom: 1px solid var(--border);
+  background: #6366f1;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-bottom: none;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.header-content {
+  position: relative;
+  z-index: 1;
 }
 
 .header-content h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 0.25rem;
-  color: var(--text);
+  margin-bottom: 0;
+  color: white;
   letter-spacing: -0.5px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .header-content p {
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 400;
+  letter-spacing: 0.3px;
+  margin-top: 0.1rem;
+}
+
+html:not(.dark-mode) .header {
+  background: #5b21b6;
+  box-shadow: 0 4px 12px rgba(91, 33, 182, 0.25);
 }
 
 /* ===== Container ===== */
