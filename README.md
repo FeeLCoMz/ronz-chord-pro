@@ -16,6 +16,9 @@ Aplikasi Chord dan Lirik berbasis React (Vite) dengan fitur lengkap untuk musisi
 - **📋 Set List Management**: Kelola daftar lagu untuk performa/latihan
 - **✏️ Song Editor**: Tambah/Edit lagu via UI (termasuk input melodi not angka)
 - **💾 Local Storage**: Simpan set list dan lagu kustom secara otomatis
+- **⌨️ Keyboard Shortcuts**: Navigasi cepat dengan shortcut keyboard (Ctrl+F, arrow keys, T, M, Y, A, Shift+P, ?) - [Lihat lengkap](KEYBOARD_SHORTCUTS.md)
+- **⚡ Virtual Scrolling**: Performa optimal dengan 1000+ lagu tanpa lag - [Dokumentasi teknis](VIRTUAL_SCROLLING.md)
+- **🔔 Toast Notifications**: Modern notification system menggantikan alert() - [Dokumentasi](TOAST_NOTIFICATIONS.md)
 
 ## 🚀 Cara Menjalankan
 

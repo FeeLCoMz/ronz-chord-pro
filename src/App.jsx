@@ -4,10 +4,13 @@ import { getTransposeSteps } from './utils/chordUtils';
 import YouTubeViewer from './components/YouTubeViewer';
 import AutoScroll from './components/AutoScroll';
 import HelpModal from './components/HelpModal';
+import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
 import SongFormBaru from './components/SongForm';
 import SetListForm from './components/SetListForm';
 import SongListItem from './components/SongListItem';
 import SettingsModal from './components/SettingsModal';
+import ToastContainer from './components/ToastContainer';
+import { useKeyboardShortcuts, useToast } from './hooks';
 import './App.css';
 
 function sanitizeSongs(list = []) {
@@ -55,6 +58,7 @@ const generateUniqueId = () => {
 };
 
 function App() {
+  const { toasts, closeToast, showToast, success, error, warning } = useToast();
   const [showSidebar, setShowSidebar] = useState(true);
   const [showLyricsFullscreen, setShowLyricsFullscreen] = useState(false);
   const [activeNav, setActiveNav] = useState('songs'); // 'songs' atau 'setlists'
@@ -126,11 +130,52 @@ function App() {
     }
   });
   const [showHelp, setShowHelp] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const scrollRef = useRef(null);
   const isInitialLoad = useRef(true);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const touchStartDistance = useRef(0);
+
+  // Keyboard shortcuts integration
+  const { shortcuts } = useKeyboardShortcuts({
+    onSearchFocus: () => {
+      const searchInput = document.querySelector('input[placeholder*="Cari"]');
+      if (searchInput) searchInput.focus();
+    },
+    onNextSong: () => {
+      const displaySongs = getDisplaySongs();
+      const currentIndex = selectedSong ? displaySongs.findIndex(s => s.id === selectedSong.id) : -1;
+      if (currentIndex < displaySongs.length - 1) {
+        setSelectedSong(displaySongs[currentIndex + 1]);
+      }
+    },
+    onPrevSong: () => {
+      const displaySongs = getDisplaySongs();
+      const currentIndex = selectedSong ? displaySongs.findIndex(s => s.id === selectedSong.id) : -1;
+      if (currentIndex > 0) {
+        setSelectedSong(displaySongs[currentIndex - 1]);
+      }
+    },
+    onToggleTranspose: () => {
+      setTranspose(prev => (prev === 0 ? 1 : 0));
+    },
+    onTogglePerformanceMode: () => {
+      setPerformanceMode(!performanceMode);
+    },
+    onShowHelp: () => {
+      setShowKeyboardHelp(true);
+    },
+    onToggleLyricsMode: () => {
+      setLyricsMode(!lyricsMode);
+    },
+    onToggleYouTube: () => {
+      setShowYouTube(!showYouTube);
+    },
+    onToggleAutoScroll: () => {
+      setAutoScrollActive(!autoScrollActive);
+    }
+  });
 
   // Normalize mixed timestamp formats (number ms vs ISO string) to millis
   const toTimestamp = (v) => {
@@ -797,9 +842,9 @@ function App() {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {
-      alert('Daftar lagu disalin ke clipboard!');
+      success('Daftar lagu disalin ke clipboard!');
     }).catch(() => {
-      alert('Gagal menyalin ke clipboard');
+      error('Gagal menyalin ke clipboard');
     });
   };
 
@@ -821,17 +866,17 @@ function App() {
       }).catch(() => {
         // Fallback to clipboard if share is cancelled
         navigator.clipboard.writeText(url).then(() => {
-          alert('Link setlist disalin ke clipboard!');
+          success('Link setlist disalin ke clipboard!');
         }).catch(() => {
-          alert('Gagal menyalin link');
+          error('Gagal menyalin link');
         });
       });
     } else {
       // Fallback to clipboard for desktop
       navigator.clipboard.writeText(url).then(() => {
-        alert('Link setlist disalin ke clipboard!');
+        success('Link setlist disalin ke clipboard!');
       }).catch(() => {
-        alert('Gagal menyalin link');
+        error('Gagal menyalin link');
       });
     }
   };
@@ -957,7 +1002,7 @@ function App() {
         const data = JSON.parse(e.target.result);
 
         if (!data.songs || !Array.isArray(data.songs)) {
-          alert('Format file tidak valid');
+          error('Format file tidak valid');
           return;
         }
 
@@ -978,11 +1023,11 @@ function App() {
           setTranspose(0);
           setActiveNav('songs');
           setShowSettingsMenu(false);
-          alert(`Import berhasil!\n\nLagu: ${migratedSongs.length}\nSet list: ${migratedSetLists.length}`);
+          success(`Import berhasil! Lagu: ${migratedSongs.length} | Set list: ${migratedSetLists.length}`);
         }
       } catch (error) {
         console.error('Import error:', error);
-        alert('Gagal membaca file. Pastikan file JSON valid.');
+        error('Gagal membaca file. Pastikan file JSON valid.');
       }
     };
     reader.readAsText(file);
@@ -1039,6 +1084,9 @@ function App() {
 
   return (
     <>
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onClose={closeToast} />
+
       {/* Recovery Notification */}
       {recoveryNotification && (
         <div className={`recovery-notification ${recoveryNotification.type === 'error' ? 'notification-error' : recoveryNotification.type === 'warning' ? 'notification-warning' : ''}`}>
@@ -1127,6 +1175,13 @@ function App() {
               title="Bantuan & Panduan"
             >
               ❓ Bantuan
+            </button>
+            <button
+              className="nav-btn"
+              onClick={() => setShowKeyboardHelp(true)}
+              title="Keyboard Shortcuts (? or Shift+?)"
+            >
+              ⌨️ Shortcuts
             </button>
           </nav>
           )}
@@ -1737,6 +1792,13 @@ function App() {
         {!performanceMode && showHelp && (
           <HelpModal
             onClose={() => setShowHelp(false)}
+          />
+        )}
+
+        {!performanceMode && showKeyboardHelp && (
+          <KeyboardShortcutsHelp 
+            shortcuts={shortcuts}
+            onClose={() => setShowKeyboardHelp(false)}
           />
         )}
 
