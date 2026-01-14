@@ -6,6 +6,7 @@ import HelpModal from './components/HelpModal';
 import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
 import SongFormBaru from './components/SongForm';
 import SetListForm from './components/SetListForm';
+import BulkAddSongsModal from './components/BulkAddSongsModal';
 import SongListItem from './components/SongListItem';
 import SettingsModal from './components/SettingsModal';
 import ToastContainer from './components/ToastContainer';
@@ -98,6 +99,7 @@ function App() {
   const [sortBy, setSortBy] = useState('title-asc');
   const [selectedSetListsForAdd, setSelectedSetListsForAdd] = useState([]);
   const [showSetListPopup, setShowSetListPopup] = useState(false);
+  const [showBulkAddSongs, setShowBulkAddSongs] = useState(false);
   const [viewMode, setViewMode] = useState(() => {
     try {
       return localStorage.getItem('ronz_view_mode') || 'default';
@@ -457,10 +459,14 @@ function App() {
   };
 
   const handleSaveSong = async (songData) => {
-    const isEditMode = !!editingSong;
+    const isEditMode = !!editingSong?.id; // True if editing existing song (has ID)
     const songId = isEditMode ? editingSong.id : generateUniqueId();
     const now = Date.now();
     const updatedSong = { ...songData, id: songId, updatedAt: now };
+    
+    // Check if this is a pending song being created
+    const pendingSongName = !isEditMode && editingSong?.title ? editingSong.title : null;
+    const isPendingSongCreation = pendingSongName && currentSetList;
     
     setSongs(prevSongs => {
       const existingIndex = prevSongs.findIndex(s => s.id === songId);
@@ -475,7 +481,47 @@ function App() {
       }
     });
     
-    // Sync to database
+    // If creating from pending, replace pending entry with actual song ID in setlist
+    if (isPendingSongCreation) {
+      let updatedSetList = null;
+      setSetLists(prevSetLists => {
+        return prevSetLists.map(setList => {
+          if (setList.id === currentSetList) {
+            // Find and replace pending song name with actual ID
+            const newSongs = setList.songs.map(s => s === pendingSongName ? songId : s);
+            const next = {
+              ...setList,
+              songs: newSongs,
+              updatedAt: Date.now()
+            };
+            updatedSetList = next;
+            return next;
+          }
+          return setList;
+        });
+      });
+
+      // Sync updated setlist to database
+      if (updatedSetList) {
+        try {
+          await fetch(`/api/setlists/${currentSetList}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: updatedSetList.name,
+              songs: updatedSetList.songs,
+              songKeys: updatedSetList.songKeys,
+              completedSongs: updatedSetList.completedSongs,
+              updatedAt: updatedSetList.updatedAt
+            })
+          });
+        } catch (err) {
+          console.error('Gagal update setlist dengan pending song:', err);
+        }
+      }
+    }
+    
+    // Sync song to database
     try {
       const method = isEditMode ? 'PUT' : 'POST';
       const endpoint = isEditMode ? `/api/songs/${songId}` : '/api/songs';
@@ -665,6 +711,77 @@ function App() {
     }
   };
 
+  // Handle bulk adding songs to setlist
+  const handleBulkAddSongsToSetList = async (songData) => {
+    if (!currentSetList) return;
+    
+    // Handle both old format (array) and new format (object with ids and pendingNames)
+    let songIds = [];
+    let pendingSongNames = [];
+    let totalAdded = 0;
+    
+    if (Array.isArray(songData)) {
+      // Old format - just IDs
+      songIds = songData;
+      totalAdded = songIds.length;
+    } else if (songData && typeof songData === 'object') {
+      // New format - object with ids and pendingNames
+      songIds = songData.ids || [];
+      pendingSongNames = songData.pendingNames || [];
+      totalAdded = songIds.length + pendingSongNames.length;
+    }
+    
+    if (totalAdded === 0) return;
+    
+    let updatedSetList = null;
+    setSetLists(prevSetLists => {
+      return prevSetLists.map(setList => {
+        if (setList.id === currentSetList) {
+          // Combine existing songs with new song IDs and pending names
+          const newSongs = [...(setList.songs || []), ...songIds];
+          // Add pending song names as strings
+          const allSongs = [...new Set([...newSongs, ...pendingSongNames])];
+          
+          const next = { 
+            ...setList, 
+            songs: allSongs,
+            songKeys: setList.songKeys || {}, 
+            updatedAt: Date.now() 
+          };
+          updatedSetList = next;
+          return next;
+        }
+        return setList;
+      });
+    });
+    
+    if (updatedSetList) {
+      try {
+        await fetch(`/api/setlists/${currentSetList}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name: updatedSetList.name, 
+            songs: updatedSetList.songs, 
+            songKeys: updatedSetList.songKeys, 
+            completedSongs: updatedSetList.completedSongs, 
+            updatedAt: updatedSetList.updatedAt 
+          })
+        });
+        
+        let message = `Berhasil menambahkan ${totalAdded} lagu ke setlist`;
+        if (pendingSongNames.length > 0) {
+          message += ` (${songIds.length} ada + ${pendingSongNames.length} pending)`;
+        }
+        success(message);
+        setShowBulkAddSongs(false);
+      } catch (err) {
+        console.error('Gagal menambah lagu ke setlist:', err);
+        error('Gagal menambahkan lagu ke setlist');
+      }
+    }
+  };
+
   // Update/setlist-specific key override for a song
   const handleSetListSongKey = async (setListId, songId, key) => {
     let updatedSetList = null;
@@ -765,7 +882,30 @@ function App() {
     if (!currentSetList) return [];
     const setList = setLists.find(sl => sl.id === currentSetList);
     if (!setList) return [];
-    return setList.songs.map(id => songs.find(s => s.id === id)).filter(Boolean);
+    // Filter only actual songs (IDs), exclude pending song names (strings)
+    return setList.songs
+      .map(id => {
+        // Only process if it looks like an ID (not a plain string without matching song)
+        if (typeof id === 'string') {
+          const song = songs.find(s => s.id === id);
+          return song || null;
+        }
+        return null;
+      })
+      .filter(Boolean);
+  };
+
+  const getPendingSongsInSetList = () => {
+    if (!currentSetList) return [];
+    const setList = setLists.find(sl => sl.id === currentSetList);
+    if (!setList) return [];
+    // Filter pending song names (strings that don't match any song ID)
+    return setList.songs.filter(item => {
+      if (typeof item !== 'string') return false;
+      // Check if this string ID exists in actual songs
+      const exists = songs.find(s => s.id === item);
+      return !exists;
+    });
   };
 
   const getCurrentSongIndexInSetList = () => {
@@ -1210,6 +1350,15 @@ function App() {
                       <button onClick={() => setShowSongForm(true)} className="btn btn-sm btn-primary" title="Tambah Lagu">
                         ➕
                       </button>
+                      {currentSetList && (
+                        <button 
+                          onClick={() => setShowBulkAddSongs(true)} 
+                          className="btn btn-sm btn-primary" 
+                          title="Tambah Lagu ke Setlist dari Daftar"
+                        >
+                          📝
+                        </button>
+                      )}
                     </div>
                     
                     <div className="filters-bar">
@@ -1325,6 +1474,103 @@ function App() {
                             onRemoveFromSetList={handleRemoveSongFromSetList}
                           />
                         ))
+                      )}
+                      
+                      {/* Pending Songs Section */}
+                      {currentSetList && getPendingSongsInSetList().length > 0 && (
+                        <>
+                          <div style={{ gridColumn: '1 / -1', padding: '1rem 0', borderTop: '2px solid var(--border)', marginTop: '1rem' }}>
+                            <h3 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                              ⏳ Lagu Pending (Menunggu Dibuat)
+                            </h3>
+                          </div>
+                          {getPendingSongsInSetList().map(songName => (
+                            <div
+                              key={`pending-${songName}`}
+                              style={{
+                                padding: '1rem',
+                                border: '2px dashed var(--primary)',
+                                borderRadius: '0.5rem',
+                                backgroundColor: 'var(--card-hover)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.75rem'
+                              }}
+                            >
+                              <div>
+                                <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
+                                  ⏳ {songName}
+                                </div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  Belum ada di database
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                  onClick={() => {
+                                    setShowSongForm(true);
+                                    // Create a temporary song object with the pending name
+                                    const newSong = { 
+                                      title: songName, 
+                                      artist: '', 
+                                      key: 'C', 
+                                      lyrics: '', 
+                                      youtubeId: '',
+                                      tempo: '',
+                                      style: '',
+                                      timestamps: []
+                                    };
+                                    setEditingSong(newSong);
+                                  }}
+                                  className="btn btn-sm btn-primary"
+                                  title="Buat lagu baru dengan nama ini"
+                                  style={{ flex: 1 }}
+                                >
+                                  ➕ Buat Sekarang
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    // Remove pending song from setlist
+                                    if (!currentSetList) return;
+                                    let updatedSetList = null;
+                                    setSetLists(prevSetLists => {
+                                      return prevSetLists.map(setList => {
+                                        if (setList.id === currentSetList) {
+                                          const next = {
+                                            ...setList,
+                                            songs: setList.songs.filter(s => s !== songName),
+                                            updatedAt: Date.now()
+                                          };
+                                          updatedSetList = next;
+                                          return next;
+                                        }
+                                        return setList;
+                                      });
+                                    });
+                                    if (updatedSetList) {
+                                      fetch(`/api/setlists/${currentSetList}`, {
+                                        method: 'PUT',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                          name: updatedSetList.name,
+                                          songs: updatedSetList.songs,
+                                          songKeys: updatedSetList.songKeys,
+                                          completedSongs: updatedSetList.completedSongs,
+                                          updatedAt: updatedSetList.updatedAt
+                                        })
+                                      }).catch(err => console.error('Gagal hapus pending song:', err));
+                                    }
+                                  }}
+                                  className="btn btn-sm"
+                                  title="Hapus dari setlist"
+                                  style={{ flex: 1 }}
+                                >
+                                  ✕ Hapus
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </>
                       )}
                     </div>
                   </div>
@@ -1726,6 +1972,22 @@ function App() {
               setShowSetListForm(false);
               setEditingSetList(null);
             }}
+          />
+        )}
+
+        {!performanceMode && showBulkAddSongs && currentSetList && (
+          <BulkAddSongsModal
+            songs={songs}
+            currentSetList={setLists.find(sl => sl.id === currentSetList)}
+            onAddSongs={handleBulkAddSongsToSetList}
+            onAddNewSong={(songName) => {
+              setShowBulkAddSongs(false);
+              setEditingSong(null);
+              setShowSongForm(true);
+              // Pre-fill the song name in the form would be done through form state
+              // For now, user will need to manually enter the name
+            }}
+            onCancel={() => setShowBulkAddSongs(false)}
           />
         )}
 
