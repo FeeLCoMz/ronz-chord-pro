@@ -2,6 +2,9 @@
 
 Aplikasi Chord dan Lirik berbasis React (Vite) dengan fitur lengkap untuk musisi dan penggemar musik. Mendukung format ChordPro dan format standar (chord di atas lirik), lengkap dengan import, transpose, autoscroll, YouTube, serta tampilan notasi melodi.
 
+**📌 QUICK START:** Baru di sini? [Baca QUICK_START_SETUP.md](QUICK_START_SETUP.md) (5 menit)
+**📊 FITUR LENGKAP:** [Lihat COMPLETE_FEATURES.md](COMPLETE_FEATURES.md) untuk daftar semua fitur
+
 ## ✨ Fitur Utama
 
 - **📝 Chord Display**: Tampilkan chord & lirik (ChordPro dan format standar)
@@ -23,6 +26,8 @@ Aplikasi Chord dan Lirik berbasis React (Vite) dengan fitur lengkap untuk musisi
 - **🤖 AI Assistant**: Auto-fill song metadata (Key, Tempo, Style, Video) dengan pencarian AI - [Dokumentasi lengkap](AI_ASSISTANT.md) | [Setup Environment](ENV_SETUP.md)
 
 ## 🚀 Cara Menjalankan
+
+**⚠️ Baru pertama kali?** Ikuti [QUICK_START_SETUP.md](QUICK_START_SETUP.md) untuk setup 5 menit.
 
 Persyaratan:
 
@@ -189,7 +194,27 @@ Ada dua cara:
 }
 ```
 
-## 🛠️ Teknologi yang Digunakan
+## � Dokumentasi Lengkap
+
+| Dokumen                                                    | Tujuan                                       | Untuk Siapa |
+| ---------------------------------------------------------- | -------------------------------------------- | ----------- |
+| **[QUICK_START_SETUP.md](QUICK_START_SETUP.md)**           | ⚡ Setup aplikasi dalam 5-10 menit           | Semua orang |
+| **[COMPLETE_FEATURES.md](COMPLETE_FEATURES.md)**           | 📊 Daftar lengkap 20+ fitur yang tersedia    | Semua orang |
+| **[KEYBOARD_SHORTCUTS.md](KEYBOARD_SHORTCUTS.md)**         | ⌨️ Referensi shortcut keyboard               | Musicians   |
+| **[AI_ASSISTANT.md](AI_ASSISTANT.md)**                     | 🤖 Dokumentasi AI feature lengkap            | Everyone    |
+| **[AI_ASSISTANT_QUICK_REF.md](AI_ASSISTANT_QUICK_REF.md)** | 🤖 Quick reference AI feature                | Musicians   |
+| **[ENV_SETUP.md](ENV_SETUP.md)**                           | 🔑 Setup API keys (YouTube, Gemini)          | Developers  |
+| **[BULK_ADD_SONGS.md](BULK_ADD_SONGS.md)**                 | 📝 Fitur tambah banyak lagu                  | Musicians   |
+| **[MELODY_NOTATION_GUIDE.md](MELODY_NOTATION_GUIDE.md)**   | 🎼 Notasi melodi (Not Angka/Balok)           | Musicians   |
+| **[KEYBOARD_MODE_GUIDE.md](KEYBOARD_MODE_GUIDE.md)**       | 🎹 Tampilan keyboard voicing                 | Musicians   |
+| **[EXAMPLE_FORMATS.md](EXAMPLE_FORMATS.md)**               | 📋 Contoh format chord                       | Musicians   |
+| **[DEVELOPERS_GUIDE.md](DEVELOPERS_GUIDE.md)**             | 💻 Development guide untuk developers        | Developers  |
+| **[VIRTUAL_SCROLLING.md](VIRTUAL_SCROLLING.md)**           | ⚡ Technical: virtual scrolling optimization | Developers  |
+| **[SERVICE_WORKER_GUIDE.md](SERVICE_WORKER_GUIDE.md)**     | 🔐 PWA & offline support                     | Developers  |
+| **[TOAST_NOTIFICATIONS.md](TOAST_NOTIFICATIONS.md)**       | 🔔 Toast notification system                 | Developers  |
+| **[VERIFICATION_CHECKLIST.md](VERIFICATION_CHECKLIST.md)** | ✅ Feature verification checklist            | QA/Testing  |
+
+## �🛠️ Teknologi yang Digunakan
 
 - **React 18** - Library UI
 - **Vite** - Build tool & dev server
