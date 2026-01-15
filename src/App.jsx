@@ -19,6 +19,7 @@ import {
   useDatabase,
   useServiceWorker
 } from './hooks';
+import { getTransposeSteps } from './utils/chordUtils';
 import './App.css';
 
 // Helper functions for data sanitization

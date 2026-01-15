@@ -4,6 +4,7 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
   const [inputText, setInputText] = useState('');
   const [results, setResults] = useState([]);
   const [searched, setSearched] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   // Parse input and search for songs
   const handleSearch = () => {
@@ -46,46 +47,65 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
 
     setResults(searchResults);
     setSearched(true);
+    setSelectedIds(new Set());
+  };
+
+  // Toggle selection untuk lagu yang ditemukan
+  const toggleSongSelection = (songId) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(songId)) {
+        newSet.delete(songId);
+      } else {
+        newSet.add(songId);
+      }
+      return newSet;
+    });
+  };
+
+  // Select all found songs
+  const selectAllFound = () => {
+    const foundIds = results
+      .filter(r => r.found && !r.isInSetList)
+      .map(r => r.found.id);
+    setSelectedIds(new Set(foundIds));
+  };
+
+  // Clear all selections
+  const clearAllSelections = () => {
+    setSelectedIds(new Set());
   };
 
   // Get songs to add (found and not in setlist)
-  const songsToAdd = useMemo(() => {
-    return results
-      .filter(r => r.found && !r.isInSetList)
-      .map(r => r.found.id)
-      .filter(id => id); // Extra safety check
-  }, [results]);
+  const songsToAdd = results
+    .filter(r => r.found && !r.isInSetList)
+    .map(r => r.found.id)
+    .filter(id => id); // Extra safety check
 
   // Get songs not found
-  const songsNotFound = useMemo(() => {
-    return results.filter(r => !r.found);
-  }, [results]);
+  const songsNotFound = results.filter(r => !r.found);
 
   // Get songs already in setlist
-  const songsAlreadyInSetList = useMemo(() => {
-    return results.filter(r => r.found && r.isInSetList);
-  }, [results]);
+  const songsAlreadyInSetList = results.filter(r => r.found && r.isInSetList);
 
   const handleAddSelected = () => {
-    // Combine lagu yang ditemukan (ID) dan lagu yang tidak ditemukan (nama string)
-    const songIdsToAdd = results
-      .filter(r => r.found && !r.isInSetList)
-      .map(r => r.found.id);
+    const selectedSongIds = Array.from(selectedIds);
     
     const pendingSongNames = results
       .filter(r => !r.found)
       .map(r => r.searchName);
 
-    if (songIdsToAdd.length === 0 && pendingSongNames.length === 0) {
-      alert('Tidak ada lagu untuk ditambahkan');
+    if (selectedSongIds.length === 0 && pendingSongNames.length === 0) {
+      alert('Pilih lagu untuk ditambahkan atau buat pending song');
       return;
     }
 
     // Kirim keduanya ke parent
-    onAddSongs({ ids: songIdsToAdd, pendingNames: pendingSongNames });
+    onAddSongs({ ids: selectedSongIds, pendingNames: pendingSongNames });
     setInputText('');
     setResults([]);
     setSearched(false);
+    setSelectedIds(new Set());
   };
 
   const handleAddNewSongClick = (songName) => {
@@ -162,17 +182,27 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
                       key={idx}
                       style={{
                         padding: '1rem',
-                        border: `2px solid ${result.found ? result.isInSetList ? '#f59e0b' : '#10b981' : '#ef4444'}`,
+                        border: `2px solid ${result.found ? result.isInSetList ? '#f59e0b' : selectedIds.has(result.found.id) ? '#10b981' : '#6b7280' : '#ef4444'}`,
                         borderRadius: '0.375rem',
-                        backgroundColor: 'var(--card-hover)',
+                        backgroundColor: selectedIds.has(result.found?.id) ? 'rgba(16, 185, 129, 0.1)' : 'var(--card-hover)',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        gap: '1rem'
+                        gap: '1rem',
+                        flexWrap: 'wrap'
                       }}
                     >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
+                      <div style={{ flex: 1, minWidth: '200px' }}>
+                        <div style={{ fontWeight: '500', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {result.found && !result.isInSetList && (
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(result.found.id)}
+                              onChange={() => toggleSongSelection(result.found.id)}
+                              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                              title="Pilih lagu untuk ditambahkan"
+                            />
+                          )}
                           {result.found ? (
                             <>
                               <span style={{ marginRight: '0.5rem' }}>
@@ -228,9 +258,42 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
                   fontSize: '0.9rem',
                   borderLeft: `4px solid var(--primary)`
                 }}>
-                  <div>✓ Ditemukan & bisa ditambah: <strong>{songsToAdd.length}</strong></div>
+                  <div>✓ Ditemukan & bisa ditambah: <strong>{songsToAdd.length}</strong> (Dipilih: <strong>{selectedIds.size}</strong>)</div>
                   <div>⚠️ Sudah ada di setlist: <strong>{songsAlreadyInSetList.length}</strong></div>
                   <div>⏳ Menunggu ditambah (pending): <strong>{songsNotFound.length}</strong></div>
+                  
+                  {/* Quick action buttons */}
+                  {songsToAdd.length > 0 && (
+                    <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={selectAllFound}
+                        className="btn"
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.85rem',
+                          backgroundColor: 'var(--primary)',
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                        title="Pilih semua lagu yang ditemukan"
+                      >
+                        Pilih Semua ({songsToAdd.length})
+                      </button>
+                      <button
+                        onClick={clearAllSelections}
+                        className="btn"
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.85rem',
+                          cursor: 'pointer'
+                        }}
+                        title="Batal pilihan"
+                      >
+                        Batal Pilihan
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -238,14 +301,14 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-            {searched && (songsToAdd.length > 0 || songsNotFound.length > 0) && (
+            {searched && (selectedIds.size > 0 || songsNotFound.length > 0) && (
               <button
                 onClick={handleAddSelected}
                 className="btn btn-primary"
                 style={{ flex: 1 }}
-                title={`Tambah ${songsToAdd.length + songsNotFound.length} lagu (${songsToAdd.length} ditemukan + ${songsNotFound.length} pending)`}
+                title={`Tambah ${selectedIds.size + songsNotFound.length} lagu (${selectedIds.size} ditemukan + ${songsNotFound.length} pending)`}
               >
-                ✓ Tambah {songsToAdd.length + songsNotFound.length} Lagu
+                ✓ Tambah {selectedIds.size + songsNotFound.length} Lagu
               </button>
             )}
             <button

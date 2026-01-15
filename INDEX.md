@@ -11,7 +11,7 @@ Welcome! Find everything you need to use and develop RoNz Chord Pro. **New or co
 | Item             | Status      | Details                       |
 | ---------------- | ----------- | ----------------------------- |
 | **Fitur**        | ✅ 22/22    | Semua fitur lengkap & working |
-| **Dokumentasi**  | ✅ 17 files | Comprehensive guides          |
+| **Dokumentasi**  | ✅ 22 files | Clean & organized             |
 | **API**          | ✅ Ready    | Semua endpoints siap          |
 | **Production**   | ✅ Ready    | Siap deploy                   |
 | **AI Assistant** | ✅ Live     | Fully functional              |
@@ -20,8 +20,6 @@ Welcome! Find everything you need to use and develop RoNz Chord Pro. **New or co
 
 - **[COMPLETE_FEATURES.md](COMPLETE_FEATURES.md)** - Daftar 22 fitur lengkap ⭐
 - **[QUICK_START_SETUP.md](QUICK_START_SETUP.md)** - Setup 5-10 menit ⭐
-- **[VERIFICATION_UPDATE_2026.md](VERIFICATION_UPDATE_2026.md)** - Status setiap fitur ⭐
-- **[DOCUMENTATION_UPDATE_SUMMARY.md](DOCUMENTATION_UPDATE_SUMMARY.md)** - Ringkasan perubahan ⭐
 
 ---
 
@@ -41,17 +39,13 @@ Welcome! Find everything you need to use and develop RoNz Chord Pro. **New or co
 
 1. **[QUICK_START_SETUP.md](QUICK_START_SETUP.md)** - Setup dalam 5 menit (⭐ START HERE)
 2. **[COMPLETE_FEATURES.md](COMPLETE_FEATURES.md)** - Lihat semua 22 fitur
-3. **[VERIFICATION_UPDATE_2026.md](VERIFICATION_UPDATE_2026.md)** - Verify status setiap fitur
-4. Feature-specific docs sesuai kebutuhan
+3. Feature-specific docs sesuai kebutuhan
 
 ### Application Guides
 
 - **[README.md](README.md)** - Main application guide, features, installation
-- **[START_HERE.md](START_HERE.md)** - Getting started overview
-- **[COMPLETE_FEATURES.md](COMPLETE_FEATURES.md)** - All 22 features with details (NEW)
-- **[QUICK_START_SETUP.md](QUICK_START_SETUP.md)** - 5-minute quick setup (NEW)
-- **[VERIFICATION_UPDATE_2026.md](VERIFICATION_UPDATE_2026.md)** - Complete verification (NEW)
-- **[DOCUMENTATION_UPDATE_SUMMARY.md](DOCUMENTATION_UPDATE_SUMMARY.md)** - Change summary (NEW)
+- **[COMPLETE_FEATURES.md](COMPLETE_FEATURES.md)** - All 22 features with details
+- **[QUICK_START_SETUP.md](QUICK_START_SETUP.md)** - 5-minute quick setup
 
 #### Bulk Add Songs
 
@@ -82,7 +76,6 @@ Welcome! Find everything you need to use and develop RoNz Chord Pro. **New or co
 ### Quality Assurance
 
 - **[VERIFICATION_CHECKLIST.md](VERIFICATION_CHECKLIST.md)** - Feature verification checklist
-- **[AI_ASSISTANT_IMPLEMENTATION.md](AI_ASSISTANT_IMPLEMENTATION.md)** - Implementation summary
 
 ---
 
@@ -90,7 +83,7 @@ Welcome! Find everything you need to use and develop RoNz Chord Pro. **New or co
 
 ### For Users Just Starting
 
-1. [START_HERE.md](START_HERE.md) - Overview (5 min)
+1. [QUICK_START_SETUP.md](QUICK_START_SETUP.md) - Quick setup (5 min)
 2. [ENV_SETUP.md](ENV_SETUP.md) - Setup API keys (15 min)
 3. [README.md](README.md) - Learn application (10 min)
 4. [KEYBOARD_SHORTCUTS.md](KEYBOARD_SHORTCUTS.md) - Power user tips (5 min)
