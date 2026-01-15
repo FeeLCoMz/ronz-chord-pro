@@ -146,7 +146,16 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
   };
 
   const handleAddNewSongClick = (songName) => {
-    onAddNewSong(songName);
+    let title = songName;
+    let artist = '';
+    if (songName.includes(' - ')) {
+      const parts = songName.split(' - ');
+      if (parts.length > 1) {
+        artist = parts[0].trim();
+        title = parts.slice(1).join(' - ').trim();
+      }
+    }
+    onAddNewSong({ title, artist });
   };
 
   return (

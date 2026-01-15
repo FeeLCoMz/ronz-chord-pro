@@ -1210,7 +1210,17 @@ function App() {
     if (currentSetList) {
       const setList = setLists.find(sl => sl.id === currentSetList);
       if (setList) {
-        base = setList.songs.map(id => songs.find(s => s.id === id)).filter(Boolean);
+        let songIds = setList.songs;
+        // Defensive: parse if string (from backend)
+        if (typeof songIds === 'string') {
+          try {
+            songIds = JSON.parse(songIds);
+          } catch {
+            songIds = [];
+          }
+        }
+        if (!Array.isArray(songIds)) songIds = [];
+        base = songIds.map(id => songs.find(s => s.id === id)).filter(Boolean);
       }
     }
     if (searchQuery.trim()) {
@@ -1612,12 +1622,21 @@ function App() {
                                 <button
                                   onClick={() => {
                                     setShowSongForm(true);
-                                    // Create a temporary song object with the pending name
-                                    const newSong = { 
-                                      title: songName, 
-                                      artist: '', 
-                                      key: 'C', 
-                                      lyrics: '', 
+                                    // Split jika format 'Artis - Judul Lagu'
+                                    let title = songName;
+                                    let artist = '';
+                                    if (songName.includes(' - ')) {
+                                      const parts = songName.split(' - ');
+                                      if (parts.length > 1) {
+                                        artist = parts[0].trim();
+                                        title = parts.slice(1).join(' - ').trim();
+                                      }
+                                    }
+                                    const newSong = {
+                                      title,
+                                      artist,
+                                      key: 'C',
+                                      lyrics: '',
                                       youtubeId: '',
                                       tempo: '',
                                       style: '',
