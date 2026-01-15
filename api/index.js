@@ -6,7 +6,7 @@ import './env.js';
 // Baru import router dan lain-lain
 import express from 'express';
 import cors from 'cors';
-import authRouter from './auth.js';
+// import authRouter from './auth.js';
 import https from 'https';
 import http from 'http';
 import songsHandler from './songs.js';
@@ -17,8 +17,7 @@ import aiHandler from './ai/index.js';
 const app = express();
 app.use(cors());
 
-// Mount auth endpoints
-app.use('/api/auth', authRouter);
+// Mount auth endpoints (Google login dihapus)
 
 // Exclude /api/ai from JSON parser since it handles multipart form data
 app.use((req, res, next) => {
