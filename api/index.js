@@ -10,8 +10,7 @@ import authRouter from './auth.js';
 import https from 'https';
 import http from 'http';
 import songsHandler from './songs.js';
-import setlistsHandler from './setlists/index.js';
-import setlistsIdHandler from './setlists/[id].js';
+import setlistsHandler from './setlists.js';
 import statusHandler from './status.js';
 import aiHandler from './ai/index.js';
 
@@ -31,9 +30,6 @@ app.use((req, res, next) => {
 });
 app.use('/api/songs', (req, res, next) => {
   Promise.resolve(songsHandler(req, res)).catch(next);
-});
-app.use('/api/setlists/:id', (req, res, next) => {
-  Promise.resolve(setlistsIdHandler(req, res)).catch(next);
 });
 app.use('/api/setlists', (req, res, next) => {
   Promise.resolve(setlistsHandler(req, res)).catch(next);
