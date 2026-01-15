@@ -34,20 +34,38 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
     const normalize = str => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
     const searchResults = lines.map(rawInput => {
-      // Cari hanya berdasarkan judul lagu
-      const searchTitle = rawInput.includes(' - ')
-        ? rawInput.split(' - ')[0].trim() // Ambil bagian sebelum strip sebagai judul
-        : rawInput.trim();
-      const searchNorm = normalize(searchTitle);
+      // Cari berdasarkan judul lagu dan nama artis jika ada
+      let searchTitle = rawInput;
+      let searchArtist = '';
+      if (rawInput.includes(' - ')) {
+        const parts = rawInput.split(' - ');
+        if (parts.length > 1) {
+          searchArtist = parts[0].trim();
+          searchTitle = parts.slice(1).join(' - ').trim();
+        }
+      } else {
+        searchTitle = rawInput.trim();
+      }
+      const searchTitleNorm = normalize(searchTitle);
+      const searchArtistNorm = normalize(searchArtist);
       let found = latestSongs.find(song => {
         if (!song || !song.title) return false;
         const titleNorm = normalize(song.title);
-        // Match jika judul persis, atau salah satu mengandung yang lain
-        return (
-          titleNorm === searchNorm ||
-          titleNorm.includes(searchNorm) ||
-          searchNorm.includes(titleNorm)
-        );
+        const artistNorm = normalize(song.artist);
+        // Jika input ada artis, harus match judul dan artis
+        if (searchArtistNorm) {
+          return (
+            (titleNorm === searchTitleNorm || titleNorm.includes(searchTitleNorm) || searchTitleNorm.includes(titleNorm)) &&
+            (artistNorm === searchArtistNorm || artistNorm.includes(searchArtistNorm) || searchArtistNorm.includes(artistNorm))
+          );
+        } else {
+          // Jika tidak ada artis, match judul saja
+          return (
+            titleNorm === searchTitleNorm ||
+            titleNorm.includes(searchTitleNorm) ||
+            searchTitleNorm.includes(titleNorm)
+          );
+        }
       });
 
       // Cek apakah sudah ada di setlist
@@ -151,13 +169,13 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
           {/* Input Section */}
           <div className="form-group">
             <label htmlFor="songList">
-              Daftar Lagu (satu per baris atau pisahkan dengan koma)
+              Daftar Lagu (format: <b>Artis - Judul Lagu</b>, satu per baris)
             </label>
             <textarea
               id="songList"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={`Contoh:\nLagu Pertama\nLagu Kedua\nLagu Ketiga\n\nAtau: Lagu Satu, Lagu Dua, Lagu Tiga`}
+              placeholder={`Contoh:\nJudika - Aku Yang Tersakiti\nTulus - Monokrom\nNoah - Separuh Aku`}
               style={{
                 width: '100%',
                 minHeight: '150px',
@@ -227,7 +245,12 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
                               <span style={{ marginRight: '0.5rem' }}>
                                 {result.isInSetList ? '⚠️' : '✓'}
                               </span>
-                              {result.found.name}
+                              {result.found.title}
+                              {result.found.artist && (
+                                <span style={{ color: 'var(--text-secondary)', marginLeft: '0.5rem', fontSize: '0.95em' }}>
+                                  — {result.found.artist}
+                                </span>
+                              )}
                             </>
                           ) : (
                             <>
