@@ -1,14 +1,12 @@
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// ...existing code...
+// Single import block
+import './env.js';
+// ...existing code...
+
+// Baru import router dan lain-lain
 import express from 'express';
 import cors from 'cors';
-
-// Load .env.local first (highest priority), then .env
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+import authRouter from './auth.js';
 import https from 'https';
 import http from 'http';
 import songsHandler from './songs/index.js';
@@ -22,6 +20,9 @@ import aiHandler from './ai/index.js';
 const app = express();
 app.use(cors());
 
+// Mount auth endpoints
+app.use('/api/auth', authRouter);
+
 // Exclude /api/ai from JSON parser since it handles multipart form data
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/ai')) {
@@ -30,8 +31,6 @@ app.use((req, res, next) => {
     express.json({ limit: '100mb' })(req, res, next);
   }
 });
-
-// Wrap handler functions so this file can be used for local Express dev
 app.use('/api/songs/sync', (req, res, next) => {
   Promise.resolve(songsSyncHandler(req, res)).catch(next);
 });
@@ -141,5 +140,7 @@ if (process.env.NODE_ENV !== 'production') {
     console.log(`API server listening on http://localhost:${PORT}`);
   });
 }
+
+
 
 export default app;

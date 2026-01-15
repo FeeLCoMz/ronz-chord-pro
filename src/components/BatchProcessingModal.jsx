@@ -177,6 +177,25 @@ const BatchProcessingModal = ({ songs, currentSetList, onClose, onApplySuggestio
                 <p style={styles.emptyMessage}>Setlist kosong. Tambahkan lagu terlebih dahulu.</p>
               ) : (
                 <>
+                  {/* Select All Checkbox */}
+                  <div style={styles.selectAllContainer}>
+                    <input
+                      type="checkbox"
+                      checked={selectedSongIds.size === setlistSongs.length && setlistSongs.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          selectAllSongs();
+                        } else {
+                          clearAllSongs();
+                        }
+                      }}
+                      style={styles.selectAllCheckbox}
+                    />
+                    <label style={styles.selectAllLabel}>
+                      Pilih Semua / Batal Semua
+                    </label>
+                  </div>
+
                   <div style={styles.songList}>
                     {setlistSongs.map((song, idx) => (
                       <div
@@ -439,6 +458,29 @@ const styles = {
     color: '#888',
     padding: '20px',
     fontSize: '14px'
+  },
+  selectAllContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '12px',
+    marginBottom: '12px',
+    backgroundColor: '#2a2a2a',
+    borderRadius: '6px',
+    border: '1px solid #333'
+  },
+  selectAllCheckbox: {
+    width: '18px',
+    height: '18px',
+    cursor: 'pointer',
+    flexShrink: 0
+  },
+  selectAllLabel: {
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: 500,
+    flex: 1,
+    margin: 0
   },
   songList: {
     display: 'flex',
