@@ -104,8 +104,10 @@ export default async function handler(req, res) {
     if (process.env.GEMINI_API_KEY) {
       try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-        
+        // Use model from env or fallback to a known available model
+        const geminiModel = process.env.GEMINI_MODEL || 'gemini-1.0-pro';
+        const model = genAI.getGenerativeModel({ model: geminiModel });
+
         const prompt = `Cari informasi lagu "${title}" oleh "${artist}". Berikan informasi dalam format JSON dengan field:
 - key: kunci musik (C, D, E, F, G, A, B atau minor variants seperti Cm, Dm, dll) atau null jika tidak diketahui
 - tempo: tempo BPM sebagai angka atau null jika tidak diketahui
@@ -116,7 +118,7 @@ Hanya return JSON tanpa penjelasan tambahan. Contoh:
 
         const response = await model.generateContent(prompt);
         const text = response.response.text();
-        
+
         // Try to parse JSON from response
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -128,6 +130,7 @@ Hanya return JSON tanpa penjelasan tambahan. Contoh:
       } catch (err) {
         console.error('Gemini API error:', err);
         results.debug.geminiError = err.message;
+        results.debug.geminiModel = process.env.GEMINI_MODEL || 'gemini-1.0-pro';
       }
     }
 

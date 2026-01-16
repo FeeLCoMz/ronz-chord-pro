@@ -49,9 +49,30 @@ export default async function handler(req, res) {
       const setlists = (rows.rows ?? []).map(row => ({
         id: row.id,
         name: row.name,
-        songs: row.songs ? JSON.parse(row.songs) : [],
-        songKeys: row.songKeys ? JSON.parse(row.songKeys) : {},
-        completedSongs: row.completedSongs ? JSON.parse(row.completedSongs) : {},
+        songs:
+          typeof row.songs === 'string'
+            ? (row.songs.trim() === '[object Object]'
+                ? []
+                : (row.songs.trim().startsWith('[') || row.songs.trim().startsWith('{'))
+                  ? (() => { try { return JSON.parse(row.songs); } catch { return []; } })()
+                  : [])
+            : (Array.isArray(row.songs) ? row.songs : []),
+        songKeys:
+          typeof row.songKeys === 'string'
+            ? (row.songKeys.trim() === '[object Object]'
+                ? {}
+                : (row.songKeys.trim().startsWith('{') || row.songKeys.trim().startsWith('['))
+                  ? (() => { try { return JSON.parse(row.songKeys); } catch { return {}; } })()
+                  : {})
+            : (typeof row.songKeys === 'object' && row.songKeys !== null ? row.songKeys : {}),
+        completedSongs:
+          typeof row.completedSongs === 'string'
+            ? (row.completedSongs.trim() === '[object Object]'
+                ? {}
+                : (row.completedSongs.trim().startsWith('{') || row.completedSongs.trim().startsWith('['))
+                  ? (() => { try { return JSON.parse(row.completedSongs); } catch { return {}; } })()
+                  : {})
+            : (typeof row.completedSongs === 'object' && row.completedSongs !== null ? row.completedSongs : {}),
         createdAt: row.createdAt,
         updatedAt: row.updatedAt
       }));
