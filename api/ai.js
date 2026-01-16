@@ -125,7 +125,7 @@ async function handleSongSearch(req, res) {
       try {
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const geminiModel = process.env.GEMINI_MODEL || 'gemini-1.0-pro';
+        const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
         const model = genAI.getGenerativeModel({ model: geminiModel });
         const prompt = `Cari informasi lagu "${title}" oleh "${artist}". Berikan informasi dalam format JSON dengan field:\n- key: kunci musik (C, D, E, F, G, A, B atau minor variants seperti Cm, Dm, dll) atau null jika tidak diketahui\n- tempo: tempo BPM sebagai angka atau null jika tidak diketahui\n- style: genre/style musik (pop, rock, jazz, classical, dll) atau null jika tidak diketahui\n\nHanya return JSON tanpa penjelasan tambahan. Contoh:\n{"key": "G", "tempo": 120, "style": "pop"}`;
         const response = await model.generateContent(prompt);
@@ -140,7 +140,7 @@ async function handleSongSearch(req, res) {
       } catch (err) {
         console.error('Gemini API error:', err);
         results.debug.geminiError = err.message;
-        results.debug.geminiModel = process.env.GEMINI_MODEL || 'gemini-1.0-pro';
+        results.debug.geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
       }
     }
     return res.status(200).json(results);
