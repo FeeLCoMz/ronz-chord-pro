@@ -1838,7 +1838,7 @@ function App() {
               // Song Detail View
               <main className="main">
                 <>
-                  {selectedSong && !performanceMode && (
+ {selectedSong && !performanceMode && (
                     <div className="controls controls-compact">
                       {/* Transpose Group */}
                       <button onClick={() => handleTranspose(-1)} className="btn btn-xs" title="Transpose turun (♭)">♭</button>
@@ -1870,7 +1870,6 @@ function App() {
                       >
                         📺
                       </button>
-                      <span className="divider" />
                       {/* Print Button */}
                       <button
                         onClick={() => window.print()}
@@ -1879,7 +1878,6 @@ function App() {
                       >
                         🖨️
                       </button>
-                      <span className="divider" />
                       {/* Lyrics Mode Toggle */}
                       <button
                         onClick={() => setLyricsMode(!lyricsMode)}
@@ -1888,7 +1886,6 @@ function App() {
                       >
                         📝
                       </button>
-                      <span className="divider" />
                       {/* Performance Mode Toggle */}
                       <button
                         onClick={togglePerformanceMode}
@@ -1898,7 +1895,7 @@ function App() {
                         🎭
                       </button>
                     </div>
-                  )}
+                  )}       
                   {!performanceMode && showYouTube && selectedSong?.youtubeId && (
                     <div className="youtube-section">
                       <YouTubeViewer
@@ -1934,6 +1931,13 @@ function App() {
                             >
                               ➕ Tambah ke Setlist
                             </button>
+                            <button
+                              onClick={() => handleEditSong(selectedSong)}
+                              className="btn btn-sm btn-primary"
+                              title="Edit lagu ini"
+                            >
+                              ✏️ Edit
+                            </button>
                           </div>
                         )}
                         {!performanceMode && (Array.isArray(selectedSong.timestamps) && selectedSong.timestamps.length > 0) && (
@@ -1958,18 +1962,7 @@ function App() {
                               ))}
                             </div>
                           </div>
-                        )}
-                        {!performanceMode && (
-                          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', justifyContent: 'flex-end' }}>
-                            <button
-                              onClick={() => handleEditSong(selectedSong)}
-                              className="btn btn-sm btn-primary"
-                              title="Edit lagu ini"
-                            >
-                              ✏️ Edit Lagu
-                            </button>
-                          </div>
-                        )}
+                        )}                        
                         <ChordDisplay
                           song={selectedSong}
                           transpose={transpose}
@@ -1991,7 +1984,7 @@ function App() {
                     speed={scrollSpeed}
                     scrollRef={scrollRef}
                   />
-                  
+                            
                   {/* Performance Mode Setlist Sidebar */}
                   {performanceMode && currentSetList && showSetlistView && (
                     <div className="performance-setlist-sidebar">
