@@ -983,40 +983,8 @@ function App() {
       const exists = songs.find(s => s.id === item);
       return !exists;
     });
-    // Simpan pending song ke tabel songs jika belum ada
-    pending.forEach(async (pendingTitle) => {
-      if (!songs.find(s => s.id === pendingTitle)) {
-        let artist = '';
-        while (!artist) {
-          artist = window.prompt(`Masukkan nama artis untuk lagu "${pendingTitle}" (wajib diisi):`, '');
-          if (artist === null) return; // batal
-          artist = artist.trim();
-        }
-        const newSong = {
-          id: pendingTitle,
-          title: pendingTitle,
-          artist,
-          youtubeId: '',
-          lyrics: '',
-          key: '',
-          tempo: '',
-          style: '',
-          timestamps: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        try {
-          await fetch('/api/songs', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newSong)
-          });
-          setSongs(prev => [...prev, newSong]);
-        } catch (err) {
-          console.error('Gagal menyimpan pending song ke tabel songs:', err);
-        }
-      }
-    });
+    // Tidak lagi auto-create song dengan prompt artist
+    // Pending song hanya akan tampil sebagai pending sampai user create manual
     return pending;
   };
 
@@ -2208,12 +2176,10 @@ function App() {
             songs={songs}
             currentSetList={setLists.find(sl => sl.id === currentSetList)}
             onAddSongs={handleBulkAddSongsToSetList}
-            onAddNewSong={(songName) => {
+            onAddNewSong={({ title, artist }) => {
               setShowBulkAddSongs(false);
-              setEditingSong(null);
+              setEditingSong({ title, artist, key: 'C', lyrics: '', youtubeId: '', tempo: '', style: '', timestamps: [] });
               setShowSongForm(true);
-              // Pre-fill the song name in the form would be done through form state
-              // For now, user will need to manually enter the name
             }}
             onCancel={() => setShowBulkAddSongs(false)}
           />

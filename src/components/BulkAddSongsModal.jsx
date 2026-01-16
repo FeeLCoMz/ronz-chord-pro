@@ -34,14 +34,14 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
     const normalize = str => (str || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
     const searchResults = lines.map(rawInput => {
-      // Cari berdasarkan judul lagu dan nama artis jika ada
+      // Format: Judul Lagu - Nama Artis
       let searchTitle = rawInput;
       let searchArtist = '';
       if (rawInput.includes(' - ')) {
         const parts = rawInput.split(' - ');
         if (parts.length > 1) {
-          searchArtist = parts[0].trim();
-          searchTitle = parts.slice(1).join(' - ').trim();
+          searchTitle = parts[0].trim();
+          searchArtist = parts.slice(1).join(' - ').trim();
         }
       } else {
         searchTitle = rawInput.trim();
@@ -52,19 +52,12 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
         if (!song || !song.title) return false;
         const titleNorm = normalize(song.title);
         const artistNorm = normalize(song.artist);
-        // Jika input ada artis, harus match judul dan artis
+        // Jika input ada artis, harus match judul dan artis secara persis
         if (searchArtistNorm) {
-          return (
-            (titleNorm === searchTitleNorm || titleNorm.includes(searchTitleNorm) || searchTitleNorm.includes(titleNorm)) &&
-            (artistNorm === searchArtistNorm || artistNorm.includes(searchArtistNorm) || searchArtistNorm.includes(artistNorm))
-          );
+          return titleNorm === searchTitleNorm && artistNorm === searchArtistNorm;
         } else {
-          // Jika tidak ada artis, match judul saja
-          return (
-            titleNorm === searchTitleNorm ||
-            titleNorm.includes(searchTitleNorm) ||
-            searchTitleNorm.includes(titleNorm)
-          );
+          // Jika tidak ada artis, match judul saja secara persis
+          return titleNorm === searchTitleNorm;
         }
       });
 
@@ -127,18 +120,31 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
 
   const handleAddSelected = () => {
     const selectedSongIds = Array.from(selectedIds);
-    
-    const pendingSongNames = results
-      .filter(r => !r.found)
-      .map(r => r.searchName);
+    // Songs found and not in setlist
+    const foundToAdd = results.filter(r => r.found && !r.isInSetList);
+    // Songs not found
+    const notFound = results.filter(r => !r.found);
+    // Unchecked found songs (not in setlist and not selected)
+    const uncheckedFound = foundToAdd.filter(r => !selectedIds.has(r.found.id));
+
+    // Pending songs: not found + unchecked found
+    const pendingSongNames = [
+      ...notFound.map(r => r.searchName),
+      ...uncheckedFound.map(r => {
+        const t = r.found.title || '';
+        const a = r.found.artist || '';
+        return t && a ? `${t} - ${a}` : t || a;
+      })
+    ];
 
     if (selectedSongIds.length === 0 && pendingSongNames.length === 0) {
       alert('Pilih lagu untuk ditambahkan atau buat pending song');
       return;
     }
 
-    // Kirim keduanya ke parent
-    onAddSongs({ ids: selectedSongIds, pendingNames: pendingSongNames });
+    // Songs to add: selected found songs (by id)
+    const selectedSongs = foundToAdd.filter(r => selectedIds.has(r.found.id)).map(r => r.found.id);
+    onAddSongs([...selectedSongs, ...pendingSongNames]);
     setInputText('');
     setResults([]);
     setSearched(false);
@@ -151,8 +157,8 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
     if (songName.includes(' - ')) {
       const parts = songName.split(' - ');
       if (parts.length > 1) {
-        artist = parts[0].trim();
-        title = parts.slice(1).join(' - ').trim();
+        title = parts[0].trim();
+        artist = parts.slice(1).join(' - ').trim();
       }
     }
     onAddNewSong({ title, artist });
@@ -178,13 +184,13 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
           {/* Input Section */}
           <div className="form-group">
             <label htmlFor="songList">
-              Daftar Lagu (format: <b>Artis - Judul Lagu</b>, satu per baris)
+              Daftar Lagu (format: <b>Judul Lagu - Nama Artis</b>, satu per baris)
             </label>
             <textarea
               id="songList"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder={`Contoh:\nJudika - Aku Yang Tersakiti\nTulus - Monokrom\nNoah - Separuh Aku`}
+              placeholder={`Contoh:\nAku Yang Tersakiti - Judika\nMonokrom - Tulus\nSeparuh Aku - Noah`}
               style={{
                 width: '100%',
                 minHeight: '150px',
@@ -279,21 +285,7 @@ const BulkAddSongsModal = ({ songs, currentSetList, onAddSongs, onAddNewSong, on
                           </div>
                         )}
                       </div>
-                      {!result.found && (
-                        <button
-                          onClick={() => handleAddNewSongClick(result.displayName)}
-                          className="btn"
-                          style={{
-                            padding: '0.5rem 1rem',
-                            fontSize: '0.875rem',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0
-                          }}
-                          title="Tambah lagu baru"
-                        >
-                          ➕ Tambah Baru
-                        </button>
-                      )}
+                      {/* Tombol tambah baru dihapus */}
                     </div>
                   ))}
                 </div>
