@@ -605,7 +605,12 @@ function App() {
       await fetch('/api/setlists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSetList)
+        body: JSON.stringify({
+          ...newSetList,
+          songs: JSON.stringify(newSetList.songs || []),
+          songKeys: JSON.stringify(newSetList.songKeys || {}),
+          completedSongs: JSON.stringify(newSetList.completedSongs || {})
+        })
       });
     } catch (err) {
       console.error('Gagal membuat setlist di database:', err);
@@ -632,12 +637,12 @@ function App() {
         await fetch(`/api/setlists/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            name, 
-            songs: updatedSetList.songs, 
-            songKeys: updatedSetList.songKeys, 
-            completedSongs: updatedSetList.completedSongs || {},
-            updatedAt: updatedSetList.updatedAt 
+          body: JSON.stringify({
+            name,
+            songs: JSON.stringify(updatedSetList.songs || []),
+            songKeys: JSON.stringify(updatedSetList.songKeys || {}),
+            completedSongs: JSON.stringify(updatedSetList.completedSongs || {}),
+            updatedAt: updatedSetList.updatedAt
           })
         });
       } catch (err) {
@@ -706,7 +711,13 @@ function App() {
         await fetch(`/api/setlists/${setListId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: updatedSetList.name, songs: updatedSetList.songs, songKeys: updatedSetList.songKeys, completedSongs: updatedSetList.completedSongs, updatedAt: updatedSetList.updatedAt })
+          body: JSON.stringify({
+            name: updatedSetList.name,
+            songs: JSON.stringify(updatedSetList.songs || []),
+            songKeys: JSON.stringify(updatedSetList.songKeys || {}),
+            completedSongs: JSON.stringify(updatedSetList.completedSongs || {}),
+            updatedAt: updatedSetList.updatedAt
+          })
         });
       } catch (err) {
         console.error('Gagal menambah lagu ke setlist:', err);
@@ -748,7 +759,13 @@ function App() {
         await fetch(`/api/setlists/${setListId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: updatedSetList.name, songs: updatedSetList.songs, songKeys: updatedSetList.songKeys, completedSongs: updatedSetList.completedSongs, updatedAt: updatedSetList.updatedAt })
+          body: JSON.stringify({
+            name: updatedSetList.name,
+            songs: JSON.stringify(updatedSetList.songs || []),
+            songKeys: JSON.stringify(updatedSetList.songKeys || {}),
+            completedSongs: JSON.stringify(updatedSetList.completedSongs || {}),
+            updatedAt: updatedSetList.updatedAt
+          })
         });
       } catch (err) {
         console.error('Gagal menghapus lagu dari setlist:', err);
@@ -851,7 +868,13 @@ function App() {
         await fetch(`/api/setlists/${setListId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: updatedSetList.name, songs: updatedSetList.songs, songKeys: updatedSetList.songKeys, completedSongs: updatedSetList.completedSongs, updatedAt: updatedSetList.updatedAt })
+          body: JSON.stringify({
+            name: updatedSetList.name,
+            songs: JSON.stringify(updatedSetList.songs || []),
+            songKeys: JSON.stringify(updatedSetList.songKeys || {}),
+            completedSongs: JSON.stringify(updatedSetList.completedSongs || {}),
+            updatedAt: updatedSetList.updatedAt
+          })
         });
       } catch (err) {
         console.error('Gagal update key lagu di setlist:', err);
@@ -882,7 +905,13 @@ function App() {
         await fetch(`/api/setlists/${setListId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: updatedSetList.name, songs: updatedSetList.songs, songKeys: updatedSetList.songKeys, completedSongs: updatedSetList.completedSongs, updatedAt: updatedSetList.updatedAt })
+          body: JSON.stringify({
+            name: updatedSetList.name,
+            songs: JSON.stringify(updatedSetList.songs || []),
+            songKeys: JSON.stringify(updatedSetList.songKeys || {}),
+            completedSongs: JSON.stringify(updatedSetList.completedSongs || {}),
+            updatedAt: updatedSetList.updatedAt
+          })
         });
       } catch (err) {
         console.error('Gagal update status completed lagu:', err);
