@@ -120,13 +120,13 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     e.preventDefault();
     if (!validateForm()) return;
     const songData = {
-      title: formData.title.trim(),
-      artist: formData.artist.trim(),
-      youtubeId: formData.youtubeId.trim(),
-      key: formData.key.trim(),
-      tempo: formData.tempo.trim(),
-      style: formData.style.trim(),
-      lyrics: formData.lyrics.trim(),
+      title: (formData.title ?? '').toString().trim(),
+      artist: (formData.artist ?? '').toString().trim(),
+      youtubeId: (formData.youtubeId ?? '').toString().trim(),
+      key: (formData.key ?? '').toString().trim(),
+      tempo: (formData.tempo ?? '').toString().trim(),
+      style: (formData.style ?? '').toString().trim(),
+      lyrics: (formData.lyrics ?? '').toString().trim(),
       timestamps: Array.isArray(formData.timestamps) ? formData.timestamps : [],
       createdAt: song?.createdAt || new Date().toISOString()
     };

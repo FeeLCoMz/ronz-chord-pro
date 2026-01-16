@@ -79,6 +79,19 @@ export default function SongListItem({ song, isActive, onSelect, onEdit, onDelet
           </div>
         )}
         <div className="song-title" style={{ paddingLeft: currentSetList && onToggleCompleted ? '1.75rem' : 0 }}>{song.title}</div>
+                {song.id === song.title && !song.lyrics && (
+                  <span style={{
+                    background: '#ff922b',
+                    color: '#fff',
+                    borderRadius: '4px',
+                    padding: '2px 8px',
+                    fontSize: '0.8em',
+                    marginLeft: 8,
+                    fontWeight: 600
+                  }}>
+                    ⏳ Pending
+                  </span>
+                )}
         <div className="song-artist">{song.artist}</div>
         <div className="song-meta" style={{ fontSize: '0.85em', color: '#a5b4fc', marginTop: 2 }}>
           {song.key && <span style={{ marginRight: 8 }}>🎵 <b>{song.key}</b></span>}

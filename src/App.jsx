@@ -494,7 +494,10 @@ function App() {
         return prevSetLists.map(setList => {
           if (setList.id === currentSetList) {
             // Find and replace pending song name with actual ID
-            const newSongs = setList.songs.map(s => s === pendingSongName ? songId : s);
+            // Ganti hanya pendingSongName dengan songId, dan hapus string pendingSongName jika masih ada (jaga-jaga duplikat)
+            let newSongs = setList.songs
+              .map(s => s === pendingSongName ? songId : s)
+              .filter(item => !(typeof item === 'string' && item === pendingSongName));
             const next = {
               ...setList,
               songs: newSongs,
@@ -974,12 +977,47 @@ function App() {
     const setList = setLists.find(sl => sl.id === currentSetList);
     if (!setList) return [];
     // Filter pending song names (strings that don't match any song ID)
-    return setList.songs.filter(item => {
+    const pending = setList.songs.filter(item => {
       if (typeof item !== 'string') return false;
       // Check if this string ID exists in actual songs
       const exists = songs.find(s => s.id === item);
       return !exists;
     });
+    // Simpan pending song ke tabel songs jika belum ada
+    pending.forEach(async (pendingTitle) => {
+      if (!songs.find(s => s.id === pendingTitle)) {
+        let artist = '';
+        while (!artist) {
+          artist = window.prompt(`Masukkan nama artis untuk lagu "${pendingTitle}" (wajib diisi):`, '');
+          if (artist === null) return; // batal
+          artist = artist.trim();
+        }
+        const newSong = {
+          id: pendingTitle,
+          title: pendingTitle,
+          artist,
+          youtubeId: '',
+          lyrics: '',
+          key: '',
+          tempo: '',
+          style: '',
+          timestamps: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        try {
+          await fetch('/api/songs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newSong)
+          });
+          setSongs(prev => [...prev, newSong]);
+        } catch (err) {
+          console.error('Gagal menyimpan pending song ke tabel songs:', err);
+        }
+      }
+    });
+    return pending;
   };
 
   const getCurrentSongIndexInSetList = () => {
@@ -1912,6 +1950,24 @@ function App() {
                   >
                     {selectedSong ? (
                       <>
+                        {/* Tombol tambah ke setlist */}
+                        {!performanceMode && (
+                          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', justifyContent: 'flex-end' }}>
+                            <button
+                              onClick={() => {
+                                // Tampilkan popup setlist
+                                setShowSetListPopup(true);
+                                setSelectedSetListsForAdd(
+                                  setLists.filter(sl => sl.songs.includes(selectedSong.id)).map(sl => sl.id)
+                                );
+                              }}
+                              className="btn btn-sm btn-success"
+                              title="Tambah lagu ini ke setlist"
+                            >
+                              ➕ Tambah ke Setlist
+                            </button>
+                          </div>
+                        )}
                         {!performanceMode && (Array.isArray(selectedSong.timestamps) && selectedSong.timestamps.length > 0) && (
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', gap: '0.5rem' }}>
                             <strong style={{ color: 'var(--text)' }}>⏱️ Struktur Lagu</strong>
@@ -2165,7 +2221,36 @@ function App() {
 
         {!performanceMode && showBatchProcessing && currentSetList && (
           <BatchProcessingModal
-            songs={songs}
+            songs={(() => {
+              const setList = setLists.find(sl => sl.id === currentSetList);
+              if (!setList || !Array.isArray(setList.songs)) return songs;
+              const songIds = songs.map(s => s.id);
+              // Ambil pending songs (string yang bukan id lagu)
+              const pendingSongs = setList.songs
+                .filter(item => typeof item === 'string' && !songIds.includes(item))
+                .map(name => ({ id: name, title: name, artist: '', isPending: true }));
+              // Gabungkan dengan songs yang ada di setlist
+              const setListSongs = setList.songs
+                .map(item => {
+                  if (typeof item === 'string') {
+                    const song = songs.find(s => s.id === item);
+                    return song || null;
+                  }
+                  return songs.find(s => s.id === item) || null;
+                })
+                .filter(Boolean);
+              // Gabungkan dan hilangkan duplikat berdasarkan id
+              const allSongs = [...setListSongs, ...pendingSongs];
+              const uniqueSongs = [];
+              const seen = new Set();
+              for (const s of allSongs) {
+                if (!seen.has(s.id)) {
+                  uniqueSongs.push(s);
+                  seen.add(s.id);
+                }
+              }
+              return uniqueSongs;
+            })()}
             currentSetList={setLists.find(sl => sl.id === currentSetList)}
             onClose={() => setShowBatchProcessing(false)}
             onApplySuggestions={handleApplyBatchResults}
