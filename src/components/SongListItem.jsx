@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function SongListItem({ song, isActive, onSelect, onEdit, onDelete, setLists, onAddToSetLists, onRemoveFromSetList, currentSetList, overrideKey, onSetListKeyChange, viewMode, isCompleted, onToggleCompleted }) {
+export default function SongListItem({ song, isActive, onSelect, onEdit, onDelete, setLists, onAddToSetLists, onRemoveFromSetList, currentSetList, overrideKey, onSetListKeyChange, viewMode, isCompleted, onToggleCompleted, isFavorite, onToggleFavorite }) {
   const [showSetListPopup, setShowSetListPopup] = useState(false);
   const [selectedSetLists, setSelectedSetLists] = useState([]);
   const [tempKey, setTempKey] = useState(overrideKey || '');
@@ -47,6 +47,14 @@ export default function SongListItem({ song, isActive, onSelect, onEdit, onDelet
   return (
     <div className={`song-item${isActive ? ' active' : ''}${isCompleted ? ' completed' : ''}`} style={{ position: 'relative' }}>
       <div className="song-info" onClick={onSelect}>
+        <button
+          onClick={e => { e.stopPropagation(); onToggleFavorite && onToggleFavorite(); }}
+          className="btn-icon-sm"
+          title={isFavorite ? 'Hapus dari Favorit' : 'Jadikan Favorit'}
+          style={{ position: 'absolute', right: 8, top: 8, background: 'none', border: 'none', fontSize: 18, color: isFavorite ? '#fbbf24' : '#aaa', cursor: 'pointer', zIndex: 2 }}
+        >
+          {isFavorite ? '★' : '☆'}
+        </button>
         {currentSetList && onToggleCompleted && (
           <div 
             style={{ 

@@ -1,4 +1,30 @@
 import React, { useState, useRef, useEffect } from 'react';
+// Google Client ID from .env (Vite injects as import.meta.env)
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.GOOGLE_CLIENT_ID;
+// Fullscreen helper
+function enterFullscreen(elem) {
+  if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.mozRequestFullScreen) {
+    elem.mozRequestFullScreen();
+  } else if (elem.webkitRequestFullscreen) {
+    elem.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) {
+    elem.msRequestFullscreen();
+  }
+}
+
+function exitFullscreen() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.mozCancelFullScreen) {
+    document.mozCancelFullScreen();
+  } else if (document.webkitExitFullscreen) {
+    document.webkitExitFullscreen();
+  } else if (document.msExitFullscreen) {
+    document.msExitFullscreen();
+  }
+}
 // ...existing code...
 import ChordDisplay from './components/ChordDisplay';
 import YouTubeViewer from './components/YouTubeViewer';
@@ -41,17 +67,254 @@ const generateUniqueId = () => {
 };
 
 function App() {
-  // ...existing code...
-  // Toast notifications
-  const { toasts, closeToast, success, error, warning } = useToast();
+                      // Google Drive Sync State
+                      const [gapiLoaded, setGapiLoaded] = useState(false);
+                      const [googleUser, setGoogleUser] = useState(null);
 
-  // UI state
+                      // Load Google API script
+                      useEffect(() => {
+                        if (window.google && window.google.accounts && window.google.accounts.id) {
+                          setGapiLoaded(true);
+                          return;
+                        }
+                        const script = document.createElement('script');
+                        script.src = 'https://accounts.google.com/gsi/client';
+                        script.onload = () => setGapiLoaded(true);
+                        document.body.appendChild(script);
+                      }, []);
+
+                      // Google OAuth2 login
+                      const handleGoogleLogin = () => {
+                        if (!gapiLoaded || !GOOGLE_CLIENT_ID) {
+                          alert('Google API belum siap atau Client ID belum diatur.');
+                          return;
+                        }
+                        window.google.accounts.id.initialize({
+                          client_id: GOOGLE_CLIENT_ID,
+                          callback: (response) => {
+                            // Parse JWT for user info
+                            const base64Url = response.credential.split('.')[1];
+                            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                            }).join(''));
+                            setGoogleUser(JSON.parse(jsonPayload));
+                          },
+                        });
+                        window.google.accounts.id.prompt();
+                      };
+
+                      const handleDriveUpload = () => {
+                        if (!googleUser) {
+                          alert('Login Google dulu sebelum upload.');
+                          return;
+                        }
+                        alert('Fitur upload ke Google Drive akan diimplementasikan setelah login.');
+                      };
+                      const handleDriveDownload = () => {
+                        if (!googleUser) {
+                          alert('Login Google dulu sebelum download.');
+                          return;
+                        }
+                        alert('Fitur download dari Google Drive akan diimplementasikan setelah login.');
+                      };
+                    // Export songs and setlists as JSON
+                    const handleExportData = () => {
+                      const data = {
+                        songs: sanitizeSongs(songs),
+                        setLists: sanitizeSetLists(setLists)
+                      };
+                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'ronz-chordpro-export.json';
+                      document.body.appendChild(a);
+                      a.click();
+                      setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                      }, 100);
+                    };
+
+                    // Import songs and setlists from JSON
+                    const handleImportData = (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (evt) => {
+                        try {
+                          const data = JSON.parse(evt.target.result);
+                          if (Array.isArray(data.songs)) setSongs(sanitizeSongs(data.songs));
+                          if (Array.isArray(data.setLists)) setSetLists(sanitizeSetLists(data.setLists));
+                          localStorage.setItem('ronz_songs', JSON.stringify(data.songs || []));
+                          localStorage.setItem('ronz_setlists', JSON.stringify(data.setLists || []));
+                          alert('Import sukses!');
+                        } catch (err) {
+                          alert('Gagal import: ' + err.message);
+                        }
+                      };
+                      reader.readAsText(file);
+                      e.target.value = '';
+                    };
+                  // State for YouTube viewer seek
+                  const [viewerSeekTo, setViewerSeekTo] = useState(null);
+                // State for auto-scroll
+                const [autoScrollActive, setAutoScrollActive] = useState(false);
+              // State for YouTube video duration
+              const [videoDuration, setVideoDuration] = useState(0);
+            // State for current YouTube video time
+            const [currentVideoTime, setCurrentVideoTime] = useState(0);
+          // State for selected song
+          const [selectedSong, setSelectedSong] = useState(null);
+        // State for YouTube player visibility
+        const [showYouTube, setShowYouTube] = useState(false);
+    // State for YouTube sync
+    const [youtubeSync, setYoutubeSync] = useState(() => {
+      try {
+        return localStorage.getItem('ronz_youtube_sync') === 'true';
+      } catch {
+        return false;
+      }
+    });
+    useEffect(() => {
+      try {
+        localStorage.setItem('ronz_youtube_sync', youtubeSync ? 'true' : 'false');
+      } catch {}
+    }, [youtubeSync]);
+
+    // Ref for lyrics section
+    const lyricsSectionRef = useRef(null);
+
+    // Effect: sync auto-scroll with YouTube
+    useEffect(() => {
+      if (!youtubeSync || !showYouTube || !selectedSong?.youtubeId) return;
+      if (!autoScrollActive) setAutoScrollActive(true);
+      // Scroll lyrics as video plays
+      const totalDuration = videoDuration || 1;
+      const scrollEl = lyricsSectionRef.current;
+      if (!scrollEl) return;
+      const onTime = (t) => {
+        const frac = Math.min(1, Math.max(0, t / totalDuration));
+        const maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
+        scrollEl.scrollTop = frac * maxScroll;
+      };
+      let lastTime = 0;
+      const interval = setInterval(() => {
+        if (!showYouTube || !youtubeSync) return;
+        if (typeof currentVideoTime === 'number') {
+          if (Math.abs(currentVideoTime - lastTime) > 0.2) {
+            onTime(currentVideoTime);
+            lastTime = currentVideoTime;
+          }
+        }
+      }, 300);
+      return () => clearInterval(interval);
+    }, [youtubeSync, showYouTube, selectedSong, currentVideoTime, videoDuration, autoScrollActive]);
+    // State for chord highlight
+    const [highlightChords, setHighlightChords] = useState(() => {
+      try {
+        return localStorage.getItem('ronz_highlight_chords') === 'true';
+      } catch {
+        return false;
+      }
+    });
+
+    useEffect(() => {
+      try {
+        localStorage.setItem('ronz_highlight_chords', highlightChords ? 'true' : 'false');
+      } catch {}
+    }, [highlightChords]);
+  // State untuk dark mode
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('ronz_dark_mode');
+      if (saved !== null) return saved === 'true';
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    } catch {
+      return false;
+    }
+  });
+  // Theme effect: apply class to body
+  useEffect(() => {
+    document.body.classList.toggle('dark-mode', darkMode);
+    document.body.classList.toggle('light-mode', !darkMode);
+    try {
+      localStorage.setItem('ronz_dark_mode', darkMode ? 'true' : 'false');
+    } catch {}
+  }, [darkMode]);
+  // State notasi chord
+  const [chordNotation, setChordNotation] = useState('CDEFGAB'); // atau 'DoReMi'
+
+                              // Utilitas konversi notasi chord
+                              const convertChordNotation = (chord) => {
+                                if (chordNotation === 'CDEFGAB') return chord;
+                                // Sederhana: hanya root
+                                const map = { C: 'Do', D: 'Re', E: 'Mi', F: 'Fa', G: 'Sol', A: 'La', B: 'Si' };
+                                return chord.replace(/[CDEFGAB]/g, m => map[m] || m);
+                              };
+                            // Fungsi untuk memainkan suara klik metronome
+                            const playMetronomeClick = () => {
+                              try {
+                                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                                const osc = ctx.createOscillator();
+                                const gain = ctx.createGain();
+                                osc.type = 'square';
+                                osc.frequency.value = 1200;
+                                gain.gain.value = 0.15;
+                                osc.connect(gain);
+                                gain.connect(ctx.destination);
+                                osc.start();
+                                osc.stop(ctx.currentTime + 0.05);
+                                osc.onended = () => ctx.close();
+                              } catch {}
+                            };
+                          // State untuk metronome
+                          const [metronomeActive, setMetronomeActive] = useState(false);
+                          const [metronomeBpm, setMetronomeBpm] = useState(80);
+                          const [metronomeTick, setMetronomeTick] = useState(false);
+
+                          // Metronome effect (visual blink)
+                          useEffect(() => {
+                            if (!metronomeActive) return;
+                            const interval = setInterval(() => {
+                              setMetronomeTick(t => !t);
+                            }, 60000 / metronomeBpm);
+                            return () => clearInterval(interval);
+                          }, [metronomeActive, metronomeBpm]);
+
+                          // Mainkan suara klik setiap metronomeTick (saat aktif)
+                          useEffect(() => {
+                            if (metronomeActive) playMetronomeClick();
+                            // eslint-disable-next-line react-hooks/exhaustive-deps
+                          }, [metronomeTick]);
+                        // State untuk mode lirik saja
+                        const [lyricsMode, setLyricsMode] = useState(false);
+                      // State untuk error runtime
+                      const [runtimeErrors, setRuntimeErrors] = useState([]);
+                    // State untuk menampilkan popup setlist
+                    const [showSetListPopup, setShowSetListPopup] = useState(false);
+                  // State untuk menampilkan modal bulk add songs
+                  const [showBulkAddSongs, setShowBulkAddSongs] = useState(false);
+                // State untuk menampilkan form setlist
+                const [showSetListForm, setShowSetListForm] = useState(false);
+              // State untuk menampilkan form lagu
+              const [showSongForm, setShowSongForm] = useState(false);
+            // State untuk menampilkan menu pengaturan
+            const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+          // State untuk notifikasi recovery data
+          const [recoveryNotification, setRecoveryNotification] = useState(null);
+        // State untuk urutan daftar lagu
+        const [sortBy, setSortBy] = useState('title-asc');
+      // State untuk pencarian lagu
+      const [searchQuery, setSearchQuery] = useState('');
+    // State untuk setlist aktif
+    const [currentSetList, setCurrentSetList] = useState(null);
+  // UI state (paling atas sebelum useEffect)
   const [showSidebar, setShowSidebar] = useState(true);
   const [showLyricsFullscreen, setShowLyricsFullscreen] = useState(false);
   const [activeNav, setActiveNav] = useState('songs');
   const [keyboardMode, setKeyboardMode] = useState(() => localStorage.getItem('keyboardMode') === 'true');
-  
-  // Cek localStorage saat inisialisasi
   const getInitialSongs = () => {
     try {
       const data = localStorage.getItem('ronz_songs');
@@ -76,35 +339,46 @@ function App() {
     } catch { }
     return [];
   };
-
   const [songs, setSongs] = useState(getInitialSongs);
   const [setLists, setSetLists] = useState(getInitialSetLists);
-  const [selectedSong, setSelectedSong] = useState(null);
   const [transpose, setTranspose] = useState(0);
-  const [autoScrollActive, setAutoScrollActive] = useState(false);
   const [scrollSpeed, setScrollSpeed] = useState(1);
-  const [showYouTube, setShowYouTube] = useState(false);
-  const [currentVideoTime, setCurrentVideoTime] = useState(0);
-  const [videoDuration, setVideoDuration] = useState(0);
-  const [viewerSeekTo, setViewerSeekTo] = useState(null);
-  const [currentSetList, setCurrentSetList] = useState(null);
-  const [lyricsMode, setLyricsMode] = useState(false);
-  const [showSongForm, setShowSongForm] = useState(false);
-  const [editingSong, setEditingSong] = useState(null);
-  const [showSetListForm, setShowSetListForm] = useState(false);
-  const [editingSetList, setEditingSetList] = useState(null);
-  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [performanceMode, setPerformanceMode] = useState(false);
-  const [performanceTheme, setPerformanceTheme] = useState('dark-stage');
-  const [showSetlistView, setShowSetlistView] = useState(true);
-  const [performanceFontSize, setPerformanceFontSize] = useState(100);
-  const [recoveryNotification, setRecoveryNotification] = useState(null);
-  const [runtimeErrors, setRuntimeErrors] = useState([]);
-  const [sortBy, setSortBy] = useState('title-asc');
-  const [selectedSetListsForAdd, setSelectedSetListsForAdd] = useState([]);
-  const [showSetListPopup, setShowSetListPopup] = useState(false);
-  const [showBulkAddSongs, setShowBulkAddSongs] = useState(false);
+
+  // Gunakan state dari usePerformanceMode
+  const {
+    performanceMode,
+    setPerformanceMode,
+    performanceTheme,
+    setPerformanceTheme,
+    performanceFontSize,
+    setPerformanceFontSize,
+    showSetlistView,
+    setShowSetlistView,
+    togglePerformanceMode,
+    cyclePerformanceTheme,
+    increaseFontSize,
+    decreaseFontSize,
+    resetFontSize
+  } = usePerformanceMode();
+
+
+  // Shortcut keyboard untuk mengatur kecepatan auto-scroll (Ctrl+ArrowUp/ArrowDown)
+  useEffect(() => {
+    function handleScrollSpeedShortcut(e) {
+      if (!performanceMode) return;
+      if (e.ctrlKey && e.key === 'ArrowUp') {
+        e.preventDefault();
+        setScrollSpeed(prev => Math.min(5, prev + 0.5));
+      }
+      if (e.ctrlKey && e.key === 'ArrowDown') {
+        e.preventDefault();
+        setScrollSpeed(prev => Math.max(0.5, prev - 0.5));
+      }
+    }
+    window.addEventListener('keydown', handleScrollSpeedShortcut);
+    return () => window.removeEventListener('keydown', handleScrollSpeedShortcut);
+  }, [performanceMode]);
+  // (hapus seluruh deklarasi useState duplikat di bawah ini, sudah ada di atas)
   const [showBatchProcessing, setShowBatchProcessing] = useState(false);
   const [viewMode, setViewMode] = useState(() => {
     try {
@@ -113,18 +387,37 @@ function App() {
       return 'default';
     }
   });
-  const [darkMode, setDarkMode] = useState(() => {
-    try {
-      const saved = localStorage.getItem('ronz_dark_mode');
-      if (saved !== null) return saved === 'true';
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    } catch {
-      return false;
+
+  // Toast notifications
+  const { toasts, closeToast, success, error, warning } = useToast();
+
+  // Shortcut keyboard untuk perbesar/perkecil font pada performance mode
+  useEffect(() => {
+    function handleFontSizeShortcut(e) {
+      if (!performanceMode) return;
+      // Ctrl + + atau Ctrl + = untuk memperbesar
+      if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
+        e.preventDefault();
+        setPerformanceFontSize(prev => Math.min(150, prev + 10));
+      }
+      // Ctrl + - untuk memperkecil
+      if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+        e.preventDefault();
+        setPerformanceFontSize(prev => Math.max(50, prev - 10));
+      }
+      // Ctrl + 0 untuk reset
+      if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+        e.preventDefault();
+        setPerformanceFontSize(100);
+      }
     }
-  });
+    window.addEventListener('keydown', handleFontSizeShortcut);
+    return () => window.removeEventListener('keydown', handleFontSizeShortcut);
+  }, [performanceMode]);
   const [showHelp, setShowHelp] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const scrollRef = useRef(null);
+  const perfMainRef = useRef(null);
   const isInitialLoad = useRef(true);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -158,6 +451,14 @@ function App() {
     },
     onShowHelp: () => {
       setShowKeyboardHelp(true);
+    },
+    onToggleFullscreen: () => {
+      if (!performanceMode) return;
+      if (document.fullscreenElement) {
+        exitFullscreen();
+      } else if (perfMainRef.current) {
+        enterFullscreen(perfMainRef.current);
+      }
     },
     onToggleLyricsMode: () => {
       setLyricsMode(!lyricsMode);
@@ -1086,25 +1387,7 @@ function App() {
     }
   };
 
-  const togglePerformanceMode = async () => {
-    const newMode = !performanceMode;
-    setPerformanceMode(newMode);
-    
-    if (newMode) {
-      // Entering performance mode
-      setShowSidebar(false);
-      setShowYouTube(false);
-      
-      // Request wake lock to prevent screen from sleeping
-      if ('wakeLock' in navigator) {
-        try {
-          wakeLockRef.current = await navigator.wakeLock.request('screen');
-        } catch (err) {
-          console.warn('Wake Lock failed:', err);
-        }
-      }
-    }
-  };
+  // (hapus togglePerformanceMode lokal, gunakan dari usePerformanceMode)
 
   // Touch/Swipe Gesture Handlers
   const handleTouchStart = (e) => {
@@ -1845,7 +2128,50 @@ function App() {
                       <span className="transpose-value" style={{ minWidth: 32, textAlign: 'center' }} title="Nilai transpose">{transpose > 0 ? `+${transpose}` : transpose}</span>
                       <button onClick={() => handleTranspose(1)} className="btn btn-xs" title="Transpose naik (♯)">♯</button>
                       <button onClick={() => setTranspose(0)} className="btn btn-xs" title="Reset transpose">⟳</button>
+                      {/* Metronome Controls */}
                       <span className="divider" />
+                      {/* Dark/Light Mode Toggle */}
+                      <button
+                        onClick={() => setDarkMode(d => !d)}
+                        className={`btn btn-xs ${darkMode ? 'btn-primary' : ''}`}
+                        title={darkMode ? 'Mode Terang' : 'Mode Gelap'}
+                        style={{ marginLeft: 4 }}
+                      >
+                        {darkMode ? '🌙 Gelap' : '☀️ Terang'}
+                      </button>
+                      {/* Notasi Chord */}
+                      <select
+                        value={chordNotation}
+                        onChange={e => setChordNotation(e.target.value)}
+                        className="btn btn-xs"
+                        style={{ minWidth: 80 }}
+                        title="Pilih notasi chord"
+                      >
+                        <option value="CDEFGAB">C D E F G A B</option>
+                        <option value="DoReMi">Do Re Mi Fa Sol La Si</option>
+                      </select>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <button
+                          onClick={() => setMetronomeActive(a => !a)}
+                          className={`btn btn-xs ${metronomeActive ? 'btn-primary' : ''}`}
+                          title={metronomeActive ? 'Stop Metronome' : 'Start Metronome'}
+                        >
+                          {metronomeActive ? '⏹' : '🕒'}
+                        </button>
+                        <input
+                          type="range"
+                          min="40"
+                          max="220"
+                          step="1"
+                          value={metronomeBpm}
+                          onChange={e => setMetronomeBpm(Number(e.target.value))}
+                          style={{ width: 60 }}
+                          title="Tempo (BPM)"
+                          disabled={!metronomeActive}
+                        />
+                        <span style={{ minWidth: 36, textAlign: 'center', fontWeight: 600 }} title="Tempo (BPM)">{metronomeBpm} BPM</span>
+                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 6, marginLeft: 4, background: metronomeActive ? (metronomeTick ? '#f87171' : '#fbbf24') : '#ddd', transition: 'background 0.1s' }} />
+                      </div>
                       {/* Auto Scroll Group */}
                       <button
                         onClick={() => setAutoScrollActive(!autoScrollActive)}
@@ -1855,11 +2181,21 @@ function App() {
                         {autoScrollActive ? '⏸' : '▶'}
                       </button>
                       {autoScrollActive && (
-                        <>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           <button onClick={() => setScrollSpeed(Math.max(0.5, scrollSpeed - 0.5))} className="btn btn-xs" title="Kurangi kecepatan scroll">−</button>
-                          <span className="speed-value" style={{ minWidth: 28, textAlign: 'center' }} title="Kecepatan scroll">{scrollSpeed.toFixed(1)}x</span>
+                          <input
+                            type="range"
+                            min="0.5"
+                            max="5"
+                            step="0.1"
+                            value={scrollSpeed}
+                            onChange={e => setScrollSpeed(Number(e.target.value))}
+                            style={{ width: 70, verticalAlign: 'middle' }}
+                            title="Geser untuk atur kecepatan scroll"
+                          />
+                          <span className="speed-value" style={{ minWidth: 32, textAlign: 'center', fontWeight: 600 }} title="Kecepatan scroll">{scrollSpeed.toFixed(1)}x</span>
                           <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="btn btn-xs" title="Tambah kecepatan scroll">+</button>
-                        </>
+                        </div>
                       )}
                       <span className="divider" />
                       {/* YouTube Toggle */}
@@ -1896,8 +2232,38 @@ function App() {
                       </button>
                     </div>
                   )}       
+                  {/* Export/Import Chord Komunitas & Cloud Sync */}
+                  {!performanceMode && (
+                    <div style={{ display: 'flex', gap: 8, margin: '10px 0', flexWrap: 'wrap' }}>
+                      <button className="btn btn-xs" onClick={handleExportData} title="Export semua lagu & setlist ke file JSON">⬇️ Export Chord</button>
+                      <label className="btn btn-xs" style={{ margin: 0, cursor: 'pointer' }} title="Import lagu & setlist dari file JSON">
+                        ⬆️ Import Chord
+                        <input type="file" accept="application/json" style={{ display: 'none' }} onChange={handleImportData} />
+                      </label>
+                      <span style={{ margin: '0 8px', color: '#aaa' }}>|</span>
+                      <button className="btn btn-xs" onClick={handleGoogleLogin} title="Login Google Drive">🔑 Login Google</button>
+                      <button className="btn btn-xs" onClick={handleDriveUpload} title="Sync Upload ke Google Drive">☁️⬆️ Sync Upload</button>
+                      <button className="btn btn-xs" onClick={handleDriveDownload} title="Restore dari Google Drive">☁️⬇️ Restore</button>
+                      {googleUser && (
+                        <span style={{ marginLeft: 10, color: '#16a34a', fontWeight: 500 }}>
+                          Login: {googleUser.name || googleUser.email}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {!performanceMode && showYouTube && selectedSong?.youtubeId && (
                     <div className="youtube-section">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                        <label style={{ fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
+                          <input
+                            type="checkbox"
+                            checked={youtubeSync}
+                            onChange={e => setYoutubeSync(e.target.checked)}
+                            style={{ marginRight: 6 }}
+                          />
+                          Sinkronisasi Auto-Scroll dengan YouTube
+                        </label>
+                      </div>
                       <YouTubeViewer
                         videoId={selectedSong.youtubeId}
                         onTimeUpdate={(t, d) => { setCurrentVideoTime(t); setVideoDuration(d); }}
@@ -1908,7 +2274,11 @@ function App() {
                   {/* Main content area with touch handlers for performance mode */}
                   <div 
                     className="lyrics-section" 
-                    ref={scrollRef}
+                    ref={el => {
+                      scrollRef.current = el;
+                      lyricsSectionRef.current = el;
+                      if (performanceMode) perfMainRef.current = el;
+                    }}
                     onTouchStart={performanceMode ? handleTouchStart : undefined}
                     onTouchMove={performanceMode ? handleTouchMove : undefined}
                     onTouchEnd={performanceMode ? handleTouchEnd : undefined}
@@ -1963,6 +2333,17 @@ function App() {
                             </div>
                           </div>
                         )}                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                          <label style={{ fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
+                            <input
+                              type="checkbox"
+                              checked={highlightChords}
+                              onChange={e => setHighlightChords(e.target.checked)}
+                              style={{ marginRight: 6 }}
+                            />
+                            Highlight Chords
+                          </label>
+                        </div>
                         <ChordDisplay
                           song={selectedSong}
                           transpose={transpose}
@@ -1971,6 +2352,8 @@ function App() {
                           performanceTheme={performanceTheme}
                           lyricsMode={lyricsMode}
                           keyboardMode={keyboardMode}
+                          convertChordNotation={convertChordNotation}
+                          highlightChords={highlightChords}
                         />
                       </>
                     ) : (
@@ -2024,9 +2407,57 @@ function App() {
                   {/* Performance Mode Footer Controls */}
                   {performanceMode && selectedSong && (
                     <div className="performance-footer">
+                      <button
+                        onClick={() => {
+                          if (document.fullscreenElement) {
+                            exitFullscreen();
+                          } else if (perfMainRef.current) {
+                            enterFullscreen(perfMainRef.current);
+                          }
+                        }}
+                        className="perf-btn"
+                        title="Toggle Fullscreen (F11)"
+                        style={{ fontSize: 18, marginRight: 8 }}
+                      >
+                        {document.fullscreenElement ? '🗗' : '🗖'}
+                      </button>
                       <div className="performance-info">
                         <div className="performance-song-title">{selectedSong.title}</div>
                         <div>{selectedSong.artist}</div>
+                        {/* Metronome Controls (Performance Mode) */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 12 }}>
+                          <button
+                            onClick={() => setMetronomeActive(a => !a)}
+                            className={`perf-btn ${metronomeActive ? 'perf-btn-success' : ''}`}
+                            title={metronomeActive ? 'Stop Metronome' : 'Start Metronome'}
+                          >
+                            {metronomeActive ? '⏹' : '🕒'}
+                          </button>
+                          <input
+                            type="range"
+                            min="40"
+                            max="220"
+                            step="1"
+                            value={metronomeBpm}
+                            onChange={e => setMetronomeBpm(Number(e.target.value))}
+                            style={{ width: 70 }}
+                            title="Tempo (BPM)"
+                            disabled={!metronomeActive}
+                          />
+                          <span style={{ minWidth: 36, textAlign: 'center', fontWeight: 600 }} title="Tempo (BPM)">{metronomeBpm} BPM</span>
+                          <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: 7, marginLeft: 4, background: metronomeActive ? (metronomeTick ? '#f87171' : '#fbbf24') : '#ddd', transition: 'background 0.1s' }} />
+                        </div>
+                        {/* Notasi Chord (Performance Mode) */}
+                        <select
+                          value={chordNotation}
+                          onChange={e => setChordNotation(e.target.value)}
+                          className="perf-btn"
+                          style={{ minWidth: 90, marginRight: 8 }}
+                          title="Pilih notasi chord"
+                        >
+                          <option value="CDEFGAB">C D E F G A B</option>
+                          <option value="DoReMi">Do Re Mi Fa Sol La Si</option>
+                        </select>
                         {currentSetList && (
                           <div>
                             Song {getCurrentSongIndexInSetList() + 1} of {getSetListSongs().length}
@@ -2069,17 +2500,23 @@ function App() {
                           {autoScrollActive ? '⏸ Pause' : '▶ Scroll'}
                         </button>
                         {autoScrollActive && (
-                          <>
-                            <button onClick={() => setScrollSpeed(Math.max(0.5, scrollSpeed - 0.5))} className="perf-btn">
-                              −
-                            </button>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <button onClick={() => setScrollSpeed(Math.max(0.5, scrollSpeed - 0.5))} className="perf-btn">−</button>
+                            <input
+                              type="range"
+                              min="0.5"
+                              max="5"
+                              step="0.1"
+                              value={scrollSpeed}
+                              onChange={e => setScrollSpeed(Number(e.target.value))}
+                              style={{ width: 90, verticalAlign: 'middle' }}
+                              title="Geser untuk atur kecepatan scroll"
+                            />
                             <span style={{ color: '#60a5fa', fontWeight: '600', minWidth: '45px', textAlign: 'center' }}>
                               {scrollSpeed.toFixed(1)}x
                             </span>
-                            <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="perf-btn">
-                              +
-                            </button>
-                          </>
+                            <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="perf-btn">+</button>
+                          </div>
                         )}
                         
                         <span style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />

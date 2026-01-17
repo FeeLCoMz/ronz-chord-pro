@@ -686,6 +686,7 @@ html:not(.dark-mode) .header {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  user-select: none;
 }
 
 @media (max-width: 540px) {
@@ -706,11 +707,19 @@ html:not(.dark-mode) .header {
   border: 1.5px solid var(--border);
   border-radius: 14px;
   padding: 1.5rem;
-  cursor: pointer;
+  cursor: grab;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  user-select: none;
+}
+.setlist-card.dragging {
+  background: linear-gradient(135deg, var(--primary-light) 0%, var(--card-hover) 100%);
+  box-shadow: 0 8px 32px rgba(99,102,241,0.25);
+  opacity: 0.85;
+  cursor: grabbing;
+  z-index: 10;
 }
 
 .setlist-card::before {
@@ -781,7 +790,8 @@ html:not(.dark-mode) .header {
   z-index: 2;
 }
 
-.setlist-card:hover .setlist-card-actions {
+.setlist-card:hover .setlist-card-actions,
+.setlist-card.dragging .setlist-card-actions {
   opacity: 1;
   pointer-events: auto;
   transform: scale(1);
