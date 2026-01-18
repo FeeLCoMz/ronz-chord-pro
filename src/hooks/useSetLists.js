@@ -60,6 +60,11 @@ export const useSetLists = (songs) => {
 
     const syncTimeout = setTimeout(async () => {
       for (const setList of setLists) {
+        // PATCH: Cek id valid sebelum fetch
+        if (!setList.id || typeof setList.id !== 'string' || !setList.id.trim()) {
+          console.warn('Lewatkan sync setlist tanpa id valid:', setList);
+          continue;
+        }
         try {
           const checkRes = await fetch(`/api/setlists/${setList.id}`);
           if (checkRes.status === 200) {

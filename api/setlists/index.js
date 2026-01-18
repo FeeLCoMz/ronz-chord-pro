@@ -102,7 +102,7 @@ export default async function handler(req, res) {
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
             id,
-            body.name.trim() || 'Untitled Set List',
+            body.name.trim(),
             songsJson,
             songKeysJson,
             completedSongsJson,
@@ -128,7 +128,7 @@ export default async function handler(req, res) {
                updatedAt = ?
              WHERE id = ?`,
             [
-              body.name.trim() || 'Untitled Set List',
+              body.name.trim(),
               songsJson,
               songKeysJson,
               completedSongsJson,
