@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 // Google Client ID from .env (Vite injects as import.meta.env)
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || import.meta.env.GOOGLE_CLIENT_ID;
 // Fullscreen helper
@@ -38,14 +38,9 @@ import BatchProcessingModal from './components/BatchProcessingModal';
 import SongListItem from './components/SongListItem';
 import SettingsModal from './components/SettingsModal';
 import ToastContainer from './components/ToastContainer';
-import { 
-  useKeyboardShortcuts, 
-  useToast, 
-  useSongs, 
-  useSetLists, 
-  usePerformanceMode,
-  useDatabase,
-  useServiceWorker
+import {
+  useKeyboardShortcuts,
+  useToast, usePerformanceMode
 } from './hooks';
 import { getTransposeSteps } from './utils/chordUtils';
 import './App.css';
@@ -67,164 +62,169 @@ const generateUniqueId = () => {
 };
 
 function App() {
-                      // Google Drive Sync State
-                      const [gapiLoaded, setGapiLoaded] = useState(false);
-                      const [googleUser, setGoogleUser] = useState(null);
+  // Google Drive Sync State
+  const [gapiLoaded, setGapiLoaded] = useState(false);
+  const [googleUser, setGoogleUser] = useState(null);
 
-                      // Load Google API script
-                      useEffect(() => {
-                        if (window.google && window.google.accounts && window.google.accounts.id) {
-                          setGapiLoaded(true);
-                          return;
-                        }
-                        const script = document.createElement('script');
-                        script.src = 'https://accounts.google.com/gsi/client';
-                        script.onload = () => setGapiLoaded(true);
-                        document.body.appendChild(script);
-                      }, []);
+  // State for editing setlist (null or setlist object)
+  const [editingSetList, setEditingSetList] = useState(null);
 
-                      // Google OAuth2 login
-                      const handleGoogleLogin = () => {
-                        if (!gapiLoaded || !GOOGLE_CLIENT_ID) {
-                          alert('Google API belum siap atau Client ID belum diatur.');
-                          return;
-                        }
-                        window.google.accounts.id.initialize({
-                          client_id: GOOGLE_CLIENT_ID,
-                          callback: (response) => {
-                            // Parse JWT for user info
-                            const base64Url = response.credential.split('.')[1];
-                            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                            }).join(''));
-                            setGoogleUser(JSON.parse(jsonPayload));
-                          },
-                        });
-                        window.google.accounts.id.prompt();
-                      };
+  // Load Google API script
+  useEffect(() => {
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      setGapiLoaded(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.onload = () => setGapiLoaded(true);
+    document.body.appendChild(script);
+  }, []);
 
-                      const handleDriveUpload = () => {
-                        if (!googleUser) {
-                          alert('Login Google dulu sebelum upload.');
-                          return;
-                        }
-                        alert('Fitur upload ke Google Drive akan diimplementasikan setelah login.');
-                      };
-                      const handleDriveDownload = () => {
-                        if (!googleUser) {
-                          alert('Login Google dulu sebelum download.');
-                          return;
-                        }
-                        alert('Fitur download dari Google Drive akan diimplementasikan setelah login.');
-                      };
-                    // Export songs and setlists as JSON
-                    const handleExportData = () => {
-                      const data = {
-                        songs: sanitizeSongs(songs),
-                        setLists: sanitizeSetLists(setLists)
-                      };
-                      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'ronz-chordpro-export.json';
-                      document.body.appendChild(a);
-                      a.click();
-                      setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                      }, 100);
-                    };
-
-                    // Import songs and setlists from JSON
-                    const handleImportData = (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const reader = new FileReader();
-                      reader.onload = (evt) => {
-                        try {
-                          const data = JSON.parse(evt.target.result);
-                          if (Array.isArray(data.songs)) setSongs(sanitizeSongs(data.songs));
-                          if (Array.isArray(data.setLists)) setSetLists(sanitizeSetLists(data.setLists));
-                          localStorage.setItem('ronz_songs', JSON.stringify(data.songs || []));
-                          localStorage.setItem('ronz_setlists', JSON.stringify(data.setLists || []));
-                          alert('Import sukses!');
-                        } catch (err) {
-                          alert('Gagal import: ' + err.message);
-                        }
-                      };
-                      reader.readAsText(file);
-                      e.target.value = '';
-                    };
-                  // State for YouTube viewer seek
-                  const [viewerSeekTo, setViewerSeekTo] = useState(null);
-                // State for auto-scroll
-                const [autoScrollActive, setAutoScrollActive] = useState(false);
-              // State for YouTube video duration
-              const [videoDuration, setVideoDuration] = useState(0);
-            // State for current YouTube video time
-            const [currentVideoTime, setCurrentVideoTime] = useState(0);
-          // State for selected song
-          const [selectedSong, setSelectedSong] = useState(null);
-        // State for YouTube player visibility
-        const [showYouTube, setShowYouTube] = useState(false);
-    // State for YouTube sync
-    const [youtubeSync, setYoutubeSync] = useState(() => {
-      try {
-        return localStorage.getItem('ronz_youtube_sync') === 'true';
-      } catch {
-        return false;
-      }
+  // Google OAuth2 login
+  const handleGoogleLogin = () => {
+    if (!gapiLoaded || !GOOGLE_CLIENT_ID) {
+      alert('Google API belum siap atau Client ID belum diatur.');
+      return;
+    }
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (response) => {
+        // Parse JWT for user info
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        setGoogleUser(JSON.parse(jsonPayload));
+      },
     });
-    useEffect(() => {
+    window.google.accounts.id.prompt();
+  };
+
+  const handleDriveUpload = () => {
+    if (!googleUser) {
+      alert('Login Google dulu sebelum upload.');
+      return;
+    }
+    alert('Fitur upload ke Google Drive akan diimplementasikan setelah login.');
+  };
+  const handleDriveDownload = () => {
+    if (!googleUser) {
+      alert('Login Google dulu sebelum download.');
+      return;
+    }
+    alert('Fitur download dari Google Drive akan diimplementasikan setelah login.');
+  };
+  // Export songs and setlists as JSON
+  const handleExportData = () => {
+    const data = {
+      songs: sanitizeSongs(songs),
+      setLists: sanitizeSetLists(setLists)
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ronz-chordpro-export.json';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  // Import songs and setlists from JSON
+  const handleImportData = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
       try {
-        localStorage.setItem('ronz_youtube_sync', youtubeSync ? 'true' : 'false');
-      } catch {}
-    }, [youtubeSync]);
+        const data = JSON.parse(evt.target.result);
+        if (Array.isArray(data.songs)) setSongs(sanitizeSongs(data.songs));
+        if (Array.isArray(data.setLists)) setSetLists(sanitizeSetLists(data.setLists));
+        localStorage.setItem('ronz_songs', JSON.stringify(data.songs || []));
+        localStorage.setItem('ronz_setlists', JSON.stringify(data.setLists || []));
+        alert('Import sukses!');
+      } catch (err) {
+        alert('Gagal import: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
 
-    // Ref for lyrics section
-    const lyricsSectionRef = useRef(null);
 
-    // Effect: sync auto-scroll with YouTube
-    useEffect(() => {
-      if (!youtubeSync || !showYouTube || !selectedSong?.youtubeId) return;
-      if (!autoScrollActive) setAutoScrollActive(true);
-      // Scroll lyrics as video plays
-      const totalDuration = videoDuration || 1;
-      const scrollEl = lyricsSectionRef.current;
-      if (!scrollEl) return;
-      const onTime = (t) => {
-        const frac = Math.min(1, Math.max(0, t / totalDuration));
-        const maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
-        scrollEl.scrollTop = frac * maxScroll;
-      };
-      let lastTime = 0;
-      const interval = setInterval(() => {
-        if (!showYouTube || !youtubeSync) return;
-        if (typeof currentVideoTime === 'number') {
-          if (Math.abs(currentVideoTime - lastTime) > 0.2) {
-            onTime(currentVideoTime);
-            lastTime = currentVideoTime;
-          }
+  // State for YouTube viewer seek
+  const [viewerSeekTo, setViewerSeekTo] = useState(null);
+  // State for auto-scroll
+  const [autoScrollActive, setAutoScrollActive] = useState(false);
+  // State for YouTube video duration
+  const [videoDuration, setVideoDuration] = useState(0);
+  // State for current YouTube video time
+  const [currentVideoTime, setCurrentVideoTime] = useState(0);
+  // State for selected song
+  const [selectedSong, setSelectedSong] = useState(null);
+  // State for YouTube player visibility
+  const [showYouTube, setShowYouTube] = useState(false);
+  // State for YouTube sync
+  const [youtubeSync, setYoutubeSync] = useState(() => {
+    try {
+      return localStorage.getItem('ronz_youtube_sync') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('ronz_youtube_sync', youtubeSync ? 'true' : 'false');
+    } catch { }
+  }, [youtubeSync]);
+
+  // Ref for lyrics section
+  const lyricsSectionRef = useRef(null);
+
+  // Effect: sync auto-scroll with YouTube
+  useEffect(() => {
+    if (!youtubeSync || !showYouTube || !selectedSong?.youtubeId) return;
+    if (!autoScrollActive) setAutoScrollActive(true);
+    // Scroll lyrics as video plays
+    const totalDuration = videoDuration || 1;
+    const scrollEl = lyricsSectionRef.current;
+    if (!scrollEl) return;
+    const onTime = (t) => {
+      const frac = Math.min(1, Math.max(0, t / totalDuration));
+      const maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
+      scrollEl.scrollTop = frac * maxScroll;
+    };
+    let lastTime = 0;
+    const interval = setInterval(() => {
+      if (!showYouTube || !youtubeSync) return;
+      if (typeof currentVideoTime === 'number') {
+        if (Math.abs(currentVideoTime - lastTime) > 0.2) {
+          onTime(currentVideoTime);
+          lastTime = currentVideoTime;
         }
-      }, 300);
-      return () => clearInterval(interval);
-    }, [youtubeSync, showYouTube, selectedSong, currentVideoTime, videoDuration, autoScrollActive]);
-    // State for chord highlight
-    const [highlightChords, setHighlightChords] = useState(() => {
-      try {
-        return localStorage.getItem('ronz_highlight_chords') === 'true';
-      } catch {
-        return false;
       }
-    });
+    }, 300);
+    return () => clearInterval(interval);
+  }, [youtubeSync, showYouTube, selectedSong, currentVideoTime, videoDuration, autoScrollActive]);
+  // State for chord highlight
+  const [highlightChords, setHighlightChords] = useState(() => {
+    try {
+      return localStorage.getItem('ronz_highlight_chords') === 'true';
+    } catch {
+      return false;
+    }
+  });
 
-    useEffect(() => {
-      try {
-        localStorage.setItem('ronz_highlight_chords', highlightChords ? 'true' : 'false');
-      } catch {}
-    }, [highlightChords]);
+  useEffect(() => {
+    try {
+      localStorage.setItem('ronz_highlight_chords', highlightChords ? 'true' : 'false');
+    } catch { }
+  }, [highlightChords]);
   // State untuk dark mode
   const [darkMode, setDarkMode] = useState(() => {
     try {
@@ -241,75 +241,75 @@ function App() {
     document.body.classList.toggle('light-mode', !darkMode);
     try {
       localStorage.setItem('ronz_dark_mode', darkMode ? 'true' : 'false');
-    } catch {}
+    } catch { }
   }, [darkMode]);
   // State notasi chord
   const [chordNotation, setChordNotation] = useState('CDEFGAB'); // atau 'DoReMi'
 
-                              // Utilitas konversi notasi chord
-                              const convertChordNotation = (chord) => {
-                                if (chordNotation === 'CDEFGAB') return chord;
-                                // Sederhana: hanya root
-                                const map = { C: 'Do', D: 'Re', E: 'Mi', F: 'Fa', G: 'Sol', A: 'La', B: 'Si' };
-                                return chord.replace(/[CDEFGAB]/g, m => map[m] || m);
-                              };
-                            // Fungsi untuk memainkan suara klik metronome
-                            const playMetronomeClick = () => {
-                              try {
-                                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                                const osc = ctx.createOscillator();
-                                const gain = ctx.createGain();
-                                osc.type = 'square';
-                                osc.frequency.value = 1200;
-                                gain.gain.value = 0.15;
-                                osc.connect(gain);
-                                gain.connect(ctx.destination);
-                                osc.start();
-                                osc.stop(ctx.currentTime + 0.05);
-                                osc.onended = () => ctx.close();
-                              } catch {}
-                            };
-                          // State untuk metronome
-                          const [metronomeActive, setMetronomeActive] = useState(false);
-                          const [metronomeBpm, setMetronomeBpm] = useState(80);
-                          const [metronomeTick, setMetronomeTick] = useState(false);
+  // Utilitas konversi notasi chord
+  const convertChordNotation = (chord) => {
+    if (chordNotation === 'CDEFGAB') return chord;
+    // Sederhana: hanya root
+    const map = { C: 'Do', D: 'Re', E: 'Mi', F: 'Fa', G: 'Sol', A: 'La', B: 'Si' };
+    return chord.replace(/[CDEFGAB]/g, m => map[m] || m);
+  };
+  // Fungsi untuk memainkan suara klik metronome
+  const playMetronomeClick = () => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = 1200;
+      gain.gain.value = 0.15;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+      osc.onended = () => ctx.close();
+    } catch { }
+  };
+  // State untuk metronome
+  const [metronomeActive, setMetronomeActive] = useState(false);
+  const [metronomeBpm, setMetronomeBpm] = useState(80);
+  const [metronomeTick, setMetronomeTick] = useState(false);
 
-                          // Metronome effect (visual blink)
-                          useEffect(() => {
-                            if (!metronomeActive) return;
-                            const interval = setInterval(() => {
-                              setMetronomeTick(t => !t);
-                            }, 60000 / metronomeBpm);
-                            return () => clearInterval(interval);
-                          }, [metronomeActive, metronomeBpm]);
+  // Metronome effect (visual blink)
+  useEffect(() => {
+    if (!metronomeActive) return;
+    const interval = setInterval(() => {
+      setMetronomeTick(t => !t);
+    }, 60000 / metronomeBpm);
+    return () => clearInterval(interval);
+  }, [metronomeActive, metronomeBpm]);
 
-                          // Mainkan suara klik setiap metronomeTick (saat aktif)
-                          useEffect(() => {
-                            if (metronomeActive) playMetronomeClick();
-                            // eslint-disable-next-line react-hooks/exhaustive-deps
-                          }, [metronomeTick]);
-                        // State untuk mode lirik saja
-                        const [lyricsMode, setLyricsMode] = useState(false);
-                      // State untuk error runtime
-                      const [runtimeErrors, setRuntimeErrors] = useState([]);
-                    // State untuk menampilkan popup setlist
-                    const [showSetListPopup, setShowSetListPopup] = useState(false);
-                  // State untuk menampilkan modal bulk add songs
-                  const [showBulkAddSongs, setShowBulkAddSongs] = useState(false);
-                // State untuk menampilkan form setlist
-                const [showSetListForm, setShowSetListForm] = useState(false);
-              // State untuk menampilkan form lagu
-              const [showSongForm, setShowSongForm] = useState(false);
-            // State untuk menampilkan menu pengaturan
-            const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-          // State untuk notifikasi recovery data
-          const [recoveryNotification, setRecoveryNotification] = useState(null);
-        // State untuk urutan daftar lagu
-        const [sortBy, setSortBy] = useState('title-asc');
-      // State untuk pencarian lagu
-      const [searchQuery, setSearchQuery] = useState('');
-    // State untuk setlist aktif
-    const [currentSetList, setCurrentSetList] = useState(null);
+  // Mainkan suara klik setiap metronomeTick (saat aktif)
+  useEffect(() => {
+    if (metronomeActive) playMetronomeClick();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metronomeTick]);
+  // State untuk mode lirik saja
+  const [lyricsMode, setLyricsMode] = useState(false);
+  // State untuk error runtime
+  const [runtimeErrors, setRuntimeErrors] = useState([]);
+  // State untuk menampilkan popup setlist
+  const [showSetListPopup, setShowSetListPopup] = useState(false);
+  // State untuk menampilkan modal bulk add songs
+  const [showBulkAddSongs, setShowBulkAddSongs] = useState(false);
+  // State untuk menampilkan form setlist
+  const [showSetListForm, setShowSetListForm] = useState(false);
+  // State untuk menampilkan form lagu
+  const [showSongForm, setShowSongForm] = useState(false);
+  // State untuk menampilkan menu pengaturan
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  // State untuk notifikasi recovery data
+  const [recoveryNotification, setRecoveryNotification] = useState(null);
+  // State untuk urutan daftar lagu
+  const [sortBy, setSortBy] = useState('title-asc');
+  // State untuk pencarian lagu
+  const [searchQuery, setSearchQuery] = useState('');
+  // State untuk setlist aktif
+  const [currentSetList, setCurrentSetList] = useState(null);
   // UI state (paling atas sebelum useEffect)
   const [showSidebar, setShowSidebar] = useState(true);
   const [showLyricsFullscreen, setShowLyricsFullscreen] = useState(false);
@@ -319,7 +319,7 @@ function App() {
     try {
       const data = localStorage.getItem('ronz_songs');
       if (data) {
-        const parsed = JSON.parse(data).filter(Boolean).filter(item => 
+        const parsed = JSON.parse(data).filter(Boolean).filter(item =>
           item.title?.trim() && item.artist?.trim() && item.lyrics?.trim()
         );
         return parsed.length > 0 ? parsed : [];
@@ -331,7 +331,7 @@ function App() {
     try {
       const data = localStorage.getItem('ronz_setlists');
       if (data) {
-        const parsed = JSON.parse(data).filter(Boolean).filter(sl => 
+        const parsed = JSON.parse(data).filter(Boolean).filter(sl =>
           sl.name?.trim() && !sl.name.toLowerCase().includes('untitled')
         );
         return parsed.length > 0 ? parsed : [];
@@ -354,12 +354,7 @@ function App() {
     setPerformanceFontSize,
     showSetlistView,
     setShowSetlistView,
-    togglePerformanceMode,
-    cyclePerformanceTheme,
-    increaseFontSize,
-    decreaseFontSize,
-    resetFontSize
-  } = usePerformanceMode();
+    togglePerformanceMode } = usePerformanceMode();
 
 
   // Shortcut keyboard untuk mengatur kecepatan auto-scroll (Ctrl+ArrowUp/ArrowDown)
@@ -389,7 +384,7 @@ function App() {
   });
 
   // Toast notifications
-  const { toasts, closeToast, success, error, warning } = useToast();
+  const { toasts, closeToast, success, error } = useToast();
 
   // Shortcut keyboard untuk perbesar/perkecil font pada performance mode
   useEffect(() => {
@@ -501,14 +496,14 @@ function App() {
   useEffect(() => {
     if (navigator.onLine) {
       // Check if localStorage was empty before fetch
-      const wasSongsEmpty = !localStorage.getItem('ronz_songs') || 
-                             localStorage.getItem('ronz_songs') === '[]';
-      const wasSetlistsEmpty = !localStorage.getItem('ronz_setlists') || 
-                                localStorage.getItem('ronz_setlists') === '[]';
-      
+      const wasSongsEmpty = !localStorage.getItem('ronz_songs') ||
+        localStorage.getItem('ronz_songs') === '[]';
+      const wasSetlistsEmpty = !localStorage.getItem('ronz_setlists') ||
+        localStorage.getItem('ronz_setlists') === '[]';
+
       let recoveredSongs = 0;
       let recoveredSetlists = 0;
-      
+
       Promise.all([
         fetch('/api/songs').then(res => {
           if (!res.ok) throw new Error(`Songs fetch failed: ${res.status}`);
@@ -520,16 +515,14 @@ function App() {
         })
       ])
         .then(([songsData, setlistsData]) => {
-          const localSongs = sanitizeSongs(songs);
-          const localSetLists = sanitizeSetLists(setLists);
-          
+
           // Merge songs
           if (Array.isArray(songsData)) {
             const remoteSongs = sanitizeSongs(songsData);
             setSongs(prev => {
               const merged = [...sanitizeSongs(prev)];
               const beforeCount = merged.length;
-              
+
               remoteSongs.forEach(remote => {
                 const localIdx = merged.findIndex(s => s.id === remote.id);
                 if (localIdx > -1) {
@@ -540,24 +533,24 @@ function App() {
                   merged.push(remote);
                 }
               });
-              
+
               // Count recovered songs if localStorage was empty
               if (wasSongsEmpty && beforeCount === 0) {
                 recoveredSongs = merged.length;
               }
-              
+
               return merged;
             });
           }
-          
+
           // Merge setlists
           if (Array.isArray(setlistsData)) {
             const remoteSetlists = sanitizeSetLists(setlistsData);
-            
+
             setSetLists(prev => {
               const merged = [...sanitizeSetLists(prev)];
               const beforeCount = merged.length;
-              
+
               remoteSetlists.forEach(remote => {
                 const localIdx = merged.findIndex(s => s.id === remote.id);
                 if (localIdx > -1) {
@@ -568,19 +561,19 @@ function App() {
                   merged.push(remote);
                 }
               });
-              
+
               // Count recovered setlists if localStorage was empty
               if (wasSetlistsEmpty && beforeCount === 0) {
                 recoveredSetlists = merged.length;
               }
-              
+
               // Show notification if any data was recovered from cloud
               const totalRecovered = recoveredSongs + recoveredSetlists;
               if (totalRecovered > 0) {
                 const parts = [];
                 if (recoveredSongs > 0) parts.push(`${recoveredSongs} lagu`);
                 if (recoveredSetlists > 0) parts.push(`${recoveredSetlists} setlist`);
-                
+
                 setRecoveryNotification({
                   type: 'success',
                   count: totalRecovered,
@@ -589,7 +582,7 @@ function App() {
                 // Auto-dismiss notification after 5 seconds
                 setTimeout(() => setRecoveryNotification(null), 5000);
               }
-              
+
               return merged;
             });
           }
@@ -613,12 +606,12 @@ function App() {
         });
     } else {
       // If offline and local storage empty, show offline warning
-      const wasSongsEmpty = !localStorage.getItem('ronz_songs') || 
-                             localStorage.getItem('ronz_songs') === '[]';
-      const wasSetlistsEmpty = !localStorage.getItem('ronz_setlists') || 
-                                localStorage.getItem('ronz_setlists') === '[]';
+      const wasSongsEmpty = !localStorage.getItem('ronz_songs') ||
+        localStorage.getItem('ronz_songs') === '[]';
+      const wasSetlistsEmpty = !localStorage.getItem('ronz_setlists') ||
+        localStorage.getItem('ronz_setlists') === '[]';
       const wasAnyEmpty = wasSongsEmpty || wasSetlistsEmpty;
-      
+
       if (wasAnyEmpty) {
         setRecoveryNotification({
           type: 'warning',
@@ -770,11 +763,11 @@ function App() {
     const songId = isEditMode ? editingSong.id : generateUniqueId();
     const now = Date.now();
     const updatedSong = { ...songData, id: songId, updatedAt: now };
-    
+
     // Check if this is a pending song being created
     const pendingSongName = !isEditMode && editingSong?.title ? editingSong.title : null;
     const isPendingSongCreation = pendingSongName && currentSetList;
-    
+
     setSongs(prevSongs => {
       const existingIndex = prevSongs.findIndex(s => s.id === songId);
       if (existingIndex > -1) {
@@ -787,7 +780,7 @@ function App() {
         return [...prevSongs, updatedSong];
       }
     });
-    
+
     // If creating from pending, replace pending entry with actual song ID in setlist
     if (isPendingSongCreation) {
       let updatedSetList = null;
@@ -830,7 +823,7 @@ function App() {
         }
       }
     }
-    
+
     // Sync song to database
     try {
       const method = isEditMode ? 'PUT' : 'POST';
@@ -843,7 +836,7 @@ function App() {
     } catch (err) {
       console.error('Gagal menyimpan lagu ke database:', err);
     }
-    
+
     setSelectedSong(updatedSong);
     setTranspose(0);
     setAutoScrollActive(false);
@@ -854,7 +847,7 @@ function App() {
   const handleApplyBatchResults = async (results) => {
     // Apply batch processing results to songs
     const updatePromises = [];
-    
+
     setSongs(prevSongs => {
       return prevSongs.map(song => {
         const suggestion = results.find(r => r.songId === song.id);
@@ -867,7 +860,7 @@ function App() {
             youtubeId: suggestion.youtubeId || song.youtubeId,
             updatedAt: Date.now()
           };
-          
+
           // Sync to database
           updatePromises.push(
             fetch(`/api/songs/${song.id}`, {
@@ -876,7 +869,7 @@ function App() {
               body: JSON.stringify(updated)
             }).catch(err => console.error('Gagal update lagu:', err))
           );
-          
+
           return updated;
         }
         return song;
@@ -885,7 +878,7 @@ function App() {
 
     // Wait for all updates to complete
     await Promise.all(updatePromises);
-    
+
     success(`✅ ${results.length} lagu berhasil diupdate`);
     setShowBatchProcessing(false);
   };
@@ -903,7 +896,7 @@ function App() {
     };
     setSetLists(prevSetLists => [...prevSetLists, newSetList]);
     setCurrentSetList(newSetList.id);
-    
+
     // Sync to database
     try {
       await fetch('/api/setlists', {
@@ -919,7 +912,7 @@ function App() {
     } catch (err) {
       console.error('Gagal membuat setlist di database:', err);
     }
-    
+
     setShowSetListForm(false);
     setEditingSetList(null);
   };
@@ -959,13 +952,16 @@ function App() {
 
   const handleDeleteSetList = async (id) => {
     if (!confirm('Hapus setlist ini?')) return;
-    setSetLists(prevSetLists => prevSetLists.filter(sl => sl.id !== id));
-    setCurrentSetList(null);
-
     try {
-      await fetch(`/api/setlists/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/setlists/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        throw new Error('Gagal menghapus setlist di database');
+      }
+      setSetLists(prevSetLists => prevSetLists.filter(sl => sl.id !== id));
+      setCurrentSetList(null);
     } catch (err) {
       console.error('Gagal menghapus setlist:', err);
+      alert('Gagal menghapus setlist di database.');
     }
   };
 
@@ -1034,12 +1030,12 @@ function App() {
     setSetLists(prevSetLists => {
       return prevSetLists.map(setList => {
         if (setList.id === setListId) {
-          const next = { 
-            ...setList, 
-            songs: setList.songs.filter(id => id !== songId), 
-            songKeys: setList.songKeys || {}, 
+          const next = {
+            ...setList,
+            songs: setList.songs.filter(id => id !== songId),
+            songKeys: setList.songKeys || {},
             completedSongs: setList.completedSongs || {},
-            updatedAt: Date.now() 
+            updatedAt: Date.now()
           };
           // Clean up songKeys
           if (next.songKeys && next.songKeys[songId]) {
@@ -1057,7 +1053,7 @@ function App() {
         return setList;
       });
     });
-    
+
     if (updatedSetList) {
       try {
         await fetch(`/api/setlists/${setListId}`, {
@@ -1080,12 +1076,12 @@ function App() {
   // Handle bulk adding songs to setlist
   const handleBulkAddSongsToSetList = async (songData) => {
     if (!currentSetList) return;
-    
+
     // Handle both old format (array) and new format (object with ids and pendingNames)
     let songIds = [];
     let pendingSongNames = [];
     let totalAdded = 0;
-    
+
     if (Array.isArray(songData)) {
       // Old format - just IDs
       songIds = songData;
@@ -1096,9 +1092,9 @@ function App() {
       pendingSongNames = songData.pendingNames || [];
       totalAdded = songIds.length + pendingSongNames.length;
     }
-    
+
     if (totalAdded === 0) return;
-    
+
     let updatedSetList = null;
     setSetLists(prevSetLists => {
       return prevSetLists.map(setList => {
@@ -1107,12 +1103,12 @@ function App() {
           const newSongs = [...(setList.songs || []), ...songIds];
           // Add pending song names as strings
           const allSongs = [...new Set([...newSongs, ...pendingSongNames])];
-          
-          const next = { 
-            ...setList, 
+
+          const next = {
+            ...setList,
             songs: allSongs,
-            songKeys: setList.songKeys || {}, 
-            updatedAt: Date.now() 
+            songKeys: setList.songKeys || {},
+            updatedAt: Date.now()
           };
           updatedSetList = next;
           return next;
@@ -1120,21 +1116,21 @@ function App() {
         return setList;
       });
     });
-    
+
     if (updatedSetList) {
       try {
         await fetch(`/api/setlists/${currentSetList}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            name: updatedSetList.name, 
-            songs: updatedSetList.songs, 
-            songKeys: updatedSetList.songKeys, 
-            completedSongs: updatedSetList.completedSongs, 
-            updatedAt: updatedSetList.updatedAt 
+          body: JSON.stringify({
+            name: updatedSetList.name,
+            songs: updatedSetList.songs,
+            songKeys: updatedSetList.songKeys,
+            completedSongs: updatedSetList.completedSongs,
+            updatedAt: updatedSetList.updatedAt
           })
         });
-        
+
         let message = `Berhasil menambahkan ${totalAdded} lagu ke setlist`;
         if (pendingSongNames.length > 0) {
           message += ` (${songIds.length} ada + ${pendingSongNames.length} pending)`;
@@ -1149,42 +1145,6 @@ function App() {
   };
 
   // Update/setlist-specific key override for a song
-  const handleSetListSongKey = async (setListId, songId, key) => {
-    let updatedSetList = null;
-    setSetLists(prevSetLists => {
-      return prevSetLists.map(setList => {
-        if (setList.id === setListId) {
-          const next = { ...setList, songKeys: { ...(setList.songKeys || {}) }, updatedAt: Date.now() };
-          if (key && key.trim()) {
-            next.songKeys[songId] = key.trim();
-          } else if (next.songKeys[songId]) {
-            const { [songId]: _, ...rest } = next.songKeys;
-            next.songKeys = rest;
-          }
-          updatedSetList = next;
-          return next;
-        }
-        return setList;
-      });
-    });
-    if (updatedSetList) {
-      try {
-        await fetch(`/api/setlists/${setListId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: updatedSetList.name,
-            songs: JSON.stringify(updatedSetList.songs || []),
-            songKeys: JSON.stringify(updatedSetList.songKeys || {}),
-            completedSongs: JSON.stringify(updatedSetList.completedSongs || {}),
-            updatedAt: updatedSetList.updatedAt
-          })
-        });
-      } catch (err) {
-        console.error('Gagal update key lagu di setlist:', err);
-      }
-    }
-  };
 
   // Toggle completed status untuk lagu dalam setlist
   const handleToggleCompletedSong = async (setListId, songId) => {
@@ -1229,7 +1189,7 @@ function App() {
     if (selectedSong?.id === songId) {
       setSelectedSong(null);
     }
-    
+
     // Sync to database
     try {
       await fetch(`/api/songs/${songId}`, { method: 'DELETE' });
@@ -1277,8 +1237,18 @@ function App() {
     if (!currentSetList) return [];
     const setList = setLists.find(sl => sl.id === currentSetList);
     if (!setList) return [];
+    // Ensure setList.songs is always an array
+    let songArr = setList.songs;
+    if (typeof songArr === 'string') {
+      try {
+        songArr = JSON.parse(songArr);
+      } catch {
+        songArr = [];
+      }
+    }
+    if (!Array.isArray(songArr)) songArr = [];
     // Filter pending song names (strings that don't match any song ID)
-    const pending = setList.songs.filter(item => {
+    const pending = songArr.filter(item => {
       if (typeof item !== 'string') return false;
       // Check if this string ID exists in actual songs
       const exists = songs.find(s => s.id === item);
@@ -1328,9 +1298,9 @@ function App() {
       })
       .filter(Boolean)
       .join('\n');
-    
+
     const shareText = `🎵 Set List: ${setList.name}\n\n${songList}\n\n📱 Dibuat dengan RoNz Chord Pro`;
-    
+
     // Try Web Share API first (for mobile)
     if (navigator.share) {
       navigator.share({
@@ -1362,7 +1332,7 @@ function App() {
 
     const url = `${window.location.origin}${window.location.pathname}?setlist=${currentSetList}`;
     const shareText = `🎵 Set List: ${setList.name}\n\n${url}`;
-    
+
     // Try Web Share API first (for mobile)
     if (navigator.share) {
       navigator.share({
@@ -1394,7 +1364,7 @@ function App() {
     if (!performanceMode) return;
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
-    
+
     // For pinch zoom
     if (e.touches.length === 2) {
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -1405,7 +1375,7 @@ function App() {
 
   const handleTouchEnd = (e) => {
     if (!performanceMode || !currentSetList) return;
-    
+
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
     const deltaX = touchEndX - touchStartX.current;
@@ -1424,16 +1394,16 @@ function App() {
 
   const handleTouchMove = (e) => {
     if (!performanceMode || e.touches.length !== 2) return;
-    
+
     // Prevent default pinch-to-zoom behavior on touch devices
     e.preventDefault();
-    
+
     // Pinch zoom untuk font size
     const dx = e.touches[0].clientX - e.touches[1].clientX;
     const dy = e.touches[0].clientY - e.touches[1].clientY;
     const distance = Math.sqrt(dx * dx + dy * dy);
     const delta = distance - touchStartDistance.current;
-    
+
     if (Math.abs(delta) > 10) {
       let newSize;
       if (delta > 0) {
@@ -1496,13 +1466,13 @@ function App() {
 
         // Migrate and sanitize songs (remove melody, ensure new fields)
         const migratedSongs = sanitizeSongs(data.songs);
-        
+
         // Migrate and sanitize setlists (ensure songKeys exists)
         const migratedSetLists = data.setLists ? sanitizeSetLists(data.setLists) : [];
 
         const version = data.version || '1.0';
         const message = `Import ${migratedSongs.length} lagu dan ${migratedSetLists.length} set list?\n\nVersi: ${version}\nSemua data akan digantikan.`;
-        
+
         if (confirm(message)) {
           setSongs(migratedSongs);
           setSetLists(migratedSetLists);
@@ -1521,6 +1491,40 @@ function App() {
     reader.readAsText(file);
     event.target.value = '';
   };
+
+  // Handler untuk menghapus semua setlist kosong
+  const handleDeleteEmptySetlists = async () => {
+    // Defensive: treat songs as array
+    const emptySetlists = setLists.filter(sl => {
+      let songArr = sl.songs;
+      if (typeof songArr === 'string') {
+        try { songArr = JSON.parse(songArr); } catch { songArr = []; }
+      }
+      return !Array.isArray(songArr) || songArr.length === 0;
+    });
+    if (emptySetlists.length === 0) {
+      alert('Tidak ada setlist kosong yang bisa dihapus.');
+      return;
+    }
+    // Hapus dari database satu per satu
+    for (const sl of emptySetlists) {
+      try {
+        await fetch(`/api/setlists/${sl.id}`, { method: 'DELETE' });
+      } catch (err) {
+        console.error('Gagal menghapus setlist kosong:', sl.id, err);
+      }
+    }
+    // Hapus dari state
+    setSetLists(prev => prev.filter(sl => {
+      let songArr = sl.songs;
+      if (typeof songArr === 'string') {
+        try { songArr = JSON.parse(songArr); } catch { songArr = []; }
+      }
+      return Array.isArray(songArr) && songArr.length > 0;
+    }));
+    alert(`Berhasil menghapus ${emptySetlists.length} setlist kosong.`);
+  };
+
 
   // Get display songs
   const getDisplaySongs = () => {
@@ -1576,9 +1580,6 @@ function App() {
   };
 
   const displaySongs = getDisplaySongs();
-  const currentSetListName = currentSetList
-    ? setLists.find(sl => sl.id === currentSetList)?.name
-    : 'Semua Lagu';
 
   // Handler untuk menghapus semua pending songs dari setlist aktif
   const handleRemoveAllPendingSongs = () => {
@@ -1591,10 +1592,10 @@ function App() {
         ...sl,
         songs: Array.isArray(sl.songs)
           ? sl.songs.filter(item => {
-              // Jika item string dan BUKAN ID lagu, artinya pending, maka hapus
-              if (typeof item === 'string' && !songIds.includes(item)) return false;
-              return true;
-            })
+            // Jika item string dan BUKAN ID lagu, artinya pending, maka hapus
+            if (typeof item === 'string' && !songIds.includes(item)) return false;
+            return true;
+          })
           : sl.songs
       };
     }));
@@ -1611,17 +1612,17 @@ function App() {
         <div className={`recovery-notification ${recoveryNotification.type === 'error' ? 'notification-error' : recoveryNotification.type === 'warning' ? 'notification-warning' : ''}`}>
           <div className="recovery-content">
             <span className="recovery-icon">
-              {recoveryNotification.type === 'error' ? '⚠️' : 
-               recoveryNotification.type === 'warning' ? '📡' : '☁️'}
+              {recoveryNotification.type === 'error' ? '⚠️' :
+                recoveryNotification.type === 'warning' ? '📡' : '☁️'}
             </span>
             <div className="recovery-text">
               <strong>
                 {recoveryNotification.type === 'error' ? 'Koneksi Error' :
-                 recoveryNotification.type === 'warning' ? 'Mode Offline' : 'Data Dipulihkan!'}
+                  recoveryNotification.type === 'warning' ? 'Mode Offline' : 'Data Dipulihkan!'}
               </strong>
               <p>{recoveryNotification.message}</p>
             </div>
-            <button 
+            <button
               className="btn-dismiss-recovery"
               onClick={() => setRecoveryNotification(null)}
               title="Dismiss"
@@ -1631,15 +1632,17 @@ function App() {
           </div>
         </div>
       )}
-      
+
       {!performanceMode && showSettingsMenu && (
         <SettingsModal
           onClose={() => setShowSettingsMenu(false)}
           onExport={handleExportDatabase}
           onImport={handleImportDatabase}
           onKeyboardModeChange={setKeyboardMode}
+          onDeleteEmptySetlists={handleDeleteEmptySetlists}
         />
       )}
+
       <div className={`app ${performanceMode ? 'performance-mode-active' : ''}`}>
 
         {!performanceMode && !selectedSong && (
@@ -1690,49 +1693,49 @@ function App() {
         <div className="container">
           {!performanceMode && (
             <nav className="nav-panel">
-            <button
-              className={`nav-btn ${activeNav === 'songs' ? 'active' : ''}`}
-              onClick={() => setActiveNav('songs')}
-            >
-              📋 Lagu
-            </button>
-            <button
-              className={`nav-btn ${activeNav === 'setlists' ? 'active' : ''}`}
-              onClick={() => setActiveNav('setlists')}
-            >
-              🎵 Setlist
-            </button>
-            {selectedSong && (
               <button
-                className="nav-btn active"
-                onClick={() => setSelectedSong(null)}
-                title="Kembali ke daftar"
+                className={`nav-btn ${activeNav === 'songs' ? 'active' : ''}`}
+                onClick={() => setActiveNav('songs')}
               >
-                ← Kembali
+                📋 Lagu
               </button>
-            )}
-            {keyboardMode && (
-              <span 
-                className="keyboard-mode-badge" 
-                title="Keyboardist Mode Enabled"
-                style={{
-                  background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-                  color: '#4da6ff',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  border: '1px solid #4da6ff'
-                }}
+              <button
+                className={`nav-btn ${activeNav === 'setlists' ? 'active' : ''}`}
+                onClick={() => setActiveNav('setlists')}
               >
-                🎹 Keyboardist
-              </span>
-            )}
+                🎵 Setlist
+              </button>
+              {selectedSong && (
+                <button
+                  className="nav-btn active"
+                  onClick={() => setSelectedSong(null)}
+                  title="Kembali ke daftar"
+                >
+                  ← Kembali
+                </button>
+              )}
+              {keyboardMode && (
+                <span
+                  className="keyboard-mode-badge"
+                  title="Keyboardist Mode Enabled"
+                  style={{
+                    background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+                    color: '#4da6ff',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    border: '1px solid #4da6ff'
+                  }}
+                >
+                  🎹 Keyboardist
+                </span>
+              )}
 
-          </nav>
+            </nav>
           )}
 
           <div className="content-wrapper">
@@ -1756,20 +1759,20 @@ function App() {
                           return (
                             <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                               Setlist: {setList.name}
-                              <button 
+                              <button
                                 onClick={() => setCurrentSetList(null)}
                                 style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', fontSize: '0.8rem' }}
                               >
                                 ✕ Lihat Semua
                               </button>
-                              <button 
+                              <button
                                 onClick={handleShareSetList}
                                 style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', fontSize: '0.8rem' }}
                                 title="Bagikan daftar lagu"
                               >
                                 📤 Bagikan
                               </button>
-                              <button 
+                              <button
                                 onClick={handleShareSetListLink}
                                 style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', fontSize: '0.8rem' }}
                                 title="Bagikan link setlist"
@@ -1794,16 +1797,16 @@ function App() {
                       </button>
                       {currentSetList && (
                         <>
-                          <button 
-                            onClick={() => setShowBulkAddSongs(true)} 
-                            className="btn btn-sm btn-primary" 
+                          <button
+                            onClick={() => setShowBulkAddSongs(true)}
+                            className="btn btn-sm btn-primary"
                             title="Tambah Lagu ke Setlist dari Daftar"
                           >
                             📝
                           </button>
-                          <button 
-                            onClick={() => setShowBatchProcessing(true)} 
-                            className="btn btn-sm btn-primary" 
+                          <button
+                            onClick={() => setShowBatchProcessing(true)}
+                            className="btn btn-sm btn-primary"
                             title="Update metadata untuk multiple lagu sekaligus"
                           >
                             🔄
@@ -1811,7 +1814,7 @@ function App() {
                         </>
                       )}
                     </div>
-                    
+
                     <div className="filters-bar">
                       <div className="search-box" style={{ flex: 1, position: 'relative' }}>
                         <span className="search-icon">🔍</span>
@@ -1926,7 +1929,7 @@ function App() {
                           />
                         ))
                       )}
-                      
+
                       {/* Pending Songs Section */}
                       {currentSetList && getPendingSongsInSetList().length > 0 && (
                         <>
@@ -2097,18 +2100,30 @@ function App() {
                               </div>
                             </div>
                             <div className="setlist-card-body">
-                              <p className="song-count">
-                                {setList.songs?.length || 0} lagu
-                                {setList.songs?.length > 0 && (
-                                  <>
-                                    {' • '}
-                                    <span style={{ color: 'var(--success)', fontWeight: 600 }}>
-                                      ✓ {Object.keys(setList.completedSongs || {}).length}
-                                    </span>
-                                    {' selesai'}
-                                  </>
-                                )}
-                              </p>
+                              {(() => {
+                                // Always treat songs as array
+                                let songArr = setList.songs;
+                                if (typeof songArr === 'string') {
+                                  try { songArr = JSON.parse(songArr); } catch { songArr = []; }
+                                }
+                                if (!Array.isArray(songArr)) songArr = [];
+                                // Only count completed songs that are in the setlist
+                                const completed = Object.keys(setList.completedSongs || {}).filter(id => songArr.includes(id));
+                                return (
+                                  <p className="song-count">
+                                    {songArr.length} lagu
+                                    {songArr.length > 0 && completed.length > 0 && (
+                                      <>
+                                        {' • '}
+                                        <span style={{ color: 'var(--success)', fontWeight: 600 }}>
+                                          ✓ {completed.length}
+                                        </span>
+                                        {' selesai'}
+                                      </>
+                                    )}
+                                  </p>
+                                );
+                              })()}
                             </div>
                           </div>
                         ))
@@ -2121,7 +2136,7 @@ function App() {
               // Song Detail View
               <main className="main">
                 <>
- {selectedSong && !performanceMode && (
+                  {selectedSong && !performanceMode && (
                     <div className="controls controls-compact">
                       {/* Transpose Group */}
                       <button onClick={() => handleTranspose(-1)} className="btn btn-xs" title="Transpose turun (♭)">♭</button>
@@ -2231,7 +2246,7 @@ function App() {
                         🎭
                       </button>
                     </div>
-                  )}       
+                  )}
                   {/* Export/Import Chord Komunitas & Cloud Sync */}
                   {!performanceMode && (
                     <div style={{ display: 'flex', gap: 8, margin: '10px 0', flexWrap: 'wrap' }}>
@@ -2272,8 +2287,8 @@ function App() {
                     </div>
                   )}
                   {/* Main content area with touch handlers for performance mode */}
-                  <div 
-                    className="lyrics-section" 
+                  <div
+                    className="lyrics-section"
                     ref={el => {
                       scrollRef.current = el;
                       lyricsSectionRef.current = el;
@@ -2318,7 +2333,7 @@ function App() {
                                 <button
                                   key={idx}
                                   className="btn btn-xs"
-                                  title={`Loncat ke ${ts.label}: ${Math.floor(ts.time/60)}:${(ts.time%60).toString().padStart(2,'0')}`}
+                                  title={`Loncat ke ${ts.label}: ${Math.floor(ts.time / 60)}:${(ts.time % 60).toString().padStart(2, '0')}`}
                                   onClick={() => {
                                     if (selectedSong?.youtubeId) {
                                       setShowYouTube(true);
@@ -2327,12 +2342,12 @@ function App() {
                                     }
                                   }}
                                 >
-                                  {ts.label} ({Math.floor(ts.time/60)}:{(ts.time%60).toString().padStart(2,'0')})
+                                  {ts.label} ({Math.floor(ts.time / 60)}:{(ts.time % 60).toString().padStart(2, '0')})
                                 </button>
                               ))}
                             </div>
                           </div>
-                        )}                        
+                        )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                           <label style={{ fontWeight: 500, cursor: 'pointer', userSelect: 'none' }}>
                             <input
@@ -2367,13 +2382,13 @@ function App() {
                     speed={scrollSpeed}
                     scrollRef={scrollRef}
                   />
-                            
+
                   {/* Performance Mode Setlist Sidebar */}
                   {performanceMode && currentSetList && showSetlistView && (
                     <div className="performance-setlist-sidebar">
                       <div className="setlist-header">
                         <div className="setlist-title">📋 Setlist</div>
-                        <button 
+                        <button
                           onClick={() => setShowSetlistView(false)}
                           className="btn-toggle-setlist"
                           title="Tutup setlist"
@@ -2403,7 +2418,7 @@ function App() {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Performance Mode Footer Controls */}
                   {performanceMode && selectedSong && (
                     <div className="performance-footer">
@@ -2464,7 +2479,7 @@ function App() {
                           </div>
                         )}
                       </div>
-                      
+
                       <div className="performance-controls">
                         {currentSetList && (
                           <>
@@ -2477,7 +2492,7 @@ function App() {
                             <span style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />
                           </>
                         )}
-                        
+
                         <button onClick={() => handleTranspose(-1)} className="perf-btn">
                           ♭
                         </button>
@@ -2490,9 +2505,9 @@ function App() {
                         <button onClick={() => setTranspose(0)} className="perf-btn">
                           ⟳
                         </button>
-                        
+
                         <span style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />
-                        
+
                         <button
                           onClick={() => setAutoScrollActive(!autoScrollActive)}
                           className={`perf-btn ${autoScrollActive ? 'perf-btn-success' : ''}`}
@@ -2518,11 +2533,11 @@ function App() {
                             <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="perf-btn">+</button>
                           </div>
                         )}
-                        
+
                         <span style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />
-                        
+
                         {currentSetList && (
-                          <button 
+                          <button
                             onClick={() => setShowSetlistView(!showSetlistView)}
                             className={`perf-btn ${showSetlistView ? 'perf-btn-success' : ''}`}
                             title={showSetlistView ? 'Tutup setlist' : 'Buka setlist'}
@@ -2530,8 +2545,8 @@ function App() {
                             📋
                           </button>
                         )}
-                        
-                        <button 
+
+                        <button
                           onClick={() => {
                             const themes = ['dark-stage', 'bright', 'amber', 'high-contrast'];
                             const currentIdx = themes.indexOf(performanceTheme);
@@ -2542,7 +2557,7 @@ function App() {
                         >
                           🎨
                         </button>
-                        
+
                         <button onClick={() => {
                           const newSize = Math.max(50, performanceFontSize - 10);
                           setPerformanceFontSize(newSize);
@@ -2558,9 +2573,9 @@ function App() {
                         }} className="perf-btn">
                           A+
                         </button>
-                        
+
                         <span style={{ width: '1px', height: '30px', background: 'rgba(255,255,255,0.2)' }} />
-                        
+
                         <button onClick={togglePerformanceMode} className="perf-btn perf-btn-danger perf-btn-large">
                           ✕ Exit
                         </button>
@@ -2705,7 +2720,7 @@ function App() {
         )}
 
         {!performanceMode && showKeyboardHelp && (
-          <KeyboardShortcutsHelp 
+          <KeyboardShortcutsHelp
             shortcuts={shortcuts}
             onClose={() => setShowKeyboardHelp(false)}
           />

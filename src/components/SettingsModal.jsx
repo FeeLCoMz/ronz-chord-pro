@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function SettingsModal({ onClose, onExport, onImport, onKeyboardModeChange }) {
+export default function SettingsModal({ onClose, onExport, onImport, onKeyboardModeChange, onDeleteEmptySetlists = () => {} }) {
   const [keyboardMode, setKeyboardMode] = useState(() => {
     return localStorage.getItem('keyboardMode') === 'true';
   });
@@ -94,6 +94,9 @@ export default function SettingsModal({ onClose, onExport, onImport, onKeyboardM
                   style={{ display: 'none' }}
                 />
               </label>
+              <button onClick={onDeleteEmptySetlists} className="btn btn-sm btn-block btn-danger" style={{ marginTop: '0.5rem' }}>
+                🗑️ Hapus Semua Setlist Kosong
+              </button>
             </div>
           </div>
           
