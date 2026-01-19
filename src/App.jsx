@@ -269,6 +269,15 @@ function App() {
   const [metronomeBpm, setMetronomeBpm] = useState(80);
   const [metronomeTick, setMetronomeTick] = useState(false);
 
+useEffect(() => {
+  if (selectedSong && selectedSong.tempo) {
+    const tempoNum = parseInt(selectedSong.tempo, 10);
+    if (!isNaN(tempoNum) && tempoNum > 0) {
+      setMetronomeBpm(tempoNum);
+    }
+  }
+}, [selectedSong]);  
+
   // Metronome effect (visual blink)
   useEffect(() => {
     if (!metronomeActive) return;
