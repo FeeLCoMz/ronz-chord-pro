@@ -14,11 +14,12 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
-  const { id } = req.params || {};
+  const id =
+    (req.params && req.params.id) ||
+    (req.query && req.query.id) ||
+    (req.url && req.url.split('/').pop()) || '';
 
-  // Validate id parameter - be lenient, accept any non-empty string/number
   const idStr = id ? String(id).trim() : '';
-  
   if (!idStr) {
     res.status(400).json({ error: 'Missing setlist id' });
     return;
