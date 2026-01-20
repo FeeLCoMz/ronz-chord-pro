@@ -73,9 +73,29 @@ function App() {
   // Google Drive Sync State
   const [gapiLoaded, setGapiLoaded] = useState(false);
   const [googleUser, setGoogleUser] = useState(null);
-
   // State for editing setlist (null or setlist object)
   const [editingSetList, setEditingSetList] = useState(null);
+  const getInitialSetLists = () => {
+    try {
+      const data = localStorage.getItem('ronz_setlists');
+      if (data) {
+        const parsed = JSON.parse(data).filter(Boolean).filter(sl =>
+          sl.name?.trim() && !sl.name.toLowerCase().includes('untitled')
+        );
+        return parsed.length > 0 ? parsed : [];
+      }
+    } catch { }
+    return [];
+  };
+  const [setLists, setSetLists] = useState(getInitialSetLists);
+
+  // Sync setListForSongsPage setiap kali setLists berubah dan sedang di halaman detail setlist
+  useEffect(() => {
+    if (showSetListSongsPage && setListForSongsPage) {
+      const updated = setLists.find(sl => sl.id === setListForSongsPage.id);
+      if (updated) setSetListForSongsPage(updated);
+    }
+  }, [setLists, showSetListSongsPage]);
 
   // Load Google API script
   useEffect(() => {
@@ -273,14 +293,14 @@ function App() {
   const [metronomeBpm, setMetronomeBpm] = useState(80);
   const [metronomeTick, setMetronomeTick] = useState(false);
 
-useEffect(() => {
-  if (selectedSong && selectedSong.tempo) {
-    const tempoNum = parseInt(selectedSong.tempo, 10);
-    if (!isNaN(tempoNum) && tempoNum > 0) {
-      setMetronomeBpm(tempoNum);
+  useEffect(() => {
+    if (selectedSong && selectedSong.tempo) {
+      const tempoNum = parseInt(selectedSong.tempo, 10);
+      if (!isNaN(tempoNum) && tempoNum > 0) {
+        setMetronomeBpm(tempoNum);
+      }
     }
-  }
-}, [selectedSong]);  
+  }, [selectedSong]);
 
   // Metronome effect (visual blink)
   useEffect(() => {
@@ -337,20 +357,7 @@ useEffect(() => {
     } catch { }
     return [];
   };
-  const getInitialSetLists = () => {
-    try {
-      const data = localStorage.getItem('ronz_setlists');
-      if (data) {
-        const parsed = JSON.parse(data).filter(Boolean).filter(sl =>
-          sl.name?.trim() && !sl.name.toLowerCase().includes('untitled')
-        );
-        return parsed.length > 0 ? parsed : [];
-      }
-    } catch { }
-    return [];
-  };
   const [songs, setSongs] = useState(getInitialSongs);
-  const [setLists, setSetLists] = useState(getInitialSetLists);
   const [transpose, setTranspose] = useState(0);
   const [scrollSpeed, setScrollSpeed] = useState(1);
 
@@ -1669,52 +1676,52 @@ useEffect(() => {
                 <h1>🎸 RoNz Chord Pro</h1>
                 <p>Professional Chord & Lyrics App</p>
               </div>
-          {!performanceMode && (
-            <nav className="nav-panel">
-              <button
-                className={`nav-btn ${activeNav === 'songs' ? 'active' : ''}`}
-                onClick={() => setActiveNav('songs')}
-              >
-                📋 Lagu
-              </button>
-              <button
-                className={`nav-btn ${activeNav === 'setlists' ? 'active' : ''}`}
-                onClick={() => setActiveNav('setlists')}
-              >
-                🎵 Setlist
-              </button>
-              {selectedSong && (
-                <button
-                  className="nav-btn active"
-                  onClick={() => setSelectedSong(null)}
-                  title="Kembali ke daftar"
-                >
-                  ← Kembali
-                </button>
-              )}
-              {keyboardMode && (
-                <span
-                  className="keyboard-mode-badge"
-                  title="Keyboardist Mode Enabled"
-                  style={{
-                    background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-                    color: '#4da6ff',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    border: '1px solid #4da6ff'
-                  }}
-                >
-                  🎹 Keyboardist
-                </span>
-              )}
+              {!performanceMode && (
+                <nav className="nav-panel">
+                  <button
+                    className={`nav-btn ${activeNav === 'songs' ? 'active' : ''}`}
+                    onClick={() => setActiveNav('songs')}
+                  >
+                    📋 Lagu
+                  </button>
+                  <button
+                    className={`nav-btn ${activeNav === 'setlists' ? 'active' : ''}`}
+                    onClick={() => setActiveNav('setlists')}
+                  >
+                    🎵 Setlist
+                  </button>
+                  {selectedSong && (
+                    <button
+                      className="nav-btn active"
+                      onClick={() => setSelectedSong(null)}
+                      title="Kembali ke daftar"
+                    >
+                      ← Kembali
+                    </button>
+                  )}
+                  {keyboardMode && (
+                    <span
+                      className="keyboard-mode-badge"
+                      title="Keyboardist Mode Enabled"
+                      style={{
+                        background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
+                        color: '#4da6ff',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        border: '1px solid #4da6ff'
+                      }}
+                    >
+                      🎹 Keyboardist
+                    </span>
+                  )}
 
-            </nav>
-          )}              
+                </nav>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button
                   className="nav-btn"
@@ -1754,7 +1761,121 @@ useEffect(() => {
         )}
 
         <div className="container">
+          <div className="top-controls">
+            <>
+              {selectedSong && !performanceMode && (
+                <div className="controls controls-compact">
+                  {/* Transpose Group */}
+                  <button onClick={() => handleTranspose(-1)} className="btn btn-xs" title="Transpose turun (♭)">♭</button>
+                  <span className="transpose-value" style={{ minWidth: 32, textAlign: 'center' }} title="Nilai transpose">{transpose > 0 ? `+${transpose}` : transpose}</span>
+                  <button onClick={() => handleTranspose(1)} className="btn btn-xs" title="Transpose naik (♯)">♯</button>
+                  <button onClick={() => setTranspose(0)} className="btn btn-xs" title="Reset transpose">⟳</button>
+                  {/* Metronome Controls */}
+                  <span className="divider" />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <button
+                      onClick={() => setMetronomeActive(a => !a)}
+                      className={`btn btn-xs ${metronomeActive ? 'btn-primary' : ''}`}
+                      title={metronomeActive ? 'Stop Metronome' : 'Start Metronome'}
+                    >
+                      {metronomeActive ? '⏹' : '🕒'}
+                    </button>
+                    <input
+                      type="range"
+                      min="40"
+                      max="220"
+                      step="1"
+                      value={metronomeBpm}
+                      onChange={e => setMetronomeBpm(Number(e.target.value))}
+                      style={{ width: 60 }}
+                      title="Tempo (BPM)"
+                      disabled={!metronomeActive} />
+                    <span style={{ minWidth: 36, textAlign: 'center', fontWeight: 600 }} title="Tempo (BPM)">{metronomeBpm} BPM</span>
+                    <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 6, marginLeft: 4, background: metronomeActive ? (metronomeTick ? '#f87171' : '#fbbf24') : '#ddd', transition: 'background 0.1s' }} />
+                  </div>
+                  {/* Auto Scroll Group */}
+                  <button
+                    onClick={() => setAutoScrollActive(!autoScrollActive)}
+                    className={`btn btn-xs ${autoScrollActive ? 'btn-primary' : ''}`}
+                    title={autoScrollActive ? 'Matikan Auto Scroll' : 'Aktifkan Auto Scroll'}
+                  >
+                    {autoScrollActive ? '⏸' : '▶'}
+                  </button>
+                  {autoScrollActive && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <button onClick={() => setScrollSpeed(Math.max(0.5, scrollSpeed - 0.5))} className="btn btn-xs" title="Kurangi kecepatan scroll">−</button>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="5"
+                        step="0.1"
+                        value={scrollSpeed}
+                        onChange={e => setScrollSpeed(Number(e.target.value))}
+                        style={{ width: 70, verticalAlign: 'middle' }}
+                        title="Geser untuk atur kecepatan scroll" />
+                      <span className="speed-value" style={{ minWidth: 32, textAlign: 'center', fontWeight: 600 }} title="Kecepatan scroll">{scrollSpeed.toFixed(1)}x</span>
+                      <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="btn btn-xs" title="Tambah kecepatan scroll">+</button>
+                    </div>
+                  )}
+                  <span className="divider" />
+                  {/* YouTube Toggle */}
+                  <button
+                    onClick={() => setShowYouTube(!showYouTube)}
+                    className={`btn btn-xs ${showYouTube ? 'btn-primary' : ''}`}
+                    title={showYouTube ? 'Sembunyikan YouTube' : 'Tampilkan YouTube'}
+                  >
+                    📺
+                  </button>
+                  {/* Print Button */}
+                  <button
+                    onClick={() => window.print()}
+                    className="btn btn-xs"
+                    title="Cetak/Print (PDF)"
+                  >
+                    🖨️
+                  </button>
+                  {/* Lyrics Mode Toggle */}
+                  <button
+                    onClick={() => setLyricsMode(!lyricsMode)}
+                    className={`btn btn-xs ${lyricsMode ? 'btn-primary' : ''}`}
+                    title={lyricsMode ? 'Tampilkan Chord' : 'Mode Lirik Saja'}
+                  >
+                    📝
+                  </button>
+                  {/* Performance Mode Toggle */}
+                  <button
+                    onClick={togglePerformanceMode}
+                    className={`btn btn-xs ${performanceMode ? 'btn-primary' : ''}`}
+                    title={performanceMode ? 'Exit Performance Mode' : 'Enter Performance Mode'}
+                  >
+                    🎭
+                  </button>
+                  {/* Tombol tambah ke setlist */}
+                  <button
+                    onClick={() => {
+                      // Tampilkan popup setlist
+                      setShowSetListPopup(true);
+                      setSelectedSetListsForAdd(
+                        setLists.filter(sl => sl.songs.includes(selectedSong.id)).map(sl => sl.id)
+                      );
+                    }}
+                    className="btn btn-sm btn-success"
+                    title="Tambah lagu ini ke setlist"
+                  >
+                    ➕
+                  </button>
+                  <button
+                    onClick={() => handleEditSong(selectedSong)}
+                    className="btn btn-sm btn-primary"
+                    title="Edit lagu ini"
+                  >
+                    ✏️
+                  </button>
 
+                </div>
+              )}
+            </>
+          </div>
           <div className="content-wrapper">
             {/* Main Content Area */}
             {!selectedSong ? (
@@ -1880,7 +2001,7 @@ useEffect(() => {
                         onChange={e => {
                           setSortBy(e.target.value);
                           // Reset sortOrder ke default saat ganti sortBy
-                          if (['title-asc','artist-asc', 'newest', 'style', 'tempo', 'updated'].includes(e.target.value)) {
+                          if (['title-asc', 'artist-asc', 'newest', 'style', 'tempo', 'updated'].includes(e.target.value)) {
                             setSortOrder('asc');
                           }
                         }}
@@ -1893,14 +2014,14 @@ useEffect(() => {
                         <option value="updated">📝 Diupdate</option>
                       </select>
                       {/* Toggle Asc/Desc */}
-                      <button                        
+                      <button
                         style={{ marginLeft: 4 }}
                         onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
                         title={sortOrder === 'asc' ? 'Urutkan Z-A/Desc' : 'Urutkan A-Z/Asc'}
                       >
                         {sortOrder === 'asc' ? '⬆️' : '⬇️'}
                       </button>
-                      
+
                       <button
                         className="btn btn-icon"
                         onClick={handleToggleViewMode}
@@ -2092,10 +2213,16 @@ useEffect(() => {
                           <div
                             key={setList.id}
                             className={`setlist-card ${currentSetList === setList.id ? 'active' : ''}`}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
+                              setCurrentSetList(setList.id);
+                              setSetListForSongsPage(setList);
+                              setShowSetListSongsPage(true);
+                            }}
                           >
                             <div className="setlist-card-header">
                               <h3>📋 {setList.name}</h3>
-                              <div className="setlist-card-actions">
+                              <div className="setlist-card-actions" onClick={e => e.stopPropagation()}>
                                 <button
                                   className="btn btn-xs"
                                   onClick={(e) => {
@@ -2126,17 +2253,6 @@ useEffect(() => {
                                   title="Hapus Setlist"
                                 >
                                   🗑
-                                </button>
-                                <button
-                                  className="btn btn-xs btn-primary"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    setSetListForSongsPage(setList);
-                                    setShowSetListSongsPage(true);
-                                  }}
-                                  title="Lihat daftar lagu dalam setlist"
-                                >
-                                  🎼 Daftar Lagu
                                 </button>
                               </div>
                             </div>
@@ -2181,116 +2297,21 @@ useEffect(() => {
                         setShowSetListSongsPage(false);
                       }
                     }}
+                    onRemoveSongFromSetList={(setListId, songId) => {
+                      handleRemoveSongFromSetList(setListId, songId);
+                      // Force update setListForSongsPage to latest setList after removal
+                      setSetListForSongsPage(prev => {
+                        const updated = setLists.find(sl => sl.id === setListId);
+                        return updated || prev;
+                      });
+                    }}
                   />
                 )}
               </>
             ) : (
-              // Song Detail View
+
               <main className="main">
                 <>
-                  {selectedSong && !performanceMode && (
-                    <div className="controls controls-compact">
-                      {/* Transpose Group */}
-                      <button onClick={() => handleTranspose(-1)} className="btn btn-xs" title="Transpose turun (♭)">♭</button>
-                      <span className="transpose-value" style={{ minWidth: 32, textAlign: 'center' }} title="Nilai transpose">{transpose > 0 ? `+${transpose}` : transpose}</span>
-                      <button onClick={() => handleTranspose(1)} className="btn btn-xs" title="Transpose naik (♯)">♯</button>
-                      <button onClick={() => setTranspose(0)} className="btn btn-xs" title="Reset transpose">⟳</button>
-                      {/* Metronome Controls */}
-                      <span className="divider" />
-                      {/* Dark/Light Mode Toggle */}
-                      <button
-                        onClick={() => setDarkMode(d => !d)}
-                        className={`btn btn-xs ${darkMode ? 'btn-primary' : ''}`}
-                        title={darkMode ? 'Mode Terang' : 'Mode Gelap'}
-                        style={{ marginLeft: 4 }}
-                      >
-                        {darkMode ? '🌙 Gelap' : '☀️ Terang'}
-                      </button>
-                      {/* ...existing code... */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <button
-                          onClick={() => setMetronomeActive(a => !a)}
-                          className={`btn btn-xs ${metronomeActive ? 'btn-primary' : ''}`}
-                          title={metronomeActive ? 'Stop Metronome' : 'Start Metronome'}
-                        >
-                          {metronomeActive ? '⏹' : '🕒'}
-                        </button>
-                        <input
-                          type="range"
-                          min="40"
-                          max="220"
-                          step="1"
-                          value={metronomeBpm}
-                          onChange={e => setMetronomeBpm(Number(e.target.value))}
-                          style={{ width: 60 }}
-                          title="Tempo (BPM)"
-                          disabled={!metronomeActive}
-                        />
-                        <span style={{ minWidth: 36, textAlign: 'center', fontWeight: 600 }} title="Tempo (BPM)">{metronomeBpm} BPM</span>
-                        <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 6, marginLeft: 4, background: metronomeActive ? (metronomeTick ? '#f87171' : '#fbbf24') : '#ddd', transition: 'background 0.1s' }} />
-                      </div>
-                      {/* Auto Scroll Group */}
-                      <button
-                        onClick={() => setAutoScrollActive(!autoScrollActive)}
-                        className={`btn btn-xs ${autoScrollActive ? 'btn-primary' : ''}`}
-                        title={autoScrollActive ? 'Matikan Auto Scroll' : 'Aktifkan Auto Scroll'}
-                      >
-                        {autoScrollActive ? '⏸' : '▶'}
-                      </button>
-                      {autoScrollActive && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <button onClick={() => setScrollSpeed(Math.max(0.5, scrollSpeed - 0.5))} className="btn btn-xs" title="Kurangi kecepatan scroll">−</button>
-                          <input
-                            type="range"
-                            min="0.5"
-                            max="5"
-                            step="0.1"
-                            value={scrollSpeed}
-                            onChange={e => setScrollSpeed(Number(e.target.value))}
-                            style={{ width: 70, verticalAlign: 'middle' }}
-                            title="Geser untuk atur kecepatan scroll"
-                          />
-                          <span className="speed-value" style={{ minWidth: 32, textAlign: 'center', fontWeight: 600 }} title="Kecepatan scroll">{scrollSpeed.toFixed(1)}x</span>
-                          <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="btn btn-xs" title="Tambah kecepatan scroll">+</button>
-                        </div>
-                      )}
-                      <span className="divider" />
-                      {/* YouTube Toggle */}
-                      <button
-                        onClick={() => setShowYouTube(!showYouTube)}
-                        className={`btn btn-xs ${showYouTube ? 'btn-primary' : ''}`}
-                        title={showYouTube ? 'Sembunyikan YouTube' : 'Tampilkan YouTube'}
-                      >
-                        📺
-                      </button>
-                      {/* Print Button */}
-                      <button
-                        onClick={() => window.print()}
-                        className="btn btn-xs"
-                        title="Cetak/Print (PDF)"
-                      >
-                        🖨️
-                      </button>
-                      {/* Lyrics Mode Toggle */}
-                      <button
-                        onClick={() => setLyricsMode(!lyricsMode)}
-                        className={`btn btn-xs ${lyricsMode ? 'btn-primary' : ''}`}
-                        title={lyricsMode ? 'Tampilkan Chord' : 'Mode Lirik Saja'}
-                      >
-                        📝
-                      </button>
-                      {/* Performance Mode Toggle */}
-                      <button
-                        onClick={togglePerformanceMode}
-                        className={`btn btn-xs ${performanceMode ? 'btn-primary' : ''}`}
-                        title={performanceMode ? 'Exit Performance Mode' : 'Enter Performance Mode'}
-                      >
-                        🎭
-                      </button>
-                    </div>
-                  )}
-                  {/* Export/Import Chord Komunitas & Cloud Sync */}
-                  {/* Tombol Export/Import Chord dihapus, sudah ada di menu pengaturan */}
                   {!performanceMode && showYouTube && selectedSong?.youtubeId && (
                     <div className="youtube-section">
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
@@ -2299,21 +2320,18 @@ useEffect(() => {
                             type="checkbox"
                             checked={youtubeSync}
                             onChange={e => setYoutubeSync(e.target.checked)}
-                            style={{ marginRight: 6 }}
-                          />
+                            style={{ marginRight: 6 }} />
                           Sinkronisasi Auto-Scroll dengan YouTube
                         </label>
                       </div>
                       <YouTubeViewer
                         videoId={selectedSong.youtubeId}
                         onTimeUpdate={(t, d) => { setCurrentVideoTime(t); setVideoDuration(d); }}
-                        seekToTime={viewerSeekTo}
-                      />
+                        seekToTime={viewerSeekTo} />
                     </div>
                   )}
                   {/* Main content area with touch handlers for performance mode */}
-                  <div
-                    className="lyrics-section"
+                  <div className="lyrics-section"
                     ref={el => {
                       scrollRef.current = el;
                       lyricsSectionRef.current = el;
@@ -2325,31 +2343,6 @@ useEffect(() => {
                   >
                     {selectedSong ? (
                       <>
-                        {/* Tombol tambah ke setlist */}
-                        {!performanceMode && (
-                          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', justifyContent: 'flex-end' }}>
-                            <button
-                              onClick={() => {
-                                // Tampilkan popup setlist
-                                setShowSetListPopup(true);
-                                setSelectedSetListsForAdd(
-                                  setLists.filter(sl => sl.songs.includes(selectedSong.id)).map(sl => sl.id)
-                                );
-                              }}
-                              className="btn btn-sm btn-success"
-                              title="Tambah lagu ini ke setlist"
-                            >
-                              ➕ Tambah ke Setlist
-                            </button>
-                            <button
-                              onClick={() => handleEditSong(selectedSong)}
-                              className="btn btn-sm btn-primary"
-                              title="Edit lagu ini"
-                            >
-                              ✏️ Edit
-                            </button>
-                          </div>
-                        )}
                         {!performanceMode && (Array.isArray(selectedSong.timestamps) && selectedSong.timestamps.length > 0) && (
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', gap: '0.5rem' }}>
                             <strong style={{ color: 'var(--text)' }}>⏱️ Struktur Lagu</strong>
@@ -2379,8 +2372,7 @@ useEffect(() => {
                               type="checkbox"
                               checked={highlightChords}
                               onChange={e => setHighlightChords(e.target.checked)}
-                              style={{ marginRight: 6 }}
-                            />
+                              style={{ marginRight: 6 }} />
                             Highlight Chords
                           </label>
                         </div>
@@ -2393,8 +2385,7 @@ useEffect(() => {
                           lyricsMode={lyricsMode}
                           keyboardMode={keyboardMode}
                           // ...existing code...
-                          highlightChords={highlightChords}
-                        />
+                          highlightChords={highlightChords} />
                       </>
                     ) : (
                       <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
@@ -2405,8 +2396,7 @@ useEffect(() => {
                   <AutoScroll
                     isActive={autoScrollActive}
                     speed={scrollSpeed}
-                    scrollRef={scrollRef}
-                  />
+                    scrollRef={scrollRef} />
 
                   {/* Performance Mode Setlist Sidebar */}
                   {performanceMode && currentSetList && showSetlistView && (
@@ -2482,8 +2472,7 @@ useEffect(() => {
                             onChange={e => setMetronomeBpm(Number(e.target.value))}
                             style={{ width: 70 }}
                             title="Tempo (BPM)"
-                            disabled={!metronomeActive}
-                          />
+                            disabled={!metronomeActive} />
                           <span style={{ minWidth: 36, textAlign: 'center', fontWeight: 600 }} title="Tempo (BPM)">{metronomeBpm} BPM</span>
                           <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: 7, marginLeft: 4, background: metronomeActive ? (metronomeTick ? '#f87171' : '#fbbf24') : '#ddd', transition: 'background 0.1s' }} />
                         </div>
@@ -2540,8 +2529,7 @@ useEffect(() => {
                               value={scrollSpeed}
                               onChange={e => setScrollSpeed(Number(e.target.value))}
                               style={{ width: 90, verticalAlign: 'middle' }}
-                              title="Geser untuk atur kecepatan scroll"
-                            />
+                              title="Geser untuk atur kecepatan scroll" />
                             <span style={{ color: '#60a5fa', fontWeight: '600', minWidth: '45px', textAlign: 'center' }}>
                               {scrollSpeed.toFixed(1)}x
                             </span>

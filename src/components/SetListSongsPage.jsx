@@ -5,8 +5,9 @@ import React, { useEffect, useState } from 'react';
  * Props:
  *   - setList: objek setlist yang dipilih (berisi id, name, songs, songKeys, dst)
  *   - songs: array semua lagu (untuk lookup detail lagu)
+ *   - onRemoveSongFromSetList: function(setListId, songId) untuk hapus lagu dari setlist
  */
-export default function SetListSongsPage({ setList, songs, onBack, onSongClick }) {
+export default function SetListSongsPage({ setList, songs, onBack, onSongClick, onRemoveSongFromSetList }) {
   // Sorting state
   const [sortBy, setSortBy] = useState('no');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -133,7 +134,20 @@ export default function SetListSongsPage({ setList, songs, onBack, onSongClick }
           <h2 style={{ margin: 0, fontSize: 28, color: theme.header, letterSpacing: 1 }}>{setList.name}</h2>
         </div>
         <div style={{ fontSize: 16, color: theme.text, fontWeight: 500 }}>
-          Total: <span style={{ color: theme.header, fontWeight: 700 }}>{songList.length}</span> lagu
+          {(() => {
+            const completedCount = songList.filter(song => setList.completedSongs && song.id && setList.completedSongs[song.id]).length;
+            return (
+              <>
+                Total: <span style={{ color: theme.header, fontWeight: 700 }}>{songList.length}</span> lagu
+                {typeof completedCount === 'number' && (
+                  <>
+                    {' • '}
+                    <span style={{ color: theme.siap, fontWeight: 700 }}>✓ {completedCount}</span> selesai
+                  </>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
       <div style={{ overflowX: 'auto', borderRadius: 8, boxShadow: isDark ? '0 2px 8px rgba(0,0,0,0.24)' : '0 2px 8px rgba(0,0,0,0.04)' }}>
@@ -164,52 +178,76 @@ export default function SetListSongsPage({ setList, songs, onBack, onSongClick }
                 if (sortBy === 'style') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                 setSortBy('style');
               }}>Style{renderSortIcon('style')}</th>
-              <th style={{ padding: '10px 8px', borderBottom: `2px solid ${theme.border}`, textAlign: 'center', fontWeight: 700, color: theme.thText, cursor: 'pointer' }} onClick={() => {
-                if (sortBy === 'status') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                setSortBy('status');
-              }}>Status{renderSortIcon('status')}</th>
+              {/* Status column removed */}
+              <th style={{ padding: '10px 8px', borderBottom: `2px solid ${theme.border}`, textAlign: 'center', fontWeight: 700, color: theme.thText }}>Completed</th>
+              <th style={{ padding: '10px 8px', borderBottom: `2px solid ${theme.border}`, textAlign: 'center', fontWeight: 700, color: theme.thText }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {songList.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', color: '#888', padding: 32, background: theme.card }}>Belum ada lagu di setlist ini.</td></tr>
-            ) : songList.map((song, idx) => (
-              <tr key={song.id || idx} style={{ background: song.isPending ? theme.pending + '22' : idx % 2 === 0 ? theme.even : theme.odd }}>
-                <td style={{ textAlign: 'center', padding: '8px 0', color: theme.text, fontWeight: 600 }}>{song._idx + 1}</td>
-                <td style={{ padding: '8px 8px', fontWeight: 600 }}>
-                  {song.isPending ? (
-                    <span style={{ color: theme.pending }}>{song.title}</span>
-                  ) : (
-                    <button
-                      onClick={() => onSongClick && onSongClick(song.id)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: theme.header,
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: 'inherit',
-                        padding: 0,
-                      }}
-                    >
-                      {song.title}
-                    </button>
-                  )}
-                </td>
-                <td style={{ padding: '8px 8px', color: theme.text }}>{song.artist}</td>
-                <td style={{ textAlign: 'center', padding: '8px 0', color: theme.btn, fontWeight: 600 }}>{song.key}</td>
-                <td style={{ textAlign: 'center', padding: '8px 0', color: theme.header }}>{song.tempo}</td>
-                <td style={{ textAlign: 'center', padding: '8px 0', color: theme.text }}>{song.style}</td>
-                <td style={{ textAlign: 'center', padding: '8px 0' }}>
-                  {song.isPending ? (
-                    <span style={{ background: theme.pending, color: '#fff', borderRadius: 12, padding: '2px 12px', fontWeight: 600, fontSize: 14 }}>Pending</span>
-                  ) : (
-                    <span style={{ background: theme.siap, color: '#fff', borderRadius: 12, padding: '2px 12px', fontWeight: 600, fontSize: 14 }}>Siap</span>
-                  )}
-                </td>
-              </tr>
-            ))}
+              <tr><td colSpan={8} style={{ textAlign: 'center', color: '#888', padding: 32, background: theme.card }}>Belum ada lagu di setlist ini.</td></tr>
+            ) : songList.map((song, idx) => {
+                const isCompleted = setList.completedSongs && song.id && setList.completedSongs[song.id];
+                return (
+                  <tr key={song.id || idx} style={{ background: song.isPending ? theme.pending + '22' : idx % 2 === 0 ? theme.even : theme.odd }}>
+                    <td style={{ textAlign: 'center', padding: '8px 0', color: theme.text, fontWeight: 600 }}>{song._idx + 1}</td>
+                    <td style={{ padding: '8px 8px', fontWeight: 600 }}>
+                      {song.isPending ? (
+                        <span style={{ color: theme.pending }}>{song.title}</span>
+                      ) : (
+                        <button
+                          onClick={() => onSongClick && onSongClick(song.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: theme.header,
+                            textDecoration: 'underline',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: 'inherit',
+                            padding: 0,
+                          }}
+                        >
+                          {song.title}
+                        </button>
+                      )}
+                    </td>
+                    <td style={{ padding: '8px 8px', color: theme.text }}>{song.artist}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', color: theme.btn, fontWeight: 600 }}>{song.key}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', color: theme.header }}>{song.tempo}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', color: theme.text }}>{song.style}</td>
+                    <td style={{ textAlign: 'center', padding: '8px 0' }}>
+                      {isCompleted ? <span title="Completed" style={{ color: theme.siap, fontSize: 20 }}>✓</span> : ''}
+                    </td>
+                    <td style={{ textAlign: 'center', padding: '8px 0', minWidth: 80 }}>
+                      {!song.isPending && (
+                        <>
+                          <button
+                            title="Edit Lagu"
+                            style={{ background: 'none', border: 'none', color: theme.header, cursor: 'pointer', fontSize: 18, marginRight: 8 }}
+                            onClick={() => onSongClick && onSongClick(song.id)}
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            title="Hapus dari Setlist"
+                            style={{ background: 'none', border: 'none', color: '#e11d48', cursor: 'pointer', fontSize: 18 }}
+                            onClick={() => {
+                              if (window.confirm('Hapus lagu ini dari setlist?')) {
+                                if (typeof onRemoveSongFromSetList === 'function') {
+                                  onRemoveSongFromSetList(setList.id, song.id);
+                                }
+                              }
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>

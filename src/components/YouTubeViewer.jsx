@@ -112,10 +112,10 @@ const YouTubeViewer = ({ videoId, minimalControls = false, onTimeUpdate, seekToT
 
   const handleSeek = (value) => {
     const t = Math.max(0, Math.floor(Number(value) || 0));
-    setCurrentTime(t);
     if (player && typeof player.seekTo === 'function') {
       try { player.seekTo(t, true); } catch {}
     }
+    // Do not setCurrentTime here; let polling and external seek handle it for perfect sync
   };
 
   const id = extractYouTubeId(videoId);
@@ -127,7 +127,7 @@ const YouTubeViewer = ({ videoId, minimalControls = false, onTimeUpdate, seekToT
     );
   }
 
-  // Poll current time every 500ms when player is available
+  // Poll current time every 200ms when player is available (smoother sync)
   useEffect(() => {
     if (!player) return;
     const interval = setInterval(() => {
@@ -140,7 +140,7 @@ const YouTubeViewer = ({ videoId, minimalControls = false, onTimeUpdate, seekToT
           try { onTimeUpdate(Number.isFinite(t) ? t : 0, Number.isFinite(d) ? d : 0); } catch {}
         }
       } catch {}
-    }, 500);
+    }, 200);
     return () => clearInterval(interval);
   }, [player]);
 
