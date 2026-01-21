@@ -39,6 +39,8 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     lyrics: '',
     timestamps: []
   });
+  // Lyrics history for undo
+  const [lyricsHistory, setLyricsHistory] = useState([]);
   const [errors, setErrors] = useState({});
   const [tapTimes, setTapTimes] = useState([]);
   const [bpm, setBpm] = useState(null);
@@ -93,11 +95,16 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       }
     }
 
+    // Store previous lyrics for undo
+    if (name === 'lyrics') {
+      setLyricsHistory(prev => [formData.lyrics, ...prev].slice(0, 20)); // keep max 20 history
+    }
+
     setFormData(prev => ({ ...prev, [name]: newValue }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
-    
+
     // Detect format when lyrics change
     if (name === 'lyrics' && newValue.trim()) {
       const hasChordProMarkup = newValue.includes('[') && newValue.includes(']') || newValue.match(/^\{[^}]+\}/m);
@@ -716,22 +723,30 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
     let chordLines = [];
     let lyricLines = [];
 
+    // Support numbered sections (e.g., Intro 1, Verse 2, etc)
     const sectionPatterns = {
-      intro: /\{start_of_intro\}|\[intro\]|^intro\s*:?/i,
-      verse: /\{start_of_verse\}|\[verse\]|^verse\s*:?/i,
-      chorus: /\{start_of_chorus\}|\[chorus\]|^chorus\s*:?/i,
-      bridge: /\{start_of_bridge\}|\[bridge\]|^bridge\s*:?/i,
-      outro: /\{start_of_outro\}|\[outro\]|^outro\s*:?/i,
-      pre_chorus: /\{start_of_pre_chorus\}|\[pre_chorus\]|^pre.?chorus\s*:?/i
+      intro: /\{start_of_intro\}|\[intro(\s*\d+)?\]|^intro(\s*\d+)?\s*:?/i,
+      verse: /\{start_of_verse\}|\[verse(\s*\d+)?\]|^verse(\s*\d+)?\s*:?/i,
+      chorus: /\{start_of_chorus\}|\[chorus(\s*\d+)?\]|^chorus(\s*\d+)?\s*:?/i,
+      bridge: /\{start_of_bridge\}|\[bridge(\s*\d+)?\]|^bridge(\s*\d+)?\s*:?/i,
+      outro: /\{start_of_outro\}|\[outro(\s*\d+)?\]|^outro(\s*\d+)?\s*:?/i,
+      pre_chorus: /\{start_of_pre_chorus\}|\[pre_chorus(\s*\d+)?\]|^pre.?chorus(\s*\d+)?\s*:?/i,
+      interlude: /\{start_of_interlude\}|\[interlude(\s*\d+)?\]|^interlude(\s*\d+)?\s*:?/i
     };
 
-    const sectionLabels = {
-      intro: 'Intro:',
-      verse: 'Verse:',
-      chorus: 'Chorus:',
-      bridge: 'Bridge:',
-      outro: 'Outro:',
-      pre_chorus: 'Pre-Chorus:'
+    // Function to generate section label with number if present
+    const getSectionLabel = (sectionKey, line) => {
+      const numMatch = line.match(/(\d+)/);
+      const baseLabel = {
+        intro: 'Intro',
+        verse: 'Verse',
+        chorus: 'Chorus',
+        bridge: 'Bridge',
+        outro: 'Outro',
+        pre_chorus: 'Pre-Chorus',
+        interlude: 'Interlude'
+      }[sectionKey] || sectionKey;
+      return numMatch ? `${baseLabel} ${numMatch[1]}:` : `${baseLabel}:`;
     };
 
     // Skip metadata lines
@@ -751,6 +766,23 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       const line = lines[i];
       const trimmed = line.trim();
 
+      // Treat lines with only whitespace as empty lines
+      if (trimmed === '') {
+        // Flush previous section if any content
+        if (chordLines.length > 0 || lyricLines.length > 0) {
+          if (currentSection) result.push(currentSection);
+          for (let j = 0; j < Math.max(chordLines.length, lyricLines.length); j++) {
+            if (chordLines[j]) result.push(chordLines[j]);
+            if (lyricLines[j]) result.push(lyricLines[j]);
+          }
+          chordLines = [];
+          lyricLines = [];
+        }
+        result.push('');
+        currentSection = '';
+        continue;
+      }
+
       // Check for section markers
       let foundSection = false;
       for (const [sectionKey, pattern] of Object.entries(sectionPatterns)) {
@@ -765,7 +797,7 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
             chordLines = [];
             lyricLines = [];
           }
-          currentSection = sectionLabels[sectionKey];
+          currentSection = getSectionLabel(sectionKey, trimmed);
           foundSection = true;
           break;
         }
@@ -830,7 +862,9 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
       }
     }
 
-    setFormData(prev => ({ ...prev, lyrics: result.join('\n') }));
+    // Preserve empty lines exactly as in result
+    setLyricsHistory(prev => [formData.lyrics, ...prev].slice(0, 20));
+    setFormData(prev => ({ ...prev, lyrics: result.map(l => l === '' ? '' : l).join('\n') }));
   };
 
   // Text cleaning functions
@@ -1332,6 +1366,20 @@ const SongFormBaru = ({ song, onSave, onCancel }) => {
                       </div>
                     )}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (lyricsHistory.length > 0) {
+                        setFormData(prev => ({ ...prev, lyrics: lyricsHistory[0] }));
+                        setLyricsHistory(prev => prev.slice(1));
+                      }
+                    }}
+                    className="btn btn-sm"
+                    disabled={lyricsHistory.length === 0}
+                    title={lyricsHistory.length === 0 ? 'Undo tidak tersedia' : 'Kembalikan lirik sebelumnya'}
+                  >
+                    ↩️ Undo
+                  </button>
                   <button type="button" onClick={() => setShowTranscribe(true)} className="btn btn-sm">
                     🎤 Transkripsi
                   </button>
