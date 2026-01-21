@@ -1933,8 +1933,7 @@ html.dark-mode .header {
   line-height: 1.4;
   text-shadow: 0 2px 8px rgba(244, 114, 182, 0.4), 0 0 20px rgba(244, 114, 182, 0.2);
   min-height: 1.4em;
-  transition: var(--transition);
-  letter-spacing: 0.5px;
+  transition: var(--transition);  
 }
 
 /* ===== Lyrics Mode Style ===== */

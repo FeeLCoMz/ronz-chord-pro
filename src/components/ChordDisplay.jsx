@@ -279,8 +279,7 @@ const ChordDisplay = ({ song, transpose = 0, performanceMode = false, performanc
             <span
               key={`chord-${idx}`}
               className={`keyboard-chord${highlightChords ? ' inline-chord-highlight' : ''}`}
-              onClick={() => setSelectedChord(transposedChord)}
-              style={{ cursor: 'pointer', fontWeight: 'bold', color: '#4da6ff', padding: '0 2px', borderRadius: '3px', transition: 'all 0.2s' }}
+              onClick={() => setSelectedChord(transposedChord)}              
               title="Click to see voicing options"
             >
               {transposedChord}
