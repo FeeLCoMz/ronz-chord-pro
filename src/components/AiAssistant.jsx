@@ -25,9 +25,29 @@ export default function AiAssistant({ song, onClose }) {
     setLoading(false);
   };
 
+  const openGemini = () => {
+    let q = '';
+    if (song && song.title) q += song.title;
+    if (song && song.artist) q += (q ? ' ' : '') + song.artist;
+    const url = q
+      ? `https://gemini.google.com/?q=${encodeURIComponent(q)}`
+      : 'https://gemini.google.com/';
+    window.open(url, '_blank', 'noopener');
+  };
+
   return (
     <div style={{ padding: 16 }}>
-      <h3 style={{ marginBottom: 8 }}>💬 Chat AI Lagu</h3>
+      <h3 style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+        💬 Chat AI Lagu
+        <button
+          className="btn btn-sm btn-secondary"
+          style={{ marginLeft: 8 }}
+          onClick={openGemini}
+          title="Buka Gemini di tab baru"
+        >
+          Buka Gemini
+        </button>
+      </h3>
       {song && (
         <div style={{ fontSize: '0.95em', marginBottom: 12, color: '#888' }}>
           <b>{song.title}</b> <span style={{ color: '#aaa' }}>by {song.artist}</span>
