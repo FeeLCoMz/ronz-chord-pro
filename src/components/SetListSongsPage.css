@@ -1,9 +1,13 @@
+
+/* Container */
 .setlist-songs-container {
-  padding: var(--gap-lg) 0;
   max-width: 900px;
   margin: 0 auto;
+  padding: var(--gap-lg) 0;
   border-radius: var(--border-radius);
 }
+
+/* Header */
 .setlist-songs-header {
   display: flex;
   align-items: center;
@@ -15,11 +19,15 @@
   align-items: center;
   gap: var(--gap-md);
 }
+
+/* Table Container */
 .setlist-songs-table-container {
   overflow-x: auto;
   border-radius: var(--border-radius);
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
+
+/* Table */
 .setlist-songs-table {
   width: 100%;
   border-collapse: collapse;
@@ -34,8 +42,8 @@
 .setlist-songs-table th {
   font-weight: 700;
   color: var(--color-primary);
-  cursor: pointer;
   background: var(--color-bg-alt);
+  cursor: pointer;
 }
 .setlist-songs-table td {
   color: var(--color-text);
@@ -55,6 +63,8 @@
 .setlist-songs-table tr.odd {
   background: var(--odd, #fff);
 }
+
+/* Song Title Button */
 .setlist-songs-table .song-title-btn {
   background: none;
   border: none;
@@ -65,18 +75,20 @@
   font-size: inherit;
   padding: 0;
 }
+
+/* Key Input */
 .setlist-songs-table .key-tampil-input {
   width: 60px;
   text-align: center;
   border: 1px solid var(--border, #e5e7eb);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--text, #334155);
+  border-radius: 4px;    
   font-weight: 600;
   font-size: 15px;
   outline: none;
   padding: 2px 4px;
 }
+
+/* Action Button */
 .setlist-songs-table .aksi-btn {
   background: none;
   border: none;
@@ -88,10 +100,14 @@
   color: #e11d48;
   margin-right: 0;
 }
+
+/* Completed Check */
 .setlist-songs-table .completed-check {
   color: #22c55e;
   font-size: 20px;
 }
+
+/* Drag Handle */
 .setlist-songs-table .drag-handle {
   font-size: 12px;
   color: #888;

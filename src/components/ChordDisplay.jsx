@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { parseChordPro, transposeChord, getAllChords } from '../utils/chordUtils';
 import { parseMelodyString, transposeMelody, formatNoteDisplay, extractMelodyFromLyrics } from '../utils/musicNotationUtils';
 import KeyboardVoicingModal from './KeyboardVoicingModal';
+import './ChordDisplay.css';
 
 const ChordDisplay = ({ song, transpose = 0, performanceMode = false, performanceFontSize = 100, performanceTheme = 'dark-stage', lyricsMode = false, keyboardMode = false, highlightChords = false }) => {
   const [selectedChord, setSelectedChord] = useState(null);
@@ -244,91 +245,43 @@ const ChordDisplay = ({ song, transpose = 0, performanceMode = false, performanc
       return <div key={index} className="structure-marker structure-end"></div>;
     }
     
-    if (lineData.type === 'line_with_chords') {
-      // If there's no lyric text but we have barText (e.g., "Am | F | Bdim | Am |"), render as inline bar line only
-      if (!lineData.text && lineData.barText) {
-        return (
-          <div key={index} className="lyrics-line">
-            <div className="text-line">{renderTextWithBrackets(lineData.barText)}</div>
-          </div>
+    if (lineData.type === 'line_with_chords' || lineData.type === 'line_with_chords_aligned') {
+      // Always render barText (chord bar line) above lyric line if available
+      let barLine = null;
+      if (lineData.barText) {
+        barLine = (
+          <div className="bar-line-row">{renderTextWithBrackets(lineData.barText)}</div>
         );
       }
 
-      const barSource = lineData.barText || lineData.text || '';
-      const chordLine = [];
-      let currentPos = 0;
-      
-      lineData.chords.forEach(({ chord, position }, idx) => {
-        const spacesNeeded = position - currentPos;
-        if (spacesNeeded > 0) {
-          const spacesText = '\u00A0'.repeat(spacesNeeded);
-          // Check if spaces contain bar lines
-          const textBeforeChord = barSource.substring(currentPos, position);
-          if (textBeforeChord.includes('|')) {
-            const parts = spacesText.split('');
-            let barPositions = [];
-            for (let i = 0; i < textBeforeChord.length; i++) {
-              if (textBeforeChord[i] === '|') {
-                barPositions.push(i);
-              }
-            }
-            
-            if (barPositions.length > 0) {
-              let lastPos = 0;
-              barPositions.forEach((barPos, bIdx) => {
-                if (barPos > lastPos) {
-                  chordLine.push(
-                    <span key={`space-${idx}-${bIdx}`} className="chord-space">
-                      {'\u00A0'.repeat(barPos - lastPos)}
-                    </span>
-                  );
-                }
-                chordLine.push(
-                  <span key={`bar-chord-${idx}-${bIdx}`} className="bar-line">
-                    |
-                  </span>
-                );
-                lastPos = barPos + 1;
-              });
-              if (lastPos < spacesNeeded) {
-                chordLine.push(
-                  <span key={`space-${idx}-end`} className="chord-space">
-                    {'\u00A0'.repeat(spacesNeeded - lastPos)}
-                  </span>
-                );
-              }
-            } else {
-              chordLine.push(
-                <span key={`space-${idx}`} className="chord-space">
-                  {spacesText}
-                </span>
-              );
-            }
-          } else {
+      let chordLine = [];
+      if (lineData.type === 'line_with_chords_aligned' && Array.isArray(lineData.chords)) {
+        // Render chord aligned to each lyric character
+        chordLine = lineData.chords.map((chord, idx) =>
+          chord ? (
+            <span
+              key={`chord-${idx}`}
+              className={`chord${highlightChords ? ' inline-chord-highlight' : ''}`}
+              style={{ position: 'absolute', left: `calc(${idx}ch + 2px)` }}
+            >
+              {transposeChord(chord, transpose)}
+            </span>
+          ) : null
+        );
+      } else if (Array.isArray(lineData.chords)) {
+        // Fallback: original rendering for line_with_chords
+        const barSource = lineData.barText || lineData.text || '';
+        let currentPos = 0;
+        lineData.chords.forEach(({ chord, position }, idx) => {
+          const spacesNeeded = position - currentPos;
+          if (spacesNeeded > 0) {
             chordLine.push(
               <span key={`space-${idx}`} className="chord-space">
-                {spacesText}
+                {'\u00A0'.repeat(spacesNeeded)}
               </span>
             );
           }
-        }
-        
-        const transposedChord = transposeChord(chord, transpose);
-        
-        if (keyboardMode) {
-          // Keyboard mode: clickable chord with voicing modal
-          chordLine.push(
-            <span
-              key={`chord-${idx}`}
-              className={`keyboard-chord${highlightChords ? ' inline-chord-highlight' : ''}`}
-              onClick={() => setSelectedChord(transposedChord)}              
-              title="Click to see voicing options"
-            >
-              {transposedChord}
-            </span>
-          );
-        } else {
-          // Normal mode: just display chord
+          const transposedChord = transposeChord(chord, transpose);
           chordLine.push(
             <span
               key={`chord-${idx}`}
@@ -337,19 +290,16 @@ const ChordDisplay = ({ song, transpose = 0, performanceMode = false, performanc
               {transposedChord}
             </span>
           );
-        }
-        
-        currentPos = position + chord.length;
-      });
-      
-      // Process text with bar lines
+          currentPos = position + chord.length;
+        });
+      }
+
+      // Process text with bar lines (for lyric line)
       const textParts = [];
-      // Only render bars in the text line when the lyric line itself contains them to avoid duplicating the chord bar row
       const textWithBars = lineData.text || '';
       const barRegex = /(\|:?:?\|?)/g;
       let lastIndex = 0;
       let match;
-      
       while ((match = barRegex.exec(textWithBars)) !== null) {
         if (match.index > lastIndex) {
           const textSegment = textWithBars.substring(lastIndex, match.index);
@@ -366,7 +316,6 @@ const ChordDisplay = ({ song, transpose = 0, performanceMode = false, performanc
         );
         lastIndex = match.index + match[0].length;
       }
-      
       if (lastIndex < textWithBars.length) {
         const textSegment = textWithBars.substring(lastIndex);
         textParts.push(
@@ -375,10 +324,14 @@ const ChordDisplay = ({ song, transpose = 0, performanceMode = false, performanc
           </span>
         );
       }
-      
+
       return (
         <div key={index} className="lyrics-line">
-          {!lyricsMode && <div className="chord-line">{chordLine}</div>}
+          {barLine}
+          {/* Hanya render chordLine jika type-nya line_with_chords_aligned (untuk mode align khusus),
+              atau jika barLine tidak ada (untuk fallback lama) */}
+          {!lyricsMode && !barLine && <div className="chord-line">{chordLine}</div>}
+          {!lyricsMode && lineData.type === 'line_with_chords_aligned' && <div className="chord-line">{chordLine}</div>}
           <div className="text-line">
             {textParts.length > 0 ? textParts : renderTextWithBrackets(lineData.text)}
           </div>
