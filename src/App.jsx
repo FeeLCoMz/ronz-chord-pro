@@ -39,6 +39,7 @@ import BatchProcessingModal from './components/BatchProcessingModal';
 import SongListItem from './components/SongListItem';
 import SettingsModal from './components/SettingsModal';
 import ToastContainer from './components/ToastContainer';
+import HeaderMenuDropdown from './components/HeaderMenuDropdown';
 import {
   useKeyboardShortcuts,
   useToast, usePerformanceMode
@@ -1660,34 +1661,36 @@ function App() {
 
         {!performanceMode && (
           <header className="header">
-            <div className="header-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h1>🎸 RoNz Chord Pro</h1>
-                <p>Professional Chord & Lyrics App</p>
+            <div className="header-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>🎸 RoNz Chord Pro</h1>
+                <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>Professional Chord & Lyrics App</span>
               </div>
               {!performanceMode && (
-                <nav className="nav-panel">
-                  <button
-                    className={`nav-btn ${activeNav === 'songs' ? 'active' : ''}`}
-                    onClick={() => setActiveNav('songs')}
-                  >
-                    📋 Lagu
-                  </button>
-                  <button
-                    className={`nav-btn ${activeNav === 'setlists' ? 'active' : ''}`}
-                    onClick={() => setActiveNav('setlists')}
-                  >
-                    🎵 Setlist
-                  </button>
-                  {selectedSong && (
+                <nav className="nav-panel" style={{ background: 'none', border: 'none', padding: 0, gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 4 }}>
                     <button
-                      className="nav-btn active"
-                      onClick={() => setSelectedSong(null)}
-                      title="Kembali ke daftar"
+                      className={`nav-btn ${activeNav === 'songs' ? 'active' : ''}`}
+                      onClick={() => setActiveNav('songs')}
                     >
-                      ← Kembali
+                      📋 Lagu
                     </button>
-                  )}
+                    <button
+                      className={`nav-btn ${activeNav === 'setlists' ? 'active' : ''}`}
+                      onClick={() => setActiveNav('setlists')}
+                    >
+                      🎵 Setlist
+                    </button>
+                    {selectedSong && (
+                      <button
+                        className="nav-btn active"
+                        onClick={() => setSelectedSong(null)}
+                        title="Kembali ke daftar"
+                      >
+                        ← Kembali
+                      </button>
+                    )}
+                  </div>
                   {keyboardMode && (
                     <span
                       className="keyboard-mode-badge"
@@ -1702,49 +1705,22 @@ function App() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px',
-                        border: '1px solid #4da6ff'
+                        border: '1px solid #4da6ff',
+                        marginLeft: 8
                       }}
                     >
                       🎹 Keyboardist
                     </span>
                   )}
-
                 </nav>
               )}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <button
-                  className="nav-btn"
-                  onClick={() => setDarkMode(!darkMode)}
-                  title={darkMode ? 'Light Mode' : 'Dark Mode'}
-                  style={{ fontSize: 22 }}
-                >
-                  {darkMode ? '☀️' : '🌙'}
-                </button>
-                <button
-                  className="nav-btn"
-                  onClick={() => setShowSettingsMenu(true)}
-                  title="Pengaturan"
-                  style={{ fontSize: 20 }}
-                >
-                  ⚙️
-                </button>
-                <button
-                  className="nav-btn"
-                  onClick={() => setShowHelp(true)}
-                  title="Bantuan & Panduan"
-                  style={{ fontSize: 20 }}
-                >
-                  ❓
-                </button>
-                <button
-                  className="nav-btn"
-                  onClick={() => setShowKeyboardHelp(true)}
-                  title="Keyboard Shortcuts (? or Shift+?)"
-                  style={{ fontSize: 20 }}
-                >
-                  ⌨️
-                </button>
-              </div>
+              <HeaderMenuDropdown
+                onToggleDarkMode={() => setDarkMode(!darkMode)}
+                darkMode={darkMode}
+                onShowSettings={() => setShowSettingsMenu(true)}
+                onShowHelp={() => setShowHelp(true)}
+                onShowShortcuts={() => setShowKeyboardHelp(true)}
+              />
             </div>
           </header>
         )}
