@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import ChordDisplay from './components/ChordDisplay.jsx';
+import SetListSongsPage from './components/SetListSongsPage.jsx';
 
 function App() {
   const [tab, setTab] = useState('songs');
@@ -12,6 +13,8 @@ function App() {
   const [errorSongs, setErrorSongs] = useState(null);
   const [errorSetlists, setErrorSetlists] = useState(null);
   const [selectedSong, setSelectedSong] = useState(null);
+  const [activeSetlist, setActiveSetlist] = useState(null);
+  const [activeSetlistSongIdx, setActiveSetlistSongIdx] = useState(0);
 
   useEffect(() => {
     setLoadingSongs(true);
@@ -37,73 +40,109 @@ function App() {
   );
 
   return (
-    <div className="app-blank-layout">
-      <header className="app-header">
-        <h1 className="app-title">🎸 RoNz Chord Pro</h1>
-        <div className="app-subtitle">Aplikasi Chord & Lirik - Desain Baru</div>
-        <div className="tab-nav">
-          <button onClick={() => setTab('songs')} className={tab === 'songs' ? 'tab-btn active' : 'tab-btn'}>Lagu</button>
-          <button onClick={() => setTab('setlists')} className={tab === 'setlists' ? 'tab-btn active' : 'tab-btn'}>Setlist</button>
-        </div>
-      </header>
-      <main className="main-content">
-        {tab === 'songs' && (
-          <>
-            <div className="section-title">Lagu</div>
-            <input
-              type="text"
-              placeholder="Cari judul atau artist..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="search-input"
-            />
-            {loadingSongs && <div className="info-text">Memuat daftar lagu...</div>}
-            {errorSongs && <div className="error-text">{errorSongs}</div>}
-            {!selectedSong ? (
-              <ul className="song-list">
-                {!loadingSongs && !errorSongs && filteredSongs.length === 0 && (
-                  <li className="info-text">Tidak ada lagu ditemukan.</li>
-                )}
-                {filteredSongs.map(song => (
-                  <li
-                    key={song.id}
-                    className="song-list-item"
-                    onClick={() => setSelectedSong(song)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <span className="song-title">{song.title}</span>
-                    <span className="song-artist">{song.artist}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="song-detail-view">
-                <button className="back-btn" onClick={() => setSelectedSong(null)}>&larr; Kembali ke daftar</button>
-                <ChordDisplay song={selectedSong} />
-              </div>
+    <>
+      {!selectedSong && !activeSetlist && (
+        <>
+          <header className="app-header">
+            <h1 className="app-title">🎸 RoNz Chord Pro</h1>
+            <div className="app-subtitle">Aplikasi Chord & Lirik - Desain Baru</div>
+            <div className="tab-nav">
+              <button onClick={() => setTab('songs')} className={tab === 'songs' ? 'tab-btn active' : 'tab-btn'}>Lagu</button>
+              <button onClick={() => setTab('setlists')} className={tab === 'setlists' ? 'tab-btn active' : 'tab-btn'}>Setlist</button>
+            </div>
+          </header>
+          <main className="main-content">
+            {tab === 'songs' && (
+              <>
+                <div className="section-title">Lagu</div>
+                <input
+                  type="text"
+                  placeholder="Cari judul atau artist..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="search-input"
+                />
+                {loadingSongs && <div className="info-text">Memuat daftar lagu...</div>}
+                {errorSongs && <div className="error-text">{errorSongs}</div>}
+                <ul className="song-list">
+                  {!loadingSongs && !errorSongs && filteredSongs.length === 0 && (
+                    <li className="info-text">Tidak ada lagu ditemukan.</li>
+                  )}
+                  {filteredSongs.map(song => (
+                    <li
+                      key={song.id}
+                      className="song-list-item"
+                      onClick={() => setSelectedSong(song)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <span className="song-title">{song.title}</span>
+                      <span className="song-artist">{song.artist}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
-          </>
-        )}
-        {tab === 'setlists' && (
-          <>
-            <div className="section-title">Setlist</div>
-            {loadingSetlists && <div className="info-text">Memuat setlist...</div>}
-            {errorSetlists && <div className="error-text">{errorSetlists}</div>}
-            <ul className="setlist-list">
-              {!loadingSetlists && !errorSetlists && setlists.length === 0 && (
-                <li className="info-text">Belum ada setlist.</li>
-              )}
-              {setlists.map(setlist => (
-                <li key={setlist.id} className="setlist-list-item">
-                  <span className="setlist-title">{setlist.name}</span>
-                  <span className="setlist-count">{(setlist.songs?.length || 0)} lagu</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </main>
-    </div>
+            {tab === 'setlists' && (
+              <>
+                <div className="section-title">Setlist</div>
+                {loadingSetlists && <div className="info-text">Memuat setlist...</div>}
+                {errorSetlists && <div className="error-text">{errorSetlists}</div>}
+                <ul className="setlist-list">
+                  {!loadingSetlists && !errorSetlists && setlists.length === 0 && (
+                    <li className="info-text">Belum ada setlist.</li>
+                  )}
+                  {setlists.map(setlist => (
+                    <li key={setlist.id} className="setlist-list-item">
+                      <span className="setlist-title">{setlist.name}</span>
+                      <span className="setlist-count">{(setlist.songs?.length || 0)} lagu</span>
+                      <button
+                        className="aksi-btn"
+                        style={{ marginLeft: 12 }}
+                        onClick={() => {
+                          setActiveSetlist(setlist);
+                          setActiveSetlistSongIdx(0);
+                        }}
+                      >Tampil</button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </main>
+        </>
+      )}
+      {selectedSong && (
+        <div className="song-detail-fullscreen">
+          <button className="back-btn" onClick={() => setSelectedSong(null)}>&larr; Kembali ke daftar</button>
+          <ChordDisplay song={selectedSong} />
+        </div>
+      )}
+      {activeSetlist && (
+        <div className="song-detail-fullscreen">
+          <button className="back-btn" onClick={() => setActiveSetlist(null)}>&larr; Kembali ke setlist</button>
+          {/* Navigasi antar lagu dalam setlist */}
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 18, marginBottom: 18 }}>
+            <button
+              className="aksi-btn"
+              disabled={activeSetlistSongIdx <= 0}
+              onClick={() => setActiveSetlistSongIdx(idx => Math.max(0, idx - 1))}
+            >⟨ Sebelumnya</button>
+            <span style={{ fontWeight: 700, fontSize: '1.1em' }}>
+              {activeSetlist.songs && activeSetlist.songs.length > 0
+                ? `${activeSetlistSongIdx + 1} / ${activeSetlist.songs.length}`
+                : '0 / 0'}
+            </span>
+            <button
+              className="aksi-btn"
+              disabled={activeSetlistSongIdx >= (activeSetlist.songs?.length || 1) - 1}
+              onClick={() => setActiveSetlistSongIdx(idx => Math.min((activeSetlist.songs?.length || 1) - 1, idx + 1))}
+            >Berikutnya ⟩</button>
+          </div>
+          {/* Tampilkan lirik lagu aktif dalam setlist */}
+          <ChordDisplay song={songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx])} />
+        </div>
+      )}
+    </>
   );
 }
 

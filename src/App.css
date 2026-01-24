@@ -321,6 +321,32 @@ body {
   border: 1.5px solid var(--primary-accent-dark);
   outline: none;
 }
+/* Back button for fullscreen lyric view */
+.song-detail-fullscreen .back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.12em;
+  font-weight: 700;
+  padding: 10px 22px 10px 16px;
+  margin-bottom: 28px;
+  margin-top: 2px;
+  cursor: pointer;
+  box-shadow: 0 1px 8px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+  position: relative;
+  z-index: 101;
+}
+.song-detail-fullscreen .back-btn:hover, .song-detail-fullscreen .back-btn:focus {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
 /* Redesigned song metadata/info badges */
 .chord-display .song-info-section {
   display: flex;
@@ -349,6 +375,57 @@ body {
   font-weight: 700;
   margin-right: 4px;
   font-size: 0.98em;
+}
+/* Tampil button in setlist list */
+.setlist-list-item .aksi-btn {
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 700;
+  padding: 8px 18px 8px 14px;
+  margin-left: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+  position: relative;
+  z-index: 1;
+}
+.setlist-list-item .aksi-btn:hover, .setlist-list-item .aksi-btn:focus {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
+/* Navigasi antar lagu dalam setlist performance mode */
+.song-detail-fullscreen .aksi-btn {
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.12em;
+  font-weight: 700;
+  padding: 10px 22px 10px 16px;
+  margin: 0 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 8px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+  position: relative;
+  z-index: 101;
+}
+.song-detail-fullscreen .aksi-btn:disabled {
+  background: #23243a;
+  color: #888;
+  border: 1.5px solid #23243a;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.song-detail-fullscreen .aksi-btn:hover:not(:disabled), .song-detail-fullscreen .aksi-btn:focus:not(:disabled) {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
 }
 @media (max-width: 600px) {
   .app-title {
