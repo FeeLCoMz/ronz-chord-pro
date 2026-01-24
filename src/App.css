@@ -1,3 +1,250 @@
+/* Flex header content */
+.flex-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.header-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.nav-btn-group {
+  display: flex;
+  gap: 4px;
+}
+
+.keyboard-mode-badge {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: #4da6ff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #4da6ff;
+  margin-left: 8px;
+}
+
+.transpose-value,
+.speed-value {
+  min-width: 32px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.metronome-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.metronome-bpm {
+  min-width: 36px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.metronome-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  margin-left: 4px;
+  background: #ddd;
+  transition: background 0.1s;
+}
+
+.metronome-indicator.active1 {
+  background: #f87171;
+}
+
+.metronome-indicator.active2 {
+  background: #fbbf24;
+}
+
+.scroll-speed-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.divider {
+  display: inline-block;
+  width: 1px;
+  height: 24px;
+  background: var(--border-light, #334155);
+  margin: 0 8px;
+}
+
+.setlist-info-bar {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-pending-remove-all {
+  background: #ff922b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.pending-song-section {
+  grid-column: 1 / -1;
+  padding: 1rem 0;
+  border-top: 2px solid var(--border);
+  margin-top: 1rem;
+}
+
+.pending-song-title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.pending-song-card {
+  padding: 1rem;
+  border: 2px dashed var(--primary);
+  border-radius: 0.5rem;
+  background-color: var(--card-hover);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pending-song-name {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.pending-song-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.pending-song-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.flex1 {
+  flex: 1;
+}
+
+.no-song-selected {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+}
+
+.performance-controls {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.performance-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.performance-metronome-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+}
+
+.runtime-error-toast-container {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 420px;
+}
+
+.runtime-error-toast {
+  background: rgba(31, 41, 55, 0.95);
+  color: #f8fafc;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  backdrop-filter: blur(8px);
+}
+
+.runtime-error-toast-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.runtime-error-title {
+  color: #f472b6;
+}
+
+.runtime-error-dismiss {
+  background: transparent;
+  color: #e2e8f0;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.runtime-error-message {
+  margin-top: 0.25rem;
+  font-size: 0.95rem;
+  color: #e2e8f0;
+}
+
+.runtime-error-detail {
+  margin-top: 0.5rem;
+  max-height: 160px;
+  overflow: auto;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
 /* ===== RoNz Chord Pro Main Styles ===== */
 
 :root {
@@ -249,7 +496,8 @@ body {
   border-bottom: none;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
   position: relative;
-  overflow: visible; /* allow dropdown to overflow header */
+  overflow: visible;
+  /* allow dropdown to overflow header */
 }
 
 .header::before {
@@ -267,8 +515,10 @@ body {
 .header-content {
   position: relative;
   z-index: 2;
-  overflow: visible; /* allow dropdown to overflow header-content */
+  overflow: visible;
+  /* allow dropdown to overflow header-content */
 }
+
 /* Header menu dropdown fix */
 .header-menu-dropdown-list {
   z-index: 9999 !important;
@@ -383,6 +633,10 @@ html.dark-mode .header {
 }
 
 @media (max-width: 640px) {
+  .header-content {
+    flex-direction: column;
+  }
+
   .view-header {
     flex-direction: column;
     align-items: flex-start;
@@ -1695,7 +1949,7 @@ html.dark-mode .header {
   line-height: 1.4;
   text-shadow: 0 2px 8px rgba(244, 114, 182, 0.4), 0 0 20px rgba(244, 114, 182, 0.2);
   min-height: 1.4em;
-  transition: var(--transition);  
+  transition: var(--transition);
 }
 
 /* ===== Lyrics Mode Style ===== */
@@ -1728,7 +1982,7 @@ html.dark-mode .header {
 
 .inline-chord-highlight {
   background: linear-gradient(120deg, rgba(244, 114, 182, 0.18), rgba(217, 70, 239, 0.18));
-  color: var(--chord);  
+  color: var(--chord);
   border-radius: 3px;
   font-weight: 800;
   border: 1px solid rgba(244, 114, 182, 0.25);
@@ -2113,7 +2367,7 @@ html.dark-mode .header {
   border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
-  align-items: center;  
+  align-items: center;
   top: 0;
   background: var(--card);
   z-index: 10;
@@ -2510,47 +2764,60 @@ html.dark-mode .header {
   .header {
     padding: var(--gap-lg) var(--gap-md);
   }
+
   .header-content h1 {
     font-size: 1.5rem;
   }
+
   .header-content p {
     font-size: 0.85rem;
   }
+
   .container {
     flex-direction: column;
   }
+
   .sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
+
   .sidebar-header {
     padding: var(--gap-md);
   }
+
   .song-list {
     max-height: 200px;
     padding: var(--gap-md);
   }
+
   .sidebar-footer {
     padding: var(--gap-md);
   }
+
   .main {
     padding: var(--gap-lg);
   }
+
   .controls {
     align-items: stretch;
     padding: var(--gap-lg);
   }
+
   .control-group {
     justify-content: space-between;
     width: 100%;
   }
+
   .lyrics-section {
     padding: var(--gap-lg);
   }
+
   .song-header h2 {
     font-size: 1.5rem;
   }
+
   .setlist-grid {
     grid-template-columns: 1fr;
   }
@@ -2971,8 +3238,9 @@ html.dark-mode .header {
   margin: 0 !important;
   background: #000 !important;
   max-width: 100vw !important;
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
   box-sizing: border-box !important;
+  white-space: pre;
 }
 
 .performance-mode {
@@ -3461,22 +3729,24 @@ html.dark-mode .header {
 }
 
 
-.bar-line, .bar-line-row {
+.bar-line,
+.bar-line-row {
   display: block;
   color: var(--primary, #0ea5e9);
-  font-weight: bold;       
+  font-weight: bold;
   background: transparent;
   border-radius: 2px;
   letter-spacing: 0;
 }
 
 .lyrics-line {
-  font-family: 'JetBrains Mono', 'Fira Mono', 'Consolas', 'Menlo', 'monospace';      
+  font-family: 'JetBrains Mono', 'Fira Mono', 'Consolas', 'Menlo', 'monospace';
   background: transparent;
   border-radius: 2px;
   letter-spacing: 0;
   white-space: pre;
 }
+
 /* Tambahan agar bar-line pada baris chord dan lirik konsisten */
 /* Remove extra padding for nested bar-line/bar-line-row */
 .lyrics-line .bar-line,

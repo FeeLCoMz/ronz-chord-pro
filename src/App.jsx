@@ -1366,38 +1366,7 @@ function App() {
 
   // (hapus togglePerformanceMode lokal, gunakan dari usePerformanceMode)
 
-  // Touch/Swipe Gesture Handlers
-  const handleTouchStart = (e) => {
-    if (!performanceMode) return;
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
 
-    // For pinch zoom
-    if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      touchStartDistance.current = Math.sqrt(dx * dx + dy * dy);
-    }
-  };
-
-  const handleTouchEnd = (e) => {
-    if (!performanceMode || !currentSetList) return;
-
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    const deltaX = touchEndX - touchStartX.current;
-    const deltaY = touchEndY - touchStartY.current;
-    const threshold = 50;
-
-    // Swipe left (next song)
-    if (deltaX < -threshold && Math.abs(deltaY) < threshold / 2) {
-      navigateToNextSongInSetList();
-    }
-    // Swipe right (prev song)
-    else if (deltaX > threshold && Math.abs(deltaY) < threshold / 2) {
-      navigateToPrevSongInSetList();
-    }
-  };
 
   const handleTouchMove = (e) => {
     if (!performanceMode || e.touches.length !== 2) return;
@@ -1661,14 +1630,14 @@ function App() {
 
         {!performanceMode && (
           <header className="header">
-            <div className="header-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                <h1 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>🎸 RoNz Chord Pro</h1>
-                <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>Professional Chord & Lyrics App</span>
+            <div className="header-content flex-header-content">
+              <div className="header-title-group">
+                <h1 className="header-title">🎸 RoNz Chord Pro</h1>
+                <span className="header-subtitle">Professional Chord & Lyrics App</span>
               </div>
               {!performanceMode && (
                 <nav className="nav-panel" style={{ background: 'none', border: 'none', padding: 0, gap: 8 }}>
-                  <div style={{ display: 'flex', gap: 4 }}>
+                  <div className="nav-btn-group">
                     <button
                       className={`nav-btn ${activeNav === 'songs' ? 'active' : ''}`}
                       onClick={() => setActiveNav('songs')}
@@ -1695,19 +1664,6 @@ function App() {
                     <span
                       className="keyboard-mode-badge"
                       title="Keyboardist Mode Enabled"
-                      style={{
-                        background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)',
-                        color: '#4da6ff',
-                        padding: '4px 8px',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        border: '1px solid #4da6ff',
-                        marginLeft: 8
-                      }}
                     >
                       🎹 Keyboardist
                     </span>
@@ -1734,12 +1690,12 @@ function App() {
                 <div className="controls controls-compact">
                   {/* Transpose Group */}
                   <button onClick={() => handleTranspose(-1)} className="btn btn-xs" title="Transpose turun (♭)">♭</button>
-                  <span className="transpose-value" style={{ minWidth: 32, textAlign: 'center' }} title="Nilai transpose">{transpose > 0 ? `+${transpose}` : transpose}</span>
+                  <span className="transpose-value" title="Nilai transpose">{transpose > 0 ? `+${transpose}` : transpose}</span>
                   <button onClick={() => handleTranspose(1)} className="btn btn-xs" title="Transpose naik (♯)">♯</button>
                   <button onClick={() => setTranspose(0)} className="btn btn-xs" title="Reset transpose">⟳</button>
                   {/* Metronome Controls */}
                   <span className="divider" />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div className="metronome-controls">
                     <button
                       onClick={() => setMetronomeActive(a => !a)}
                       className={`btn btn-xs ${metronomeActive ? 'btn-primary' : ''}`}
@@ -1747,8 +1703,8 @@ function App() {
                     >
                       {metronomeActive ? '⏹' : '🕒'}
                     </button>
-                    <span style={{ minWidth: 36, textAlign: 'center', fontWeight: 600 }} title="Tempo (BPM)">{metronomeBpm} BPM</span>
-                    <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 6, marginLeft: 4, background: metronomeActive ? (metronomeTick ? '#f87171' : '#fbbf24') : '#ddd', transition: 'background 0.1s' }} />
+                    <span className="metronome-bpm" title="Tempo (BPM)">{metronomeBpm} BPM</span>
+                    <span className={`metronome-indicator${metronomeActive ? (metronomeTick ? ' active1' : ' active2') : ''}`} />
                   </div>
                   {/* Auto Scroll Group */}
                   <button
@@ -1759,7 +1715,7 @@ function App() {
                     {autoScrollActive ? '⏸' : '▶'}
                   </button>
                   {autoScrollActive && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <div className="scroll-speed-controls">
                       <button onClick={() => setScrollSpeed(Math.max(0.1, scrollSpeed - 0.1))} className="btn btn-xs" title="Kurangi kecepatan scroll">−</button>
                       <input
                         type="range"
@@ -1770,7 +1726,7 @@ function App() {
                         onChange={e => setScrollSpeed(Number(e.target.value))}
                         style={{ width: 70, verticalAlign: 'middle' }}
                         title="Geser untuk atur kecepatan scroll" />
-                      <span className="speed-value" style={{ minWidth: 32, textAlign: 'center', fontWeight: 600 }} title="Kecepatan scroll">{scrollSpeed.toFixed(1)}x</span>
+                      <span className="speed-value" title="Kecepatan scroll">{scrollSpeed.toFixed(1)}x</span>
                       <button onClick={() => setScrollSpeed(Math.min(5, scrollSpeed + 0.5))} className="btn btn-xs" title="Tambah kecepatan scroll">+</button>
                     </div>
                   )}
@@ -1837,7 +1793,7 @@ function App() {
                             ? setList.songs.filter(item => typeof item === 'string' && !songIds.includes(item))
                             : [];
                           return (
-                            <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <p className="setlist-info-bar">
                               Setlist: {setList.name}
                               <button
                                 onClick={() => setCurrentSetList(null)}
@@ -1862,7 +1818,7 @@ function App() {
                               {pendingSongs.length > 0 && (
                                 <button
                                   onClick={handleRemoveAllPendingSongs}
-                                  style={{ background: '#ff922b', color: '#fff', border: 'none', borderRadius: 6, padding: '4px 12px', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', marginLeft: '0.5rem' }}
+                                  className="btn-pending-remove-all"
                                   title="Hapus semua pending songs dari setlist ini"
                                 >
                                   🗑️ Hapus Semua Pending Songs
@@ -1957,7 +1913,7 @@ function App() {
                       </select>
                       {/* Toggle Asc/Desc */}
                       <button
-                        style={{ marginLeft: 4 }}
+                        className="btn btn-icon"
                         onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}
                         title={sortOrder === 'asc' ? 'Urutkan Z-A/Desc' : 'Urutkan A-Z/Asc'}
                       >
@@ -2030,33 +1986,21 @@ function App() {
                       {/* Pending Songs Section */}
                       {currentSetList && getPendingSongsInSetList().length > 0 && (
                         <>
-                          <div style={{ gridColumn: '1 / -1', padding: '1rem 0', borderTop: '2px solid var(--border)', marginTop: '1rem' }}>
-                            <h3 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                          <div className="pending-song-section">
+                            <h3 className="pending-song-title">
                               ⏳ Lagu Pending (Menunggu Dibuat)
                             </h3>
                           </div>
                           {getPendingSongsInSetList().map(songName => (
                             <div
                               key={`pending-${songName}`}
-                              style={{
-                                padding: '1rem',
-                                border: '2px dashed var(--primary)',
-                                borderRadius: '0.5rem',
-                                backgroundColor: 'var(--card-hover)',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '0.75rem'
-                              }}
+                              className="pending-song-card"
                             >
                               <div>
-                                <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>
-                                  ⏳ {songName}
-                                </div>
-                                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                                  Belum ada di database
-                                </div>
+                                <div className="pending-song-name">⏳ {songName}</div>
+                                <div className="pending-song-desc">Belum ada di database</div>
                               </div>
-                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <div className="pending-song-actions">
                                 <button
                                   onClick={() => {
                                     setShowSongForm(true);
@@ -2082,9 +2026,8 @@ function App() {
                                     };
                                     setEditingSong(newSong);
                                   }}
-                                  className="btn btn-sm btn-primary"
+                                  className="btn btn-sm btn-primary flex1"
                                   title="Buat lagu baru dengan nama ini"
-                                  style={{ flex: 1 }}
                                 >
                                   ➕ Buat Sekarang
                                 </button>
@@ -2121,9 +2064,8 @@ function App() {
                                       }).catch(err => console.error('Gagal hapus pending song:', err));
                                     }
                                   }}
-                                  className="btn btn-sm"
+                                  className="btn btn-sm flex1"
                                   title="Hapus dari setlist"
-                                  style={{ flex: 1 }}
                                 >
                                   ✕ Hapus
                                 </button>
@@ -2389,9 +2331,7 @@ function App() {
                       lyricsSectionRef.current = el;
                       if (performanceMode) perfMainRef.current = el;
                     }}
-                    onTouchStart={performanceMode ? handleTouchStart : undefined}
                     onTouchMove={performanceMode ? handleTouchMove : undefined}
-                    onTouchEnd={performanceMode ? handleTouchEnd : undefined}
                   >
                     {selectedSong ? (
                       <>
@@ -2430,7 +2370,7 @@ function App() {
                         />
                       </>
                     ) : (
-                      <div style={{ padding: '2rem', textAlign: 'center', color: '#666' }}>
+                      <div className="no-song-selected">
                         <h3>Pilih lagu dari daftar untuk melihat chord dan lirik</h3>
                       </div>
                     )}
@@ -2479,7 +2419,7 @@ function App() {
                   {/* Performance Mode Footer Controls */}
                   {performanceMode && selectedSong && (
                     <div className="performance-footer">
-                      <div className="performance-controls" style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+                      <div className="performance-controls">
                         <button
                           onClick={() => {
                             if (document.fullscreenElement) {
@@ -2538,11 +2478,11 @@ function App() {
                           </div>
                         )}
                       </div>
-                      <div className="performance-info">
+                        <div className="performance-info">
                         <div className="performance-song-title">{selectedSong.title}</div>
                         <div>{selectedSong.artist}</div>
                         {/* Metronome Controls (Performance Mode) */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 12 }}>
+                        <div className="performance-metronome-group">
                           <button
                             onClick={() => setMetronomeActive(a => !a)}
                             className={`perf-btn ${metronomeActive ? 'perf-btn-success' : ''}`}
@@ -2550,8 +2490,8 @@ function App() {
                           >
                             {metronomeActive ? '⏹' : '🕒'}
                           </button>
-                          <span style={{ minWidth: 36, textAlign: 'center', fontWeight: 600 }} title="Tempo (BPM)">{metronomeBpm} BPM</span>
-                          <span style={{ display: 'inline-block', width: 14, height: 14, borderRadius: 7, marginLeft: 4, background: metronomeActive ? (metronomeTick ? '#f87171' : '#fbbf24') : '#ddd', transition: 'background 0.1s' }} />
+                          <span className="metronome-bpm" title="Tempo (BPM)">{metronomeBpm} BPM</span>
+                          <span className={`metronome-indicator${metronomeActive ? (metronomeTick ? ' active1' : ' active2') : ''}`} />
                         </div>
                         {/* ...existing code... */}
                         {currentSetList && (
@@ -2764,62 +2704,26 @@ function App() {
         )}
 
         {runtimeErrors.length > 0 && (
-          <div
-            style={{
-              position: 'fixed',
-              bottom: '1rem',
-              right: '1rem',
-              zIndex: 9999,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-              maxWidth: '420px'
-            }}
-          >
+          <div className="runtime-error-toast-container">
             {runtimeErrors.map(err => (
               <div
                 key={err.id}
-                style={{
-                  background: 'rgba(31, 41, 55, 0.95)',
-                  color: '#f8fafc',
-                  border: '1px solid rgba(99, 102, 241, 0.4)',
-                  boxShadow: '0 12px 24px -6px rgba(0,0,0,0.6)',
-                  borderRadius: '10px',
-                  padding: '0.9rem 1rem',
-                  backdropFilter: 'blur(8px)'
-                }}
+                className="runtime-error-toast"
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
-                  <strong style={{ color: '#f472b6' }}>Error</strong>
+                <div className="runtime-error-toast-header">
+                  <strong className="runtime-error-title">Error</strong>
                   <button
                     onClick={() => dismissError(err.id)}
-                    style={{
-                      background: 'transparent',
-                      color: '#e2e8f0',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}
+                    className="runtime-error-dismiss"
                   >
                     ✕
                   </button>
                 </div>
-                <div style={{ marginTop: '0.25rem', fontSize: '0.95rem', color: '#e2e8f0' }}>
+                <div className="runtime-error-message">
                   {err.message}
                 </div>
                 {err.detail && (
-                  <pre
-                    style={{
-                      marginTop: '0.5rem',
-                      maxHeight: '160px',
-                      overflow: 'auto',
-                      fontSize: '0.75rem',
-                      color: '#cbd5e1',
-                      background: 'rgba(15, 23, 42, 0.7)',
-                      padding: '0.5rem',
-                      borderRadius: '6px'
-                    }}
-                  >
+                  <pre className="runtime-error-detail">
                     {err.detail}
                   </pre>
                 )}
