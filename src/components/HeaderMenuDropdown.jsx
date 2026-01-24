@@ -5,7 +5,9 @@ export default function HeaderMenuDropdown({
   darkMode,
   onShowSettings,
   onShowHelp,
-  onShowShortcuts
+  onShowShortcuts,
+  onTogglePerformanceMode,
+  performanceMode
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef();
@@ -50,6 +52,9 @@ export default function HeaderMenuDropdown({
             fontSize: 15
           }}
         >
+          <button className="dropdown-item" style={itemStyle} onClick={() => { onTogglePerformanceMode(); setOpen(false); }}>
+            {performanceMode ? '🎭 Keluar Performance Mode' : '🎭 Masuk Performance Mode'}
+          </button>
           <button className="dropdown-item" style={itemStyle} onClick={() => { onToggleDarkMode(); setOpen(false); }}>
             {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>

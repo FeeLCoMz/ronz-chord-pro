@@ -1720,6 +1720,8 @@ function App() {
                 onShowSettings={() => setShowSettingsMenu(true)}
                 onShowHelp={() => setShowHelp(true)}
                 onShowShortcuts={() => setShowKeyboardHelp(true)}
+                onTogglePerformanceMode={togglePerformanceMode}
+                performanceMode={performanceMode}
               />
             </div>
           </header>
@@ -1789,14 +1791,7 @@ function App() {
                   >
                     📝
                   </button>
-                  {/* Performance Mode Toggle */}
-                  <button
-                    onClick={togglePerformanceMode}
-                    className={`btn btn-xs ${performanceMode ? 'btn-primary' : ''}`}
-                    title={performanceMode ? 'Exit Performance Mode' : 'Enter Performance Mode'}
-                  >
-                    🎭
-                  </button>
+                  {/* Performance Mode Toggle dipindah ke HeaderMenuDropdown */}
                   {/* Tombol tambah ke setlist */}
                   <button
                     onClick={() => {
