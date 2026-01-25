@@ -1,3 +1,27 @@
+/* Tombol kembali global */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 700;
+  padding: 8px 18px 8px 14px;
+  margin-bottom: 18px;
+  margin-top: 2px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+}
+.back-btn:hover, .back-btn:focus {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
 .chord-display .lyrics-content {
   font-size: 1.13em;
   line-height: 1.7;
@@ -298,55 +322,6 @@ body {
   letter-spacing: 0.01em;
 }
 /* Modern back button for lyric viewer */
-.song-detail-view .back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--primary-accent-light, #23243a);
-  color: var(--primary-accent-dark, #a5b4fc);
-  border: 1.5px solid var(--primary-accent);
-  border-radius: 8px;
-  font-size: 1.08em;
-  font-weight: 600;
-  padding: 8px 18px 8px 14px;
-  margin-bottom: 22px;
-  margin-top: 2px;
-  cursor: pointer;
-  box-shadow: 0 1px 6px #0002;
-  transition: background 0.16s, color 0.16s, border 0.16s;
-}
-.song-detail-view .back-btn:hover, .song-detail-view .back-btn:focus {
-  background: var(--primary-accent);
-  color: #fff;
-  border: 1.5px solid var(--primary-accent-dark);
-  outline: none;
-}
-/* Back button for fullscreen lyric view */
-.song-detail-fullscreen .back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--primary-accent-light, #23243a);
-  color: var(--primary-accent-dark, #a5b4fc);
-  border: 1.5px solid var(--primary-accent);
-  border-radius: 8px;
-  font-size: 1.12em;
-  font-weight: 700;
-  padding: 10px 22px 10px 16px;
-  margin-bottom: 28px;
-  margin-top: 2px;
-  cursor: pointer;
-  box-shadow: 0 1px 8px #0002;
-  transition: background 0.16s, color 0.16s, border 0.16s;
-  position: relative;
-  z-index: 101;
-}
-.song-detail-fullscreen .back-btn:hover, .song-detail-fullscreen .back-btn:focus {
-  background: var(--primary-accent);
-  color: #fff;
-  border: 1.5px solid var(--primary-accent-dark);
-  outline: none;
-}
 /* Redesigned song metadata/info badges */
 .chord-display .song-info-section {
   display: flex;

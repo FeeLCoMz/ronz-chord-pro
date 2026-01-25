@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import ChordDisplay from './components/ChordDisplay.jsx';
-import SetListSongsPage from './components/SetListSongsPage.jsx';
+import SongList from './components/SongList.jsx';
 import AutoScrollBar from './components/AutoScrollBar.jsx';
 import YouTubeViewer from './components/YouTubeViewer.jsx';
 import SongNotes from './components/SongNotes.jsx';
 import TimeMarkers from './components/TimeMarkers.jsx';
+import TransposeBar from './components/TransposeBar.jsx';
 
 function App() {
   const [tab, setTab] = useState('songs');
@@ -27,6 +28,8 @@ function App() {
     }
     return 'dark';
   });
+  // State untuk setlist yang sedang dilihat di main content (tanpa fullscreen)
+  const [viewingSetlist, setViewingSetlist] = useState(null);
 
   useEffect(() => {
     document.body.classList.remove('dark-mode', 'light-mode');
@@ -89,48 +92,47 @@ function App() {
                 />
                 {loadingSongs && <div className="info-text">Memuat daftar lagu...</div>}
                 {errorSongs && <div className="error-text">{errorSongs}</div>}
-                <ul className="song-list">
-                  {!loadingSongs && !errorSongs && filteredSongs.length === 0 && (
-                    <li className="info-text">Tidak ada lagu ditemukan.</li>
-                  )}
-                  {filteredSongs.map(song => (
-                    <li
-                      key={song.id}
-                      className="song-list-item"
-                      onClick={() => setSelectedSong(song)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <span className="song-title">{song.title}</span>
-                      <span className="song-artist">{song.artist}</span>
-                    </li>
-                  ))}
-                </ul>
+                <SongList
+                  songs={filteredSongs}
+                  onSongClick={setSelectedSong}
+                  emptyText="Tidak ada lagu ditemukan."
+                />
               </>
             )}
             {tab === 'setlists' && (
               <>
                 <div className="section-title">Setlist</div>
-                {loadingSetlists && <div className="info-text">Memuat setlist...</div>}
-                {errorSetlists && <div className="error-text">{errorSetlists}</div>}
-                <ul className="setlist-list">
-                  {!loadingSetlists && !errorSetlists && setlists.length === 0 && (
-                    <li className="info-text">Belum ada setlist.</li>
-                  )}
-                  {setlists.map(setlist => (
-                    <li key={setlist.id} className="setlist-list-item">
-                      <span className="setlist-title">{setlist.name}</span>
-                      <span className="setlist-count">{(setlist.songs?.length || 0)} lagu</span>
-                      <button
-                        className="aksi-btn"
-                        style={{ marginLeft: 12 }}
-                        onClick={() => {
-                          setActiveSetlist(setlist);
-                          setActiveSetlistSongIdx(0);
-                        }}
-                      >Tampil</button>
-                    </li>
-                  ))}
-                </ul>
+                {viewingSetlist ? (
+                  <>
+                    <button className="back-btn" onClick={() => setViewingSetlist(null)}>&larr; Kembali ke daftar setlist</button>
+                    <div className="section-title">{viewingSetlist.name}</div>
+                    <SongList
+                      songs={
+                        (viewingSetlist.songs || [])
+                          .map(id => songs.find(song => song.id === id))
+                          .filter(Boolean)
+                      }
+                      onSongClick={setSelectedSong}
+                      emptyText="Setlist ini belum berisi lagu."
+                    />
+                  </>
+                ) : (
+                  <>
+                    {loadingSetlists && <div className="info-text">Memuat setlist...</div>}
+                    {errorSetlists && <div className="error-text">{errorSetlists}</div>}
+                    <ul className="setlist-list">
+                      {!loadingSetlists && !errorSetlists && setlists.length === 0 && (
+                        <li className="info-text">Belum ada setlist.</li>
+                      )}
+                      {setlists.map(setlist => (
+                        <li key={setlist.id} className="setlist-list-item" style={{cursor:'pointer'}} onClick={() => setViewingSetlist(setlist)}>
+                          <span className="setlist-title">{setlist.name}</span>
+                          <span className="setlist-count">{(setlist.songs?.length || 0)} lagu</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </>
             )}
           </main>
@@ -139,16 +141,12 @@ function App() {
       {selectedSong && (
         <div className="song-detail-fullscreen">
           <button className="back-btn" onClick={() => setSelectedSong(null)}>&larr; Kembali ke daftar</button>
-          <div className="transpose-bar">
-            <button className="transpose-btn" onClick={() => setTranspose(t => t - 1)}>-</button>
-            <span className="transpose-label">Transpose: {transpose >= 0 ? '+' : ''}{transpose}</span>
-            <button className="transpose-btn" onClick={() => setTranspose(t => t + 1)}>+</button>
-            <button
-              className={highlightChords ? 'highlight-btn active' : 'highlight-btn'}
-              onClick={() => setHighlightChords(h => !h)}
-              title="Highlight chord/bar"
-            >{highlightChords ? '🔆 Highlight ON' : '💡 Highlight'}</button>
-          </div>
+          <TransposeBar
+            transpose={transpose}
+            setTranspose={setTranspose}
+            highlightChords={highlightChords}
+            setHighlightChords={setHighlightChords}
+          />
           {selectedSong.youtubeId ? (
             <YouTubeViewer
               videoId={selectedSong.youtubeId}
@@ -191,16 +189,6 @@ function App() {
               onClick={() => setActiveSetlistSongIdx(idx => Math.min((activeSetlist.songs?.length || 1) - 1, idx + 1))}
             >Berikutnya ⟩</button>
           </div>
-          <div className="transpose-bar">
-            <button className="transpose-btn" onClick={() => setTranspose(t => t - 1)}>-</button>
-            <span className="transpose-label">Transpose: {transpose >= 0 ? '+' : ''}{transpose}</span>
-            <button className="transpose-btn" onClick={() => setTranspose(t => t + 1)}>+</button>
-            <button
-              className={highlightChords ? 'highlight-btn active' : 'highlight-btn'}
-              onClick={() => setHighlightChords(h => !h)}
-              title="Highlight chord/bar"
-            >{highlightChords ? '🔆 Highlight ON' : '💡 Highlight'}</button>
-          </div>
           {(() => {
             const song = songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx]);
             if (song && song.youtubeId) {
@@ -225,6 +213,12 @@ function App() {
           />
           <SongNotes songId={activeSetlist.songs[activeSetlistSongIdx]} />
           {/* YouTubeViewer already rendered above for time marker sync */}
+          <TransposeBar
+            transpose={transpose}
+            setTranspose={setTranspose}
+            highlightChords={highlightChords}
+            setHighlightChords={setHighlightChords}
+          />
           <AutoScrollBar tempo={(() => {
             const song = songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx]);
             return song && song.tempo ? Number(song.tempo) : 80;
