@@ -66,7 +66,7 @@ function App() {
         <>
           <header className="app-header">
             <h1 className="app-title">🎸 RoNz Chord Pro</h1>
-            <div className="app-subtitle">Aplikasi Chord & Lirik - Desain Baru</div>
+            <div className="app-subtitle">Manajemen Chord, Lirik, & Setlist Lagu Modern</div>
             <button
               className={theme === 'dark' ? 'theme-switch-btn dark' : 'theme-switch-btn light'}
               onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
@@ -83,6 +83,9 @@ function App() {
             {tab === 'songs' && (
               <>
                 <div className="section-title">Lagu</div>
+                <div className="info-text" style={{ marginTop: -12, marginBottom: 16, fontSize: '1.05em' }}>
+                  Jumlah lagu: {filteredSongs.length}
+                </div>
                 <input
                   type="text"
                   placeholder="Cari judul atau artist..."
@@ -106,6 +109,13 @@ function App() {
                   <>
                     <button className="back-btn" onClick={() => setViewingSetlist(null)}>&larr; Kembali ke daftar setlist</button>
                     <div className="section-title">{viewingSetlist.name}</div>
+                    <div className="info-text" style={{ marginTop: -12, marginBottom: 16, fontSize: '1.05em' }}>
+                      Jumlah lagu: {
+                        (viewingSetlist.songs || [])
+                          .map(id => songs.find(song => song.id === id))
+                          .filter(Boolean).length
+                      }
+                    </div>
                     <SongList
                       songs={
                         (viewingSetlist.songs || [])
@@ -114,6 +124,7 @@ function App() {
                       }
                       onSongClick={setSelectedSong}
                       emptyText="Setlist ini belum berisi lagu."
+                      enableSearch={true}
                     />
                   </>
                 ) : (
