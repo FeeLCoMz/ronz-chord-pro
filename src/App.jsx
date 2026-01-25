@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import ChordDisplay from './components/ChordDisplay.jsx';
 import SetListSongsPage from './components/SetListSongsPage.jsx';
+import AutoScrollBar from './components/AutoScrollBar.jsx';
 
 function App() {
   const [tab, setTab] = useState('songs');
@@ -15,6 +16,7 @@ function App() {
   const [selectedSong, setSelectedSong] = useState(null);
   const [activeSetlist, setActiveSetlist] = useState(null);
   const [activeSetlistSongIdx, setActiveSetlistSongIdx] = useState(0);
+  const [transpose, setTranspose] = useState(0);
 
   useEffect(() => {
     setLoadingSongs(true);
@@ -114,13 +116,18 @@ function App() {
       {selectedSong && (
         <div className="song-detail-fullscreen">
           <button className="back-btn" onClick={() => setSelectedSong(null)}>&larr; Kembali ke daftar</button>
-          <ChordDisplay song={selectedSong} />
+          <div className="transpose-bar">
+            <button className="transpose-btn" onClick={() => setTranspose(t => t - 1)}>-</button>
+            <span className="transpose-label">Transpose: {transpose >= 0 ? '+' : ''}{transpose}</span>
+            <button className="transpose-btn" onClick={() => setTranspose(t => t + 1)}>+</button>
+          </div>
+          <AutoScrollBar tempo={selectedSong.tempo ? Number(selectedSong.tempo) : 80} />
+          <ChordDisplay song={selectedSong} transpose={transpose} />
         </div>
       )}
       {activeSetlist && (
         <div className="song-detail-fullscreen">
           <button className="back-btn" onClick={() => setActiveSetlist(null)}>&larr; Kembali ke setlist</button>
-          {/* Navigasi antar lagu dalam setlist */}
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 18, marginBottom: 18 }}>
             <button
               className="aksi-btn"
@@ -138,8 +145,16 @@ function App() {
               onClick={() => setActiveSetlistSongIdx(idx => Math.min((activeSetlist.songs?.length || 1) - 1, idx + 1))}
             >Berikutnya ⟩</button>
           </div>
-          {/* Tampilkan lirik lagu aktif dalam setlist */}
-          <ChordDisplay song={songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx])} />
+          <div className="transpose-bar">
+            <button className="transpose-btn" onClick={() => setTranspose(t => t - 1)}>-</button>
+            <span className="transpose-label">Transpose: {transpose >= 0 ? '+' : ''}{transpose}</span>
+            <button className="transpose-btn" onClick={() => setTranspose(t => t + 1)}>+</button>
+          </div>
+          <AutoScrollBar tempo={(() => {
+            const song = songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx]);
+            return song && song.tempo ? Number(song.tempo) : 80;
+          })()} />
+          <ChordDisplay song={songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx])} transpose={transpose} />
         </div>
       )}
     </>

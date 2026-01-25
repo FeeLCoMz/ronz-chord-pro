@@ -427,6 +427,111 @@ body {
   border: 1.5px solid var(--primary-accent-dark);
   outline: none;
 }
+/* Auto scroll bar & metronome design */
+.auto-scroll-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  justify-content: center;
+  margin-bottom: 18px;
+  background: var(--card-bg, #23243a);
+  border-radius: 10px;
+  padding: 12px 24px;
+  box-shadow: 0 1px 8px #0002;
+}
+.auto-scroll-btn {
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 700;
+  padding: 8px 18px 8px 14px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+}
+.auto-scroll-btn.active, .auto-scroll-btn:hover, .auto-scroll-btn:focus {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
+.tempo-label {
+  font-weight: 600;
+  color: var(--primary-accent);
+  font-size: 1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tempo-input {
+  width: 60px;
+  font-size: 1.08em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1.2px solid var(--primary-accent);
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  font-weight: 600;
+  margin-left: 4px;
+  box-shadow: 0 1px 4px #0001;
+  transition: border 0.15s;
+}
+.tempo-input:focus {
+  border: 1.2px solid var(--primary-accent-dark);
+  outline: none;
+}
+.metronome-indicator {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.metronome-dot {
+  font-size: 1.5em;
+  color: #888;
+  transition: color 0.15s, transform 0.15s;
+}
+.metronome-dot.active {
+  color: var(--primary-accent);
+  transform: scale(1.25);
+}
+/* Transpose controls in fullscreen lyric/setlist view */
+.transpose-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  background: var(--card-bg, #23243a);
+  border-radius: 8px;
+  padding: 8px 18px;
+  box-shadow: 0 1px 8px #0002;
+}
+.transpose-btn {
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.18em;
+  font-weight: 700;
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+}
+.transpose-btn:hover, .transpose-btn:focus {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
+.transpose-label {
+  font-weight: 700;
+  color: var(--primary-accent);
+  font-size: 1.08em;
+  letter-spacing: 0.01em;
+}
 @media (max-width: 600px) {
   .app-title {
     font-size: 2rem;
