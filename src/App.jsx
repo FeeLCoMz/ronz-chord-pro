@@ -4,6 +4,8 @@ import ChordDisplay from './components/ChordDisplay.jsx';
 import SetListSongsPage from './components/SetListSongsPage.jsx';
 import AutoScrollBar from './components/AutoScrollBar.jsx';
 import YouTubeViewer from './components/YouTubeViewer.jsx';
+import SongNotes from './components/SongNotes.jsx';
+import TimeMarkers from './components/TimeMarkers.jsx';
 
 function App() {
   const [tab, setTab] = useState('songs');
@@ -147,11 +149,24 @@ function App() {
               title="Highlight chord/bar"
             >{highlightChords ? '🔆 Highlight ON' : '💡 Highlight'}</button>
           </div>
-          {selectedSong.youtubeId && (
-            <div className="youtube-viewer-wrapper">
-              <YouTubeViewer videoId={selectedSong.youtubeId} />
-            </div>
-          )}
+          {selectedSong.youtubeId ? (
+            <YouTubeViewer
+              videoId={selectedSong.youtubeId}
+              ref={ytRef => {
+                window._ytRef = ytRef;
+              }}
+              onTimeUpdate={(t, d) => {
+                window._ytCurrentTime = t;
+              }}
+            />
+          ) : null}
+          <TimeMarkers
+            songId={selectedSong.id}
+            getCurrentTime={() => window._ytCurrentTime || 0}
+            seekTo={t => window._ytRef && window._ytRef.handleSeek && window._ytRef.handleSeek(t)}
+          />
+          <SongNotes songId={selectedSong.id} />
+          {/* YouTubeViewer already rendered above for time marker sync */}
           <AutoScrollBar tempo={selectedSong.tempo ? Number(selectedSong.tempo) : 80} />
           <ChordDisplay song={selectedSong} transpose={transpose} highlightChords={highlightChords} />
         </div>
@@ -188,12 +203,28 @@ function App() {
           </div>
           {(() => {
             const song = songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx]);
-            return song && song.youtubeId ? (
-              <div className="youtube-viewer-wrapper">
-                <YouTubeViewer videoId={song.youtubeId} />
-              </div>
-            ) : null;
+            if (song && song.youtubeId) {
+              return (
+                <YouTubeViewer
+                  videoId={song.youtubeId}
+                  ref={ytRef => {
+                    window._ytRef = ytRef;
+                  }}
+                  onTimeUpdate={(t, d) => {
+                    window._ytCurrentTime = t;
+                  }}
+                />
+              );
+            }
+            return null;
           })()}
+          <TimeMarkers
+            songId={activeSetlist.songs[activeSetlistSongIdx]}
+            getCurrentTime={() => window._ytCurrentTime || 0}
+            seekTo={t => window._ytRef && window._ytRef.handleSeek && window._ytRef.handleSeek(t)}
+          />
+          <SongNotes songId={activeSetlist.songs[activeSetlistSongIdx]} />
+          {/* YouTubeViewer already rendered above for time marker sync */}
           <AutoScrollBar tempo={(() => {
             const song = songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx]);
             return song && song.tempo ? Number(song.tempo) : 80;

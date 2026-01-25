@@ -34,6 +34,8 @@ const YouTubeViewer = React.forwardRef(({ videoId, minimalControls = false, onTi
   const [duration, setDuration] = useState(0);
   const containerIdRef = useRef(`youtube-player-${Math.random().toString(36).slice(2,9)}`);
   const mountedRef = useRef(false);
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const scrubberValueRef = useRef(null);
 
   // Expose play/pause, stop, seek, and currentTime to parent via ref
   React.useImperativeHandle(ref, () => ({
@@ -137,6 +139,19 @@ const YouTubeViewer = React.forwardRef(({ videoId, minimalControls = false, onTi
     }
   };
 
+  const handleScrubberChange = (e) => {
+    const value = e.target.value;
+    setIsScrubbing(true);
+    scrubberValueRef.current = value;
+    setCurrentTime(Number(value));
+  };
+  const handleScrubberCommit = (e) => {
+    const value = e.target.value;
+    setIsScrubbing(false);
+    handleSeek(value);
+    scrubberValueRef.current = null;
+  };
+
   const id = extractYouTubeId(videoId);
   if (!id) {
     return (
@@ -151,7 +166,6 @@ const YouTubeViewer = React.forwardRef(({ videoId, minimalControls = false, onTi
     if (!player) return;
     const interval = setInterval(() => {
       try {
-        // Jika ada pending seek, lakukan sekarang
         if (pendingSeekRef.current != null && typeof player.seekTo === 'function') {
           try {
             player.seekTo(pendingSeekRef.current, true);
@@ -159,17 +173,19 @@ const YouTubeViewer = React.forwardRef(({ videoId, minimalControls = false, onTi
             pendingSeekRef.current = null;
           } catch {}
         }
-        const t = player.getCurrentTime?.() || 0;
-        const d = player.getDuration?.() || duration;
-        setCurrentTime(Number.isFinite(t) ? t : 0);
-        setDuration(Number.isFinite(d) ? d : 0);
-        if (typeof onTimeUpdate === 'function') {
-          try { onTimeUpdate(Number.isFinite(t) ? t : 0, Number.isFinite(d) ? d : 0); } catch {}
+        if (!isScrubbing) {
+          const t = player.getCurrentTime?.() || 0;
+          const d = player.getDuration?.() || duration;
+          setCurrentTime(Number.isFinite(t) ? t : 0);
+          setDuration(Number.isFinite(d) ? d : 0);
+          if (typeof onTimeUpdate === 'function') {
+            try { onTimeUpdate(Number.isFinite(t) ? t : 0, Number.isFinite(d) ? d : 0); } catch {}
+          }
         }
       } catch {}
     }, 200);
     return () => clearInterval(interval);
-  }, [player]);
+  }, [player, isScrubbing]);
 
   // External seek control
   useEffect(() => {
@@ -233,9 +249,10 @@ const YouTubeViewer = React.forwardRef(({ videoId, minimalControls = false, onTi
           min={0}
           max={Math.max(1, Math.floor(duration))}
           step={1}
-          value={Math.floor(currentTime)}
-          onChange={(e) => handleSeek(e.target.value)}
-          onInput={(e) => handleSeek(e.target.value)}
+          value={isScrubbing && scrubberValueRef.current !== null ? scrubberValueRef.current : Math.floor(currentTime)}
+          onChange={handleScrubberChange}
+          onMouseUp={handleScrubberCommit}
+          onTouchEnd={handleScrubberCommit}
           disabled={!player || !duration}
           aria-label="Scrub waktu video"
         />
