@@ -79,16 +79,17 @@ async function handleSongSearch(req, res) {
     return res.status(400).json({ error: 'Invalid request body' });
   }
   const { title, artist } = body;
-  if (!title || !artist) {
-    return res.status(400).json({ error: 'Title and artist required' });
+  if (!title) {
+    return res.status(400).json({ error: 'Title required' });
   }
   try {
     const results = {
       key: null,
       tempo: null,
       style: null,
-      instrument: null,
+      instruments: [],
       youtubeId: null,
+      lyrics: null,
       chordLinks: [],
       debug: {}
     };
@@ -128,16 +129,23 @@ async function handleSongSearch(req, res) {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
         const model = genAI.getGenerativeModel({ model: geminiModel });
-        const prompt = `Cari informasi lagu \"${title}\" oleh \"${artist}\". Berikan informasi dalam format JSON dengan field:\n- key: kunci musik (C, D, E, F, G, A, B atau minor variants seperti Cm, Dm, dll) atau null jika tidak diketahui\n- tempo: tempo BPM sebagai angka atau null jika tidak diketahui\n- style: genre/style musik (pop, rock, jazz, classical, dll) atau null jika tidak diketahui\n- instrument: instrumen utama yang digunakan (misal: gitar, piano, drum, biola, dll) atau null jika tidak diketahui\n\nHanya return JSON tanpa penjelasan tambahan. Contoh:\n{"key": "G", "tempo": 120, "style": "pop", "instrument": "gitar"}`;
+        let prompt;
+        if (!artist) {
+          prompt = `Cari informasi lagu berjudul \"${title}\". Jika diketahui, berikan juga nama artis/penyanyi. Berikan informasi dalam format JSON dengan field:\n- artist: nama artis/penyanyi\n- key: kunci musik (C, D, E, F, G, A, B atau minor variants seperti Cm, Dm, dll) atau null jika tidak diketahui\n- tempo: tempo BPM sebagai angka atau null jika tidak diketahui\n- style: genre/style musik (pop, rock, jazz, classical, dll) atau null jika tidak diketahui\n- instruments: array berisi daftar instrumen yang digunakan (misal: [\"gitar\", \"piano\"])\n- lyrics: lirik lagu (string, jika ada, tanpa penjelasan tambahan)\n\nHanya return JSON tanpa penjelasan tambahan. Contoh:\n{"artist": "John Doe", "key": "G", "tempo": 120, "style": "pop", "instruments": ["gitar", "piano"], "lyrics": "Ini lirik lagu..."}`;
+        } else {
+          prompt = `Cari informasi lagu \"${title}\" oleh \"${artist}\". Berikan informasi dalam format JSON dengan field:\n- artist: nama artis/penyanyi\n- key: kunci musik (C, D, E, F, G, A, B atau minor variants seperti Cm, Dm, dll) atau null jika tidak diketahui\n- tempo: tempo BPM sebagai angka atau null jika tidak diketahui\n- style: genre/style musik (pop, rock, jazz, classical, dll) atau null jika tidak diketahui\n- instruments: array berisi daftar instrumen yang digunakan (misal: [\"gitar\", \"piano\"])\n- lyrics: lirik lagu (string, jika ada, tanpa penjelasan tambahan)\n\nHanya return JSON tanpa penjelasan tambahan. Contoh:\n{"artist": "${artist}", "key": "G", "tempo": 120, "style": "pop", "instruments": ["gitar", "piano"], "lyrics": "Ini lirik lagu..."}`;
+        }
         const response = await model.generateContent(prompt);
         const text = response.response.text();
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.artist) results.artist = parsed.artist;
           if (parsed.key) results.key = parsed.key;
           if (parsed.tempo) results.tempo = parsed.tempo;
           if (parsed.style) results.style = parsed.style;
-          if (parsed.instrument) results.instrument = parsed.instrument;
+          if (Array.isArray(parsed.instruments)) results.instruments = parsed.instruments;
+          if (parsed.lyrics) results.lyrics = parsed.lyrics;
         }
       } catch (err) {
         console.error('Gemini API error:', err);
@@ -145,6 +153,15 @@ async function handleSongSearch(req, res) {
         results.debug.geminiModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
       }
     }
+    // Always return artist (from input or AI)
+    if (!results.artist) results.artist = artist || null;
+    // Always return chordLinks
+    results.chordLinks = results.chordLinks || [
+      { title: 'Chordtela', site: 'chordtela.com', url: `https://www.chordtela.com/chord-kunci-gitar-dasar-hasil-pencarian?q=${encodeURIComponent(`${title} ${artist || results.artist || ''}`)}` },
+      { title: 'Ultimate Guitar', site: 'ultimate-guitar.com', url: `https://www.ultimate-guitar.com/search.php?search_type=title&value=${encodeURIComponent(`${title} ${artist || results.artist || ''}`)}` },
+      { title: 'Chordify', site: 'chordify.net', url: `https://www.chordify.net/search?q=${encodeURIComponent(`${title} ${artist || results.artist || ''}`)}` },
+      { title: 'Google Lirik', site: 'google.com', url: `https://www.google.com/search?q=${encodeURIComponent(`${title} ${artist || results.artist || ''} lirik`)}` }
+    ];
     return res.status(200).json(results);
   } catch (error) {
     console.error('Error in song search:', error);

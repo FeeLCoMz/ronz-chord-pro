@@ -62,7 +62,7 @@
   padding: 2px 8px;
   margin-right: 4px;
 }
-.time-marker-save-btn, .time-marker-edit-btn, .time-marker-remove-btn {
+.time-marker-save-btn, .time-marker-edit-btn, .time-marker-remove-btn, .time-marker-play-btn {
   background: none;
   border: none;
   color: var(--primary-accent-dark);
@@ -73,7 +73,7 @@
   padding: 2px 6px;
   transition: background 0.13s, color 0.13s;
 }
-.time-marker-save-btn:hover, .time-marker-edit-btn:hover, .time-marker-remove-btn:hover {
+.time-marker-save-btn:hover, .time-marker-edit-btn:hover, .time-marker-remove-btn:hover, .time-marker-play-btn:hover {
   background: var(--primary-accent);
   color: #fff;
 }

@@ -284,160 +284,48 @@ const parseStandardFormat = (lines) => {
 };
 
 export const parseChordPro = (text) => {
+  // Hanya gunakan format standar (chord di atas lirik, tanpa tag ChordPro)
   if (!text) return { metadata: {}, lines: [], structures: {} };
 
   const lines = text.split('\n');
-
-  // Deteksi format: cek apakah ada ChordPro markup
-  const hasChordProMarkup = lines.some(line =>
-    line.includes('[') && line.includes(']') &&
-    line.match(/^\{[^}]+\}/)
-  );
-
-  // Jika tidak ada markup ChordPro, gunakan parser standard format
-  if (!hasChordProMarkup) {
-    const parsedLines = parseStandardFormat(lines);
-    const metadata = {};
-
-    // Extract metadata dari parsed lines
-    const contentLines = parsedLines.filter(line => {
-      if (line.type === 'metadata') {
-        metadata[line.key] = line.value;
-        return false;
-      }
-      return true;
-    });
-
-    // Kumpulkan struktur dari parsedLines
-    const structures = {};
-    let currentStruct = null;
-    let structLines = [];
-    contentLines.forEach((line) => {
-      if (line.type === 'structure_start') {
-        if (currentStruct && structLines.length > 0) {
-          structures[currentStruct] = [...structLines];
-        }
-        currentStruct = line.structure;
-        structLines = [];
-      } else if (line.type === 'structure_end') {
-        if (currentStruct && structLines.length > 0) {
-          structures[currentStruct] = [...structLines];
-        }
-        currentStruct = null;
-        structLines = [];
-      } else if (currentStruct) {
-        structLines.push(line);
-      }
-    });
-    if (currentStruct && structLines.length > 0) {
-      structures[currentStruct] = [...structLines];
-    }
-
-    return { metadata, lines: contentLines, structures };
-  }
-
-  // Parse ChordPro format
-  const parsed = [];
+  const parsedLines = parseStandardFormat(lines);
   const metadata = {};
+
+  // Extract metadata dari parsed lines
+  const contentLines = parsedLines.filter(line => {
+    if (line.type === 'metadata') {
+      metadata[line.key] = line.value;
+      return false;
+    }
+    return true;
+  });
+
+  // Kumpulkan struktur dari parsedLines
   const structures = {};
   let currentStruct = null;
   let structLines = [];
-
-  for (let line of lines) {
-    if (!line.trim()) {
-      parsed.push({ type: 'empty', line: '' });
-      if (currentStruct) structLines.push({ type: 'empty', line: '' });
-      continue;
-    }
-
-    // Check for plain text metadata format (e.g., "Original Key: G")
-    const plainMetaMatch = line.match(/^(Original Key|Capo|Time|Time Signature|Duration|BPM|Tempo):\s*(.+)$/i);
-    if (plainMetaMatch) {
-      const [, key, value] = plainMetaMatch;
-      const keyNormalized = key.trim().toLowerCase().replace(/\s+/g, '_');
-      metadata[keyNormalized] = value.trim();
-      // Also render it as a comment so it appears in the display
-      const commentObj = { type: 'comment', text: `${key}: ${value.trim()}` };
-      parsed.push(commentObj);
-      if (currentStruct) structLines.push(commentObj);
-      continue;
-    }
-
-    const metaMatch = line.match(/^\{([^:}]+):\s*([^}]+)\}/);
-    if (metaMatch) {
-      const [, key, value] = metaMatch;
-      const keyLower = key.trim().toLowerCase();
-      const val = value.trim();
-      // Treat {comment: ...} (and {c: ...}) as renderable comment lines
-      if (keyLower === 'comment' || keyLower === 'c') {
-        const commentObj = { type: 'comment', text: val };
-        parsed.push(commentObj);
-        if (currentStruct) structLines.push(commentObj);
-      } else {
-        metadata[key] = val;
-      }
-      continue;
-    }
-
-    const structureStartMatch = line.match(/^\{start_of_([^}]+)\}/);
-    if (structureStartMatch) {
-      parsed.push({
-        type: 'structure_start',
-        structure: structureStartMatch[1]
-      });
+  contentLines.forEach((line) => {
+    if (line.type === 'structure_start') {
       if (currentStruct && structLines.length > 0) {
         structures[currentStruct] = [...structLines];
       }
-      currentStruct = structureStartMatch[1];
+      currentStruct = line.structure;
       structLines = [];
-      continue;
-    }
-
-    const structureEndMatch = line.match(/^\{end_of_([^}]+)\}/);
-    if (structureEndMatch) {
-      parsed.push({
-        type: 'structure_end',
-        structure: structureEndMatch[1]
-      });
+    } else if (line.type === 'structure_end') {
       if (currentStruct && structLines.length > 0) {
         structures[currentStruct] = [...structLines];
       }
       currentStruct = null;
       structLines = [];
-      continue;
+    } else if (currentStruct) {
+      structLines.push(line);
     }
-
-    const chordMatches = [...line.matchAll(/\[([^\]]+)\]/g)];
-
-    if (chordMatches.length > 0) {
-      const chords = chordMatches.map(m => ({
-        chord: m[1],
-        position: m.index
-      }));
-
-      const textLine = line.replace(/\[([^\]]+)\]/g, '');
-      const chordObj = {
-        type: 'line_with_chords',
-        chords,
-        text: textLine
-      };
-      parsed.push(chordObj);
-      if (currentStruct) structLines.push(chordObj);
-    } else {
-      const textObj = {
-        type: 'text',
-        line
-      };
-      parsed.push(textObj);
-      if (currentStruct) structLines.push(textObj);
-    }
-  }
-
+  });
   if (currentStruct && structLines.length > 0) {
     structures[currentStruct] = [...structLines];
   }
 
-  return { metadata, lines: parsed, structures };
+  return { metadata, lines: contentLines, structures };
 };
 
 export const getAllChords = (parsedSong) => {

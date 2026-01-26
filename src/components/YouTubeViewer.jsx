@@ -1,3 +1,21 @@
+/**
+ * YouTubeViewer Component
+ * ----------------------
+ * Komponen React untuk menampilkan video YouTube dengan kontrol play/pause, seek, dan event time update.
+ *
+ * Props:
+ *   - videoId: string (YouTube video ID atau URL)
+ *   - minimalControls: boolean (opsional, true untuk kontrol minimal)
+ *   - onTimeUpdate: function(currentTime: number) (opsional, dipanggil saat waktu video berubah)
+ *   - seekToTime: number (opsional, seek ke waktu tertentu dalam detik)
+ *   - ref: React ref (opsional, expose handlePlayPause, handleStop, handleSeek, isPlaying, currentTime)
+ *
+ * Contoh penggunaan:
+ *   <YouTubeViewer videoId="dQw4w9WgXcQ" minimalControls={false} />
+ *   <YouTubeViewer videoId={youtubeUrl} onTimeUpdate={handleTime} ref={ytRef} />
+ *
+ * Untuk videoId, bisa langsung ID ("dQw4w9WgXcQ") atau URL YouTube.
+ */
 import React, { useState, useEffect, useRef } from 'react';
 
 
@@ -143,13 +161,14 @@ const YouTubeViewer = React.forwardRef(({ videoId, minimalControls = false, onTi
     const value = e.target.value;
     setIsScrubbing(true);
     scrubberValueRef.current = value;
-    setCurrentTime(Number(value));
+    // Jangan update currentTime di sini, biarkan preview hanya di UI
   };
   const handleScrubberCommit = (e) => {
     const value = e.target.value;
     setIsScrubbing(false);
     handleSeek(value);
     scrubberValueRef.current = null;
+    setCurrentTime(Number(value)); // Update currentTime setelah seek
   };
 
   const id = extractYouTubeId(videoId);
@@ -203,69 +222,55 @@ const YouTubeViewer = React.forwardRef(({ videoId, minimalControls = false, onTi
     return `${m}:${r.toString().padStart(2, '0')}`;
   };
 
-  if (minimalControls) {
-    return (
-      <div className="youtube-viewer-minimal">
-        {/* Hidden player container to enable audio playback without showing video */}
-        <div className="yt-hidden-player">
-          <div id={containerIdRef.current}></div>
-        </div>
-        {/* Scrubber above controls */}
-        <div className="video-scrubber">
-          <input
-            type="range"
-            min={0}
-            max={Math.max(1, Math.floor(duration))}
-            step={1}
-            value={Math.floor(currentTime)}
-            onChange={(e) => handleSeek(e.target.value)}
-            onInput={(e) => handleSeek(e.target.value)}
-            disabled={!player || !duration}
-            aria-label="Scrub waktu video"
-          />
-          <span className="scrubber-time">{fmt(currentTime)} / {fmt(duration)}</span>
-        </div>
-        <div className="video-controls">
-          <button type="button" onClick={handlePlayPause} className="btn btn-secondary">
-            {isPlaying ? '⏸ Pause' : '▶ Play'}
-          </button>
-          <button type="button" onClick={handleStop} className="btn btn-secondary">
-            ⏹ Stop
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="youtube-viewer">
-      <div className="video-container">
-        <div id={containerIdRef.current}></div>
-      </div>
-      {/* Scrubber above controls */}
+  // Shared controls markup
+  const Controls = (
+    <>
       <div className="video-scrubber">
         <input
           type="range"
           min={0}
           max={Math.max(1, Math.floor(duration))}
           step={1}
-          value={isScrubbing && scrubberValueRef.current !== null ? scrubberValueRef.current : Math.floor(currentTime)}
-          onChange={handleScrubberChange}
-          onMouseUp={handleScrubberCommit}
-          onTouchEnd={handleScrubberCommit}
+          value={
+            minimalControls
+              ? Math.floor(currentTime)
+              : (isScrubbing && scrubberValueRef.current !== null ? scrubberValueRef.current : Math.floor(currentTime))
+          }
+          onChange={minimalControls ? (e) => handleSeek(e.target.value) : handleScrubberChange}
+          onInput={minimalControls ? (e) => handleSeek(e.target.value) : undefined}
+          onMouseUp={minimalControls ? undefined : handleScrubberCommit}
+          onTouchEnd={minimalControls ? undefined : handleScrubberCommit}
           disabled={!player || !duration}
           aria-label="Scrub waktu video"
         />
-        <span className="scrubber-time">{fmt(currentTime)} / {fmt(duration)}</span>
+        {!minimalControls && (
+          <span className="scrubber-time">{fmt(currentTime)} / {fmt(duration)}</span>
+        )}
       </div>
       <div className="video-controls">
         <button type="button" onClick={handlePlayPause} className="btn btn-secondary">
-          {isPlaying ? '⏸ Pause' : '▶ Play'}
+          {isPlaying ? (minimalControls ? '⏸' : '⏸ Pause') : (minimalControls ? '▶' : '▶ Play')}
         </button>
         <button type="button" onClick={handleStop} className="btn btn-secondary">
-          ⏹ Stop
+          {minimalControls ? '⏹' : '⏹ Stop'}
         </button>
       </div>
+    </>
+  );
+
+  return (
+    <div className={minimalControls ? 'youtube-viewer-minimal' : 'youtube-viewer'}>
+      {/* Video container hanya tampil jika bukan minimalControls */}
+      {minimalControls ? (
+        <div className="yt-hidden-player" style={{ width: 0, height: 0, overflow: 'hidden', position: 'absolute' }}>
+          <div id={containerIdRef.current} style={{ width: 0, height: 0, overflow: 'hidden' }}></div>
+        </div>
+      ) : (
+        <div className="video-container">
+          <div id={containerIdRef.current}></div>
+        </div>
+      )}
+      {Controls}
     </div>
   );
 });

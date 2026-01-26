@@ -1,4 +1,5 @@
 import React from 'react';
+import EditIcon from './EditIcon.jsx';
 import TransposeBar from './TransposeBar.jsx';
 import YouTubeViewer from './YouTubeViewer.jsx';
 import TimeMarkers from './TimeMarkers.jsx';
@@ -21,12 +22,26 @@ function SongDetail({
   onNext,
   navIndex = 0,
   navTotal = 0,
+  onEdit,
   children,
 }) {
   if (!song) return null;
   return (
     <div className="song-detail-fullscreen">
       <button className="back-btn" onClick={onBack}>&larr; Kembali ke daftar</button>
+      {onEdit && (
+        <div style={{ position: 'absolute', top: 24, right: 32, zIndex: 2 }}>
+          <button
+            className="tab-btn"
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', fontWeight: 500 }}
+            onClick={onEdit}
+            title="Edit lagu"
+          >
+            <EditIcon size={18} style={{ verticalAlign: 'middle' }} />
+            Edit Lagu
+          </button>
+        </div>
+      )}
       {showNav && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 18, marginBottom: 18 }}>
           <button

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import './TimeMarkers.css';
 
@@ -8,36 +9,69 @@ function formatTime(sec) {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export default function TimeMarkers({ songId, getCurrentTime, seekTo }) {
-  const [markers, setMarkers] = useState([]);
+// API helpers
+async function fetchSongMarkers(songId) {
+  const res = await fetch(`/api/songs/${songId}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data.timestamps) ? data.timestamps : [];
+}
+async function saveSongMarkers(songId, markers) {
+  await fetch(`/api/songs/${songId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ timestamps: markers })
+  });
+}
+
+export default function TimeMarkers({ songId, getCurrentTime, seekTo, markers: propMarkers, setMarkers: propSetMarkers, manualMode }) {
+  const [markers, setMarkersState] = useState(propMarkers || []);
   const [input, setInput] = useState('');
   const [editingIdx, setEditingIdx] = useState(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef();
 
-  // Load markers from localStorage
+  // Sync with parent (for add mode)
   useEffect(() => {
-    const saved = localStorage.getItem(`timeMarkers_${songId}`);
-    setMarkers(saved ? JSON.parse(saved) : []);
-  }, [songId]);
+    if (manualMode && propMarkers) setMarkersState(propMarkers);
+  }, [propMarkers, manualMode]);
 
-  // Save markers to localStorage
+  // Load markers from DB (edit mode)
   useEffect(() => {
-    localStorage.setItem(`timeMarkers_${songId}` , JSON.stringify(markers));
-  }, [markers, songId]);
+    if (!manualMode && songId) {
+      fetchSongMarkers(songId).then(setMarkersState);
+    }
+  }, [songId, manualMode]);
+
+  // Save markers to DB (edit mode)
+  useEffect(() => {
+    if (!manualMode && songId) {
+      saveSongMarkers(songId, markers);
+    }
+  }, [markers, songId, manualMode]);
+
+  // Propagate to parent (add mode)
+  useEffect(() => {
+    if (manualMode && propSetMarkers) propSetMarkers(markers);
+  }, [markers, manualMode, propSetMarkers]);
 
   // Add marker at current time
   const handleAdd = () => {
     if (!input.trim() || !getCurrentTime) return;
-    const time = getCurrentTime();
-    setMarkers([...markers, { label: input.trim(), time }].sort((a, b) => a.time - b.time));
+    let time = getCurrentTime();
+    // Patch: ambil waktu scrubber jika ada (khusus YouTubeViewer)
+    if (window._ytRef && window._ytRef.scrubberValueRef && window._ytRef.isScrubbing) {
+      const scrubVal = Number(window._ytRef.scrubberValueRef.current);
+      if (!isNaN(scrubVal)) time = scrubVal;
+    }
+    setMarkersState(prev => [...prev, { label: input.trim(), time }].sort((a, b) => a.time - b.time));
     setInput('');
     inputRef.current?.focus();
   };
 
   // Remove marker
   const handleRemove = idx => {
-    setMarkers(markers.filter((_, i) => i !== idx));
+    setMarkersState(markers.filter((_, i) => i !== idx));
   };
 
   // Edit marker
@@ -46,7 +80,7 @@ export default function TimeMarkers({ songId, getCurrentTime, seekTo }) {
     setEditValue(markers[idx].label);
   };
   const handleEditSave = idx => {
-    setMarkers(markers.map((m, i) => i === idx ? { ...m, label: editValue } : m));
+    setMarkersState(markers.map((m, i) => i === idx ? { ...m, label: editValue } : m));
     setEditingIdx(null);
   };
 
@@ -63,6 +97,7 @@ export default function TimeMarkers({ songId, getCurrentTime, seekTo }) {
         {markers.map((m, idx) => (
           <div className="time-marker-item" key={idx}>
             <span className="time-marker-time" onClick={() => handleJump(m.time)} title="Lompat ke waktu">{formatTime(m.time)}</span>
+            <button className="time-marker-play-btn" onClick={() => handleJump(m.time)} title="Play ke waktu ini" style={{marginLeft: 6, marginRight: 6}}>▶️</button>
             {editingIdx === idx ? (
               <>
                 <input
