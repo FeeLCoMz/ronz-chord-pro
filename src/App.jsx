@@ -3,9 +3,11 @@ import './App.css';
 import ChordDisplay from './components/ChordDisplay.jsx';
 import SongList from './components/SongList.jsx';
 import SongDetail from './components/SongDetail.jsx';
+import AddSong from './components/AddSong.jsx';
 
 function App() {
   const [tab, setTab] = useState('songs');
+  const [showAddSong, setShowAddSong] = useState(false);
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
   const [search, setSearch] = useState('');
@@ -76,12 +78,13 @@ function App() {
             </div>
           </header>
           <main className="main-content">
-            {tab === 'songs' && (
+            {tab === 'songs' && !showAddSong && (
               <>
                 <div className="section-title">Lagu</div>
                 <div className="info-text" style={{ marginTop: -12, marginBottom: 16, fontSize: '1.05em' }}>
                   Jumlah lagu: {filteredSongs.length}
                 </div>
+                <button className="tab-btn" style={{ marginBottom: 18 }} onClick={() => setShowAddSong(true)}>+ Tambah Lagu</button>
                 <input
                   type="text"
                   placeholder="Cari judul atau artist..."
@@ -97,6 +100,18 @@ function App() {
                   emptyText="Tidak ada lagu ditemukan."
                 />
               </>
+            )}
+            {tab === 'songs' && showAddSong && (
+              <AddSong
+                onBack={() => setShowAddSong(false)}
+                onSongAdded={() => {
+                  setShowAddSong(false);
+                  setLoadingSongs(true);
+                  fetch('/api/songs')
+                    .then(res => res.json())
+                    .then(data => { setSongs(Array.isArray(data) ? data : []); setLoadingSongs(false); });
+                }}
+              />
             )}
             {tab === 'setlists' && (
               <>
