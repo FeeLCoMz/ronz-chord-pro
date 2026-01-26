@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import ChordDisplay from './components/ChordDisplay.jsx';
 import SongList from './components/SongList.jsx';
-import AutoScrollBar from './components/AutoScrollBar.jsx';
-import YouTubeViewer from './components/YouTubeViewer.jsx';
-import SongNotes from './components/SongNotes.jsx';
-import TimeMarkers from './components/TimeMarkers.jsx';
-import TransposeBar from './components/TransposeBar.jsx';
+import SongDetail from './components/SongDetail.jsx';
 
 function App() {
   const [tab, setTab] = useState('songs');
@@ -122,9 +118,28 @@ function App() {
                           .map(id => songs.find(song => song.id === id))
                           .filter(Boolean)
                       }
-                      onSongClick={setSelectedSong}
+                      onSongClick={song => {
+                        const idx = (viewingSetlist.songs || []).findIndex(id => id === song.id);
+                        setActiveSetlist(viewingSetlist);
+                        setActiveSetlistSongIdx(idx >= 0 ? idx : 0);
+                      }}
                       emptyText="Setlist ini belum berisi lagu."
                       enableSearch={true}
+                      showNumber={true}
+                      setlistSongKeys={
+                        (viewingSetlist.songs || []).map((id, idx) => {
+                          const songObj = songs.find(song => song.id === id);
+                          if (!songObj) return null;
+                          // If setlist has per-song key override, use it
+                          if (viewingSetlist.songKeys && Array.isArray(viewingSetlist.songKeys)) {
+                            const keyOverride = viewingSetlist.songKeys[idx];
+                            if (keyOverride && typeof keyOverride === 'string' && keyOverride !== songObj.key) {
+                              return { id, key: keyOverride };
+                            }
+                          }
+                          return { id, key: null };
+                        })
+                      }
                     />
                   </>
                 ) : (
@@ -136,7 +151,7 @@ function App() {
                         <li className="info-text">Belum ada setlist.</li>
                       )}
                       {setlists.map(setlist => (
-                        <li key={setlist.id} className="setlist-list-item" style={{cursor:'pointer'}} onClick={() => setViewingSetlist(setlist)}>
+                        <li key={setlist.id} className="setlist-list-item" style={{ cursor: 'pointer' }} onClick={() => setViewingSetlist(setlist)}>
                           <span className="setlist-title">{setlist.name}</span>
                           <span className="setlist-count">{(setlist.songs?.length || 0)} lagu</span>
                         </li>
@@ -150,92 +165,29 @@ function App() {
         </>
       )}
       {selectedSong && (
-        <div className="song-detail-fullscreen">
-          <button className="back-btn" onClick={() => setSelectedSong(null)}>&larr; Kembali ke daftar</button>
-          <TransposeBar
-            transpose={transpose}
-            setTranspose={setTranspose}
-            highlightChords={highlightChords}
-            setHighlightChords={setHighlightChords}
-          />
-          {selectedSong.youtubeId ? (
-            <YouTubeViewer
-              videoId={selectedSong.youtubeId}
-              ref={ytRef => {
-                window._ytRef = ytRef;
-              }}
-              onTimeUpdate={(t, d) => {
-                window._ytCurrentTime = t;
-              }}
-            />
-          ) : null}
-          <TimeMarkers
-            songId={selectedSong.id}
-            getCurrentTime={() => window._ytCurrentTime || 0}
-            seekTo={t => window._ytRef && window._ytRef.handleSeek && window._ytRef.handleSeek(t)}
-          />
-          <SongNotes songId={selectedSong.id} />
-          {/* YouTubeViewer already rendered above for time marker sync */}
-          <AutoScrollBar tempo={selectedSong.tempo ? Number(selectedSong.tempo) : 80} />
-          <ChordDisplay song={selectedSong} transpose={transpose} highlightChords={highlightChords} />
-        </div>
-      )}
+        <SongDetail
+          song={selectedSong}
+          onBack={() => setSelectedSong(null)}
+          transpose={transpose}
+          setTranspose={setTranspose}
+          highlightChords={highlightChords}
+          setHighlightChords={setHighlightChords}
+        />
+      )}   
       {activeSetlist && (
-        <div className="song-detail-fullscreen">
-          <button className="back-btn" onClick={() => setActiveSetlist(null)}>&larr; Kembali ke setlist</button>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 18, marginBottom: 18 }}>
-            <button
-              className="aksi-btn"
-              disabled={activeSetlistSongIdx <= 0}
-              onClick={() => setActiveSetlistSongIdx(idx => Math.max(0, idx - 1))}
-            >⟨ Sebelumnya</button>
-            <span style={{ fontWeight: 700, fontSize: '1.1em' }}>
-              {activeSetlist.songs && activeSetlist.songs.length > 0
-                ? `${activeSetlistSongIdx + 1} / ${activeSetlist.songs.length}`
-                : '0 / 0'}
-            </span>
-            <button
-              className="aksi-btn"
-              disabled={activeSetlistSongIdx >= (activeSetlist.songs?.length || 1) - 1}
-              onClick={() => setActiveSetlistSongIdx(idx => Math.min((activeSetlist.songs?.length || 1) - 1, idx + 1))}
-            >Berikutnya ⟩</button>
-          </div>
-          {(() => {
-            const song = songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx]);
-            if (song && song.youtubeId) {
-              return (
-                <YouTubeViewer
-                  videoId={song.youtubeId}
-                  ref={ytRef => {
-                    window._ytRef = ytRef;
-                  }}
-                  onTimeUpdate={(t, d) => {
-                    window._ytCurrentTime = t;
-                  }}
-                />
-              );
-            }
-            return null;
-          })()}
-          <TimeMarkers
-            songId={activeSetlist.songs[activeSetlistSongIdx]}
-            getCurrentTime={() => window._ytCurrentTime || 0}
-            seekTo={t => window._ytRef && window._ytRef.handleSeek && window._ytRef.handleSeek(t)}
-          />
-          <SongNotes songId={activeSetlist.songs[activeSetlistSongIdx]} />
-          {/* YouTubeViewer already rendered above for time marker sync */}
-          <TransposeBar
-            transpose={transpose}
-            setTranspose={setTranspose}
-            highlightChords={highlightChords}
-            setHighlightChords={setHighlightChords}
-          />
-          <AutoScrollBar tempo={(() => {
-            const song = songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx]);
-            return song && song.tempo ? Number(song.tempo) : 80;
-          })()} />
-          <ChordDisplay song={songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx])} transpose={transpose} highlightChords={highlightChords} />
-        </div>
+        <SongDetail
+          song={songs.find(s => s.id === activeSetlist.songs[activeSetlistSongIdx])}
+          onBack={() => setActiveSetlist(null)}
+          transpose={transpose}
+          setTranspose={setTranspose}
+          highlightChords={highlightChords}
+          setHighlightChords={setHighlightChords}
+          showNav={true}
+          navIndex={activeSetlistSongIdx}
+          navTotal={activeSetlist.songs?.length || 0}
+          onPrev={() => setActiveSetlistSongIdx(idx => Math.max(0, idx - 1))}
+          onNext={() => setActiveSetlistSongIdx(idx => Math.min((activeSetlist.songs?.length || 1) - 1, idx + 1))}
+        />
       )}
     </>
   );

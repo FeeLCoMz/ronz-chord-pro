@@ -1,3 +1,14 @@
+/* Highlight for instrument (e.g. piano, guitar, etc) */
+.instrument-highlight {
+  background: linear-gradient(90deg, #38bdf8 60%, #06b6d4 100%);
+  color: #fff !important;
+  border-radius: 6px;
+  padding: 3px 12px;
+  font-weight: 700;
+  box-shadow: 0 1px 4px #0001;
+  margin: 0 2px;
+  transition: background 0.15s, color 0.15s;
+}
 /* Tombol kembali global */
 .back-btn {
   display: inline-flex;
@@ -176,12 +187,67 @@ body {
   border-radius: 12px;
   margin-bottom: 16px;
   box-shadow: var(--card-shadow);
-  padding: 1.1rem 1.5rem;
+  padding: 1.1rem 1.5rem 1.1rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   transition: box-shadow 0.18s, background 0.18s;
   border: 1.5px solid var(--border);
+  position: relative;
+}
+
+.song-list-item--with-number {
+  padding-left: 2.7rem;
+}
+
+.song-number-badge {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  background: var(--primary-accent);
+  color: #fff;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1em;
+  box-shadow: 0 1px 4px #0002;
+  z-index: 2;
+}
+
+.song-list-item-content {
+  width: 100%;
+}
+
+.song-list-item-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.song-title {
+  display: block;
+  font-size: 1.13em;
+  font-weight: 700;
+}
+
+.song-artist {
+  display: block;
+  font-size: 0.98em;
+  color: var(--text-muted);
+}
+
+.song-info-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 0.97em;
+  color: var(--primary-accent-dark, #a5b4fc);
 }
 .song-list-item:hover, .setlist-list-item:hover {
   background: var(--primary-accent-light);
