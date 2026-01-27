@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
 import SongListPage from './pages/SongListPage.jsx';
-import SongDetailPage from './pages/SongDetailPage.jsx';
+import SongLyricsPage from './pages/SongLyricsPage.jsx';
 import SongAddEditPage from './pages/SongAddEditPage.jsx';
 import SetlistPage from './pages/SetlistPage.jsx';
 import NotFound from './components/NotFound.jsx';
@@ -115,7 +115,7 @@ function App() {
                 setSearch={setSearch}
                 onSongClick={songOrAction => {
                   if (songOrAction === 'add') navigate('/songs/add');
-                  else if (songOrAction && songOrAction.id) navigate(`/songs/${songOrAction.id}`);
+                  else if (songOrAction && songOrAction.id) navigate(`/songs/${songOrAction.id}/lyrics`);
                 }}
               />
             }
@@ -140,16 +140,10 @@ function App() {
                 .then(data => { setSongs(Array.isArray(data) ? data : []); setLoadingSongs(false); });
             }} />}
           />
+
           <Route
-            path="/songs/:id"
-            element={<SongDetailRoute
-              onEdit={id => navigate(`/songs/${id}/edit`)}
-              onBack={() => navigate('/')}
-              transpose={transpose}
-              setTranspose={setTranspose}
-              highlightChords={highlightChords}
-              setHighlightChords={setHighlightChords}
-            />}
+            path="/songs/:id/lyrics"
+            element={<SongLyricsRoute />}
           />
           <Route
             path="/setlists"
@@ -191,6 +185,28 @@ function App() {
     </>
   );
 
+// Route wrapper for showing only lyrics and chord by id from URL
+function SongLyricsRoute() {
+  const { id } = useParams();
+  const [song, setSong] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  React.useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    fetch(`/api/songs/${id}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Gagal mengambil data lagu');
+        return res.json();
+      })
+      .then(data => { setSong(data); setLoading(false); })
+      .catch(e => { setError(e.message || 'Gagal mengambil data'); setLoading(false); });
+  }, [id]);
+  if (loading) return <div className="main-content">Memuat data lagu...</div>;
+  if (error) return <div className="main-content error-text">{error}</div>;
+  return <SongLyricsPage song={song} />;
+}
+
 // Route wrapper for adding a song
 function AddSongRoute({ onSongUpdated }) {
   const navigate = useNavigate();
@@ -217,37 +233,7 @@ function EditSongRoute({ onSongUpdated }) {
   );
 }
 
-// Route wrapper for showing song detail by id from URL
-function SongDetailRoute({ onEdit, onBack, transpose, setTranspose, highlightChords, setHighlightChords }) {
-  const { id } = useParams();
-  const [song, setSong] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-  React.useEffect(() => {
-    if (!id) return;
-    setLoading(true);
-    fetch(`/api/songs/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Gagal mengambil data lagu');
-        return res.json();
-      })
-      .then(data => { setSong(data); setLoading(false); })
-      .catch(e => { setError(e.message || 'Gagal mengambil data'); setLoading(false); });
-  }, [id]);
-  return (
-    <SongDetailPage
-      song={song}
-      loading={loading}
-      error={error}
-      onBack={onBack}
-      onEdit={() => onEdit && onEdit(song?.id)}
-      transpose={transpose}
-      setTranspose={setTranspose}
-      highlightChords={highlightChords}
-      setHighlightChords={setHighlightChords}
-    />
-  );
-}
+
 }
 
 export default App;

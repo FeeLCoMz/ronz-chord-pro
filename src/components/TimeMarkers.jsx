@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import './TimeMarkers.css';
 
 // Helper to format seconds as mm:ss
 function formatTime(sec) {

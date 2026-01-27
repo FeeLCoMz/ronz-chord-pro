@@ -1,5 +1,4 @@
 import React from 'react';
-import './TransposeBar.css';
 
 function TransposeBar({ transpose, setTranspose, highlightChords, setHighlightChords }) {
   return (
