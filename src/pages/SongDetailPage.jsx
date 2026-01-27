@@ -11,7 +11,7 @@ export default function SongDetailPage({ song, loading, error, onBack, onEdit, t
   if (error) return <div className="main-content error-text">{error}</div>;
   if (!song) return <div className="main-content error-text">Lagu tidak ditemukan</div>;
   return (
-    <div className="song-detail-fullscreen">
+    <>
       <button className="back-btn" onClick={onBack}>&larr; Kembali ke daftar</button>
       {onEdit && (
         <div style={{ margin: '24px 0 16px 0', textAlign: 'left' }}>
@@ -73,6 +73,6 @@ export default function SongDetailPage({ song, loading, error, onBack, onEdit, t
       {showAutoScroll && <AutoScrollBar tempo={song.tempo ? Number(song.tempo) : 80} />}
       <ChordDisplay song={song} transpose={transpose} highlightChords={highlightChords} />
       {children}
-    </div>
+    </>
   );
 }

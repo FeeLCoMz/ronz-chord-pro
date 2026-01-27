@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
 import SongListPage from './pages/SongListPage.jsx';
 import SongDetailPage from './pages/SongDetailPage.jsx';
-import EditSongPage from './pages/EditSongPage.jsx';
+import SongAddEditPage from './pages/SongAddEditPage.jsx';
 import SetlistPage from './pages/SetlistPage.jsx';
 import NotFound from './components/NotFound.jsx';
 import SetlistSongsPage from './pages/SetlistSongsPage.jsx';
@@ -196,7 +196,7 @@ function App() {
 function AddSongRoute({ onSongUpdated }) {
   const navigate = useNavigate();
   return (
-    <EditSongPage
+    <SongAddEditPage
       mode="add"
       onBack={() => navigate('/')}
       onSongUpdated={onSongUpdated}
@@ -209,7 +209,7 @@ function EditSongRoute({ onSongUpdated }) {
   const { id } = useParams();
   const navigate = useNavigate();
   return (
-    <EditSongPage
+    <SongAddEditPage
       songId={id}
       mode="edit"
       onBack={() => navigate(`/songs/${id}`)}
