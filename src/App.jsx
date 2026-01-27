@@ -115,7 +115,7 @@ function App() {
                 setSearch={setSearch}
                 onSongClick={songOrAction => {
                   if (songOrAction === 'add') navigate('/songs/add');
-                  else if (songOrAction && songOrAction.id) navigate(`/songs/${songOrAction.id}/lyrics`);
+                  else if (songOrAction && songOrAction.id) navigate(`/songs/${songOrAction.id}`);
                 }}
               />
             }
@@ -142,7 +142,7 @@ function App() {
           />
 
           <Route
-            path="/songs/:id/lyrics"
+            path="/songs/:id"
             element={<SongLyricsRoute />}
           />
           <Route

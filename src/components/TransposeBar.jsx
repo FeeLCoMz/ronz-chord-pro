@@ -4,7 +4,7 @@ function TransposeBar({ transpose, setTranspose, highlightChords, setHighlightCh
   return (
     <div className="transpose-bar">
       <button className="transpose-btn" onClick={() => setTranspose(t => t - 1)}>-</button>
-      <span className="transpose-label">Transpose: {transpose >= 0 ? '+' : ''}{transpose}</span>
+      <span className="transpose-label">{transpose >= 0 ? '+' : ''}{transpose}</span>
       <button className="transpose-btn" onClick={() => setTranspose(t => t + 1)}>+</button>
       <button
         className={highlightChords ? 'highlight-btn active' : 'highlight-btn'}

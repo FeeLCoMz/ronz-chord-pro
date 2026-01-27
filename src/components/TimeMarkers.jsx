@@ -144,7 +144,7 @@ export default function TimeMarkers({ songId, getCurrentTime, seekTo, markers: p
             placeholder="Tulis label penanda..."
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
           />
-          <button className="time-marker-add-btn" onClick={handleAdd} disabled={!input.trim() || !getCurrentTime}>+ Tambah (waktu saat ini)</button>
+          <button className="time-marker-add-btn" onClick={handleAdd} disabled={!input.trim() || !getCurrentTime}>+</button>
         </div>
       )}
     </div>

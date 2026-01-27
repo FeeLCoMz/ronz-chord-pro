@@ -46,7 +46,7 @@ export default function AutoScrollBar({ tempo = 80, onScrollChange }) {
         onClick={() => setScrolling(s => !s)}
       >{scrolling ? '⏸️ Stop Scroll' : '▶️ Auto Scroll'}</button>
       <label className="tempo-label">
-        Tempo/BPM:
+        BPM:
         <input
           type="number"
           min={40}

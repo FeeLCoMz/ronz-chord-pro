@@ -1,3 +1,271 @@
+.song-detail-controls {
+  display: flex;  
+  justify-content: center;  
+  flex-wrap: wrap;
+}
+.song-control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  min-width: 120px;
+}
+.song-control-label {
+  font-size: 0.98em;
+  color: var(--primary-accent-dark, #a5b4fc);
+  font-weight: 600;
+  margin-bottom: 2px;
+  letter-spacing: 0.01em;
+}
+.yt-collapse-btn {
+  display: block;
+  align-self: center;
+  margin-bottom: 0.5em;
+  margin-top: 8px;
+}
+.yt-collapse-btn.expanded {
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+.yt-expandable {
+  will-change: max-height, opacity;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(.4,1.2,.4,1), opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+}
+.yt-expandable.expanded {
+  max-height: 1200px;
+  opacity: 1;
+  pointer-events: auto;
+}
+.yt-hidden-player {
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  position: absolute;
+}
+/* YouTubeViewer expand/collapse button and animation */
+.yt-collapse-btn {
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 700;
+  padding: 7px 18px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+  margin-bottom: 0.5em;
+}
+.yt-collapse-btn.expanded {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+}
+.yt-expandable {
+  will-change: max-height, opacity;
+}
+/* YouTubeViewer modern style */
+.youtube-viewer, .youtube-viewer-minimal {
+  background: var(--card-bg);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 14px;
+  box-shadow: 0 2px 12px #0002;
+  padding: 18px 18px 12px 18px;
+  margin: 0 auto 18px auto;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+.youtube-viewer .video-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 8px #0002;
+}
+.youtube-viewer .video-container iframe {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 180px;
+  border: none;
+  border-radius: 8px;
+  background: #000;
+  display: block;
+}
+.youtube-viewer .video-scrubber {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.youtube-viewer .scrubber-time {
+  color: var(--primary-accent-dark, #a5b4fc);
+  font-weight: 600;
+  font-size: 0.98em;
+}
+.youtube-viewer .video-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.youtube-viewer .btn {
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 700;
+  padding: 7px 16px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+}
+.youtube-viewer .btn:hover, .youtube-viewer .btn:focus {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
+@media (max-width: 700px) {
+  .youtube-viewer, .youtube-viewer-minimal {
+    max-width: 100vw;
+    padding: 8px 2vw 12px 2vw;
+  }
+  .youtube-viewer .video-container {
+    max-width: 100vw;
+    min-width: 0;
+  }
+}
+/* TimeMarkers modern style */
+.time-markers-container {
+  background: var(--card-bg);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 12px;
+  padding: 18px 18px 12px 18px;
+  margin: 0 auto 18px auto;
+  max-width: 420px;
+  box-shadow: 0 2px 12px #0002;
+}
+.time-markers-header {
+  font-size: 1.18em;
+  font-weight: 700;
+  color: var(--primary-accent-dark, #a5b4fc);
+  margin-bottom: 8px;
+}
+.time-markers-list {
+  margin-bottom: 10px;
+}
+.time-marker-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--primary-accent-light, #23243a);
+  font-size: 1.04em;
+}
+.time-marker-item:last-child {
+  border-bottom: none;
+}
+.time-marker-time {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--primary-accent-dark, #a5b4fc);
+  cursor: pointer;
+  background: var(--primary-accent-light, #23243a);
+  border-radius: 6px;
+  padding: 2px 10px;
+  transition: background 0.15s, color 0.15s;
+}
+.time-marker-time:hover {
+  background: var(--primary-accent);
+  color: #fff;
+}
+.time-marker-label {
+  flex: 1;
+  color: var(--text-main);
+}
+.time-marker-play-btn, .time-marker-edit-btn, .time-marker-remove-btn, .time-marker-save-btn {
+  background: none;
+  border: none;
+  color: var(--primary-accent-dark, #a5b4fc);
+  font-size: 1.08em;
+  cursor: pointer;
+  padding: 2px 7px;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.time-marker-play-btn:hover, .time-marker-edit-btn:hover, .time-marker-remove-btn:hover, .time-marker-save-btn:hover {
+  background: var(--primary-accent);
+  color: #fff;
+}
+.time-marker-input, .time-marker-edit-input {
+  border: 1px solid var(--primary-accent);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 1em;
+  margin-right: 6px;
+}
+.time-markers-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.time-marker-add-btn {
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.time-marker-add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.time-marker-add-btn:hover:not(:disabled) {
+  background: var(--primary-accent);
+  color: #fff;
+}
+.time-markers-empty {
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 8px 0;
+}
+/* Modal overlay and modal window styling */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: #222;
+  color: #fff;
+  border-radius: 10px;
+  padding: 28px;
+  min-width: 320px;
+  max-width: 400px;
+  box-shadow: 0 4px 32px #0008;
+  position: relative;
+}
 /* SongLyricsPage & SongDetailPage Styles */
 .song-detail-container {
   max-width: 680px;
@@ -85,8 +353,7 @@
 .song-detail-controls {
   justify-content: center;
 }
-.song-detail-chord {
-  margin: 18px 0 0 0;
+.song-detail-chord {  
   font-size: 1.1em;
   line-height: 1.7;  
   border-radius: 10px;

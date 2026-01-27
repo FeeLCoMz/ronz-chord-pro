@@ -63,6 +63,8 @@ const YouTubeViewer = React.forwardRef(({
   const mountedRef = useRef(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const scrubberValueRef = useRef(null);
+  // Expand/collapse state
+  const [expanded, setExpanded] = useState(false);
 
   // Expose play/pause, stop, seek, and currentTime to parent via ref
   React.useImperativeHandle(ref, () => ({
@@ -269,26 +271,37 @@ const YouTubeViewer = React.forwardRef(({
 
   return (
     <div className={minimalControls ? 'youtube-viewer-minimal' : 'youtube-viewer'}>
-      {/* Video container hanya tampil jika bukan minimalControls */}
-      {minimalControls ? (
-        <div className="yt-hidden-player" style={{ width: 0, height: 0, overflow: 'hidden', position: 'absolute' }}>
-          <div id={containerIdRef.current} style={{ width: 0, height: 0, overflow: 'hidden' }}></div>
-        </div>
-      ) : (
-        <div className="video-container">
-          <div id={containerIdRef.current}></div>
-        </div>
-      )}
-      {Controls}
-      {/* Gabungkan TimeMarkers di bawah video dan scrubber */}
-      {showTimeMarkers && songId && (
-        <TimeMarkers
-          songId={songId}
-          getCurrentTime={() => isScrubbing && scrubberValueRef.current !== null ? Number(scrubberValueRef.current) : currentTime}
-          seekTo={handleSeek}
-          {...timeMarkersProps}
-        />
-      )}
+      <button
+        className={expanded ? 'yt-collapse-btn expanded' : 'yt-collapse-btn'}
+        data-align={expanded ? 'expanded' : 'collapsed'}
+        onClick={() => setExpanded(e => !e)}
+        aria-label={expanded ? 'Tutup video' : 'Tampilkan video'}
+      >
+        {expanded ? 'Tutup Video ▲' : 'Tampilkan Video ▼'}
+      </button>
+      <div
+        className={expanded ? 'yt-expandable expanded' : 'yt-expandable'}
+      >
+        {minimalControls ? (
+          <div className="yt-hidden-player">
+            <div id={containerIdRef.current}></div>
+          </div>
+        ) : (
+          <div className="video-container">
+            <div id={containerIdRef.current}></div>
+          </div>
+        )}
+        {Controls}
+        {/* Gabungkan TimeMarkers di bawah video dan scrubber */}
+        {showTimeMarkers && songId && (
+          <TimeMarkers
+            songId={songId}
+            getCurrentTime={() => isScrubbing && scrubberValueRef.current !== null ? Number(scrubberValueRef.current) : currentTime}
+            seekTo={handleSeek}
+            {...timeMarkersProps}
+          />
+        )}
+      </div>
     </div>
   );
 });
