@@ -24,6 +24,7 @@ export default async function handler(req, res) {
         `CREATE TABLE IF NOT EXISTS setlists (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
+          desc TEXT DEFAULT '',
           songs TEXT DEFAULT '[]',
           songKeys TEXT DEFAULT '{}',
           completedSongs TEXT DEFAULT '{}',
@@ -31,24 +32,24 @@ export default async function handler(req, res) {
           updatedAt TEXT
         )`
       );
-      
-      // Try to add completedSongs column if it doesn't exist (for existing tables)
+
+      // Try to add desc and completedSongs column if not exist (for existing tables)
       try {
-        await client.execute(
-          `ALTER TABLE setlists ADD COLUMN completedSongs TEXT DEFAULT '{}'`
-        );
-      } catch (e) {
-        // Column already exists, ignore error
-      }
+        await client.execute(`ALTER TABLE setlists ADD COLUMN desc TEXT DEFAULT ''`);
+      } catch (e) {}
+      try {
+        await client.execute(`ALTER TABLE setlists ADD COLUMN completedSongs TEXT DEFAULT '{}'`);
+      } catch (e) {}
       
       const rows = await client.execute(
-        `SELECT id, name, songs, songKeys, completedSongs, createdAt, updatedAt
+        `SELECT id, name, desc, songs, songKeys, completedSongs, createdAt, updatedAt
          FROM setlists
          ORDER BY (updatedAt IS NULL) ASC, datetime(updatedAt) DESC, datetime(createdAt) DESC`
       );
       const setlists = (rows.rows ?? []).map(row => ({
         id: row.id,
         name: row.name,
+        desc: row.desc || '',
         songs: (() => {
           try {
             return row.songs ? JSON.parse(row.songs) : [];

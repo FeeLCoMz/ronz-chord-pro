@@ -136,9 +136,9 @@ export default function SongAddEditPage({ songId, mode = 'edit', onBack, onSongU
 
 	if (loadingData) return <div className="main-content">Memuat data lagu...</div>;
 
-	return (
-		<div>
-			<button className="back-btn" onClick={onBack}>&larr; Kembali</button>
+	 return (
+		 <div>
+			 <button className="back-btn" onClick={() => window.history.back()}>&larr; Kembali</button>
 			<div className="section-title">{mode === 'edit' ? 'Edit Lagu' : 'Tambah Lagu Baru'}</div>
 			<form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '0 auto' }}>
 				<button type="button" className="tab-btn" style={{ marginBottom: 16, float: 'right' }} onClick={handleAIAutofill} disabled={aiLoading || !title.trim()}>

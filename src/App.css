@@ -83,10 +83,7 @@
   justify-content: center;
 }
 .song-detail-controls {
-  display: flex;
-  gap: 12px;
   justify-content: center;
-  margin-bottom: 12px;
 }
 .song-detail-chord {
   margin: 18px 0 0 0;

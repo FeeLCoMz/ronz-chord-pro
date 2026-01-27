@@ -38,7 +38,7 @@ function parseSection(line) {
     // Daftar kata kunci struktur lagu
     const structureKeywords = ['intro', 'verse', 'chorus', 'bridge', 'outro', 'interlude', 'reff', 'pre-chorus'];
     // Daftar kata kunci instrumen
-    const instrumentKeywords = ['guitar', 'gitar', 'piano', 'bass', 'keyboard', 'drum'];
+    const instrumentKeywords = ['guitar', 'gitar', 'piano', 'bass', 'keyboard', 'drum','suling'];
     if (structureKeywords.some(k => label.includes(k))) {
       return { type: 'structure', label };
     }

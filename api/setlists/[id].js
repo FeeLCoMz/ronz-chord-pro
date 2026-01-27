@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       try {
         const result = await client.execute(
-          `SELECT id, name, songs, songKeys, completedSongs, createdAt, updatedAt
+          `SELECT id, name, desc, songs, songKeys, completedSongs, createdAt, updatedAt
            FROM setlists WHERE id = ? LIMIT 1`,
           [idStr]
         );
@@ -50,6 +50,7 @@ export default async function handler(req, res) {
         res.status(200).json({
           id: row.id,
           name: row.name,
+          desc: row.desc || '',
           songs: (() => {
             try {
               return row.songs ? JSON.parse(row.songs) : [];
@@ -93,6 +94,7 @@ export default async function handler(req, res) {
       await client.execute(
         `UPDATE setlists SET 
            name = COALESCE(?, name),
+           desc = COALESCE(?, desc),
            songs = COALESCE(?, songs),
            songKeys = COALESCE(?, songKeys),
            completedSongs = COALESCE(?, completedSongs),
@@ -100,6 +102,7 @@ export default async function handler(req, res) {
          WHERE id = ?`,
         [
           body.name ?? null,
+          body.desc ?? null,
           songsJson,
           songKeysJson,
           completedSongsJson,

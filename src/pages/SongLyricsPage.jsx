@@ -13,10 +13,18 @@ export default function SongLyricsPage({ song }) {
   if (!song) return <div className="main-content error-text">Lagu tidak ditemukan</div>;
   return (
     <div className="song-detail-container">
-      <div className="song-detail-header">
+      <div className="song-detail-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button className="back-btn" onClick={() => navigate(-1)}>&larr; Kembali</button>
         <div className="song-detail-title">{song.title}</div>
-        <div style={{ width: 90 }} />
+        <button
+          className="tab-btn setlist-edit-btn"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, padding: '4px 10px' }}
+          title="Edit Lagu"
+          onClick={() => navigate(`/songs/${song.id}/edit`)}
+        >
+          <EditIcon size={16} />
+          <span>Edit</span>
+        </button>
       </div>
       <div className="song-detail-info">
         {song.artist && <span><b>Artis:</b> {song.artist}</span>}
