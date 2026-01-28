@@ -7,7 +7,7 @@ export default function SongDetailHeader({ song, artist, onBack, onEdit }) {
       <div style={{flex: 1}}>
         <div className="song-detail-title">{song}</div>
         {artist && (
-          <div className="song-artist" style={{textAlign: 'center', marginTop: 2}}>{artist}</div>
+          <div className="song-artist">{artist}</div>
         )}
       </div>
       <button

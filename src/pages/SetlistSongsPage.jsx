@@ -69,6 +69,12 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
     if (setActiveSetlist && setlist) setActiveSetlist(setlist);
   }, [setlistId, setlists]);
   const [localOrder, setLocalOrder] = useState(setlist ? [...(setlist.songs || [])] : []);
+  // Sync localOrder with setlist.songs when setlist changes
+  useEffect(() => {
+    if (setlist && Array.isArray(setlist.songs)) {
+      setLocalOrder([...(setlist.songs || [])]);
+    }
+  }, [setlist]);
   const [showAddSong, setShowAddSong] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiInput, setAiInput] = useState('');

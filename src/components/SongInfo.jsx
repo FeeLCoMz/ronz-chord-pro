@@ -10,7 +10,7 @@ export default function SongInfo({ infoRows = [], instruments, extraMeta = [] })
         <span><b>Instrumen:</b> {Array.isArray(instruments) ? instruments.join(', ') : instruments}</span>
       )}
       {extraMeta.length > 0 && (
-        <div style={{ marginTop: 6, fontSize: '0.97em', color: '#64748b' }}>
+        <div>
           {extraMeta.map(row => (
             <div key={row.label}><b>{row.label}:</b> {row.value}</div>
           ))}

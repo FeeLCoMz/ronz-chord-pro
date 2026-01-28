@@ -88,7 +88,7 @@ export default function SongLyricsPage({ song, activeSetlist }) {
       />
       {/* YouTube viewer */}
       {song.youtubeId && (
-        <div className="song-detail-youtube" style={{ marginBottom: 18 }}>
+        <div className="song-detail-youtube">
           <YouTubeViewer
             videoId={song.youtubeId}
             songId={song.id}

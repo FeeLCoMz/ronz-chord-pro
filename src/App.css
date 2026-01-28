@@ -1,3 +1,23 @@
+/* Song search bar layout */
+.song-search-bar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* Utility for flex grow */
+.flex-1 {
+  flex: 1;
+}
+
+/* Mic button style for search */
+.mic-btn {
+  padding: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 /* Tombol aksi berbahaya (hapus, dll) */
 .danger-btn {
   background: #ff6b6b;
@@ -29,7 +49,7 @@
 
 .setlist-desc {
   font-weight: 400;
-  font-size: 0.95em;
+  font-size: 0.70em;
   color: #666;
   margin-top: 2px;
 }
@@ -830,7 +850,7 @@
   color: var(--text-muted);
   font-size: 1.1rem;
   text-align: center;
-  margin-top: 32px;
+  margin-bottom: 15px;
 }
 
 
@@ -1168,9 +1188,7 @@ body {
 .song-number-badge {
   position: absolute;
   top: 10px;
-  left: 12px;
-  background: var(--primary-accent);
-  color: #fff;
+  left: 12px;    
   border-radius: 50%;
   width: 28px;
   height: 28px;

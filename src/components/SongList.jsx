@@ -47,7 +47,7 @@ function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.',
 
   // Dropdown sort
   const sortOptions = [
-    { value: 'default', label: 'Urutan Asli' },
+    { value: 'default', label: 'Default' },
     { value: 'title', label: 'Judul' },
     { value: 'artist', label: 'Artist' },
     { value: 'key', label: 'Key' },
@@ -157,8 +157,9 @@ function SortableSongItem({ song, idx, renderSongItem }) {
               <span className="song-artist" style={{ display: 'block', fontSize: '0.98em', color: 'var(--text-muted)' }}>{song.artist}</span>
             </div>
             <div className="song-info-row" style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 6, fontSize: '0.97em', color: 'var(--primary-accent-dark, #a5b4fc)' }}>
-              <span>
-                <strong>Key:</strong> {keyOverride ? (
+              <span title="Key" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span role="img" aria-label="Key" style={{ fontSize: '1.1em' }}>🎹</span>
+                {keyOverride ? (
                   <>
                     <span style={{ color: 'var(--primary-accent)' }}>{keyOverride}</span>
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.97em', marginLeft: 4 }}>
@@ -167,8 +168,14 @@ function SortableSongItem({ song, idx, renderSongItem }) {
                   </>
                 ) : (song.key || '-')}
               </span>
-              <span><strong>Tempo:</strong> {song.tempo ? song.tempo + ' bpm' : '-'}</span>
-              <span><strong>Style:</strong> {song.style || '-'}</span>
+              <span title="Tempo" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span role="img" aria-label="Tempo" style={{ fontSize: '1.1em' }}>⏱️</span>
+                {song.tempo ? song.tempo + ' bpm' : '-'}
+              </span>
+              <span title="Style" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span role="img" aria-label="Style" style={{ fontSize: '1.1em' }}>🎼</span>
+                {song.style || '-'}
+              </span>
             </div>
           </div>
           {/* Tombol edit dan hapus lagu dari setlist */}
