@@ -13,12 +13,12 @@ async function readJson(req) {
   });
 }
 
-export default async function handler(req, res) {
-  const { id } = req.params || {};
 
-  // Validate id parameter - be lenient, accept any non-empty string/number
+export default async function handler(req, res) {
+  // Support both Express (req.params) and Vercel/Next.js (req.query)
+  let id = (req.query && req.query.id) || (req.params && req.params.id) || '';
+  if (Array.isArray(id)) id = id[0];
   const idStr = id ? String(id).trim() : '';
-  
   if (!idStr) {
     res.status(400).json({ error: 'Missing song id' });
     return;
