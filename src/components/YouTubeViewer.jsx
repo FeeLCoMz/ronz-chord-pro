@@ -259,10 +259,10 @@ const YouTubeViewer = React.forwardRef(({
         )}
       </div>
       <div className="video-controls">
-        <button type="button" onClick={handlePlayPause} className="btn btn-secondary">
+        <button type="button" onClick={handlePlayPause} className="btn-base btn-secondary">
           {isPlaying ? (minimalControls ? '⏸' : '⏸ Pause') : (minimalControls ? '▶' : '▶ Play')}
         </button>
-        <button type="button" onClick={handleStop} className="btn btn-secondary">
+        <button type="button" onClick={handleStop} className="btn-base btn-secondary">
           {minimalControls ? '⏹' : '⏹ Stop'}
         </button>
       </div>

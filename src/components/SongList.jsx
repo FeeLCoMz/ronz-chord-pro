@@ -86,13 +86,14 @@ function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.',
           {sortBy !== 'default' && (
             <button className="tab-btn" style={{ padding:'6px 10px' }} onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}>
               {sortOrder === 'asc' ? '⬆️' : '⬇️'}
-            </button>
-          )}
-        </div>
-        <ul className="song-list"><li className="info-text">{emptyText}</li></ul>
-      </>
-    );
-  }
+                <button
+                  className="btn-base tab-btn"
+                  onClick={() => onEditSongMeta(song, idx)}
+                  title="Edit detail lagu di setlist"
+                  aria-label="Edit detail lagu di setlist"
+                >
+                  <EditIcon size={18} />
+                </button>
 
 // Refactor: SortableSongItem harus di luar komponen agar urutan hook tidak berubah
 function SortableSongItem({ song, idx, renderSongItem }) {
@@ -183,18 +184,19 @@ function SortableSongItem({ song, idx, renderSongItem }) {
             <>
               {onSongClick.onEditSong && (
                 <button
-                  className="tab-btn"
+                  className="btn-base tab-btn"
                   title="Edit detail lagu di setlist"
                   onClick={e => { e.stopPropagation(); onSongClick.onEditSong(idx); }}
                 >
                   <EditIcon size={18} />
-                </button>
-              )}
-              {onSongClick.onDeleteSong && (
                 <button
-                  className="tab-btn danger-btn"
+                  className="btn-base tab-btn danger-btn"
+                  onClick={() => onRemoveSongMeta(song, idx)}
                   title="Hapus lagu dari setlist"
-                  onClick={e => { e.stopPropagation(); onSongClick.onDeleteSong(song.id); }}
+                  aria-label="Hapus lagu dari setlist"
+                >
+                  <DeleteIcon size={18} />
+                </button>
                 >
                   <DeleteIcon size={18} />
                 </button>

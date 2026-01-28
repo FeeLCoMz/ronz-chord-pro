@@ -40,6 +40,7 @@ export default function SetlistPage({
         className="btn-base tab-btn setlist-add-btn"
         onClick={() => setShowCreateSetlist(true)}
         title="Buat Setlist Baru"
+        aria-label="Buat Setlist Baru"
       >
         <PlusIcon size={22} />
       </button>

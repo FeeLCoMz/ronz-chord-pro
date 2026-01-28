@@ -430,29 +430,7 @@ Catatan:
 }
 
 /* YouTubeViewer modern style */
-.youtube-viewer,
-.youtube-viewer-minimal {
-  background: var(--card-bg);
-  border: 1.5px solid var(--primary-accent);
-  border-radius: 14px;
-  box-shadow: 0 2px 12px #0002;
-  padding: 18px 18px 12px 18px;
-  margin: 0 auto 18px auto;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
 
-.youtube-viewer .video-container {
-  width: 100%;
-  aspect-ratio: 16/9;
-  background: #000;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 8px #0002;
-}
 
 .youtube-viewer .video-container iframe {
   width: 100% !important;
@@ -497,27 +475,6 @@ Catatan:
   transition: background 0.16s, color 0.16s, border 0.16s;
 }
 
-.youtube-viewer .btn:hover,
-.youtube-viewer .btn:focus {
-  background: var(--primary-accent);
-  color: #fff;
-  border: 1.5px solid var(--primary-accent-dark);
-  outline: none;
-}
-
-@media (max-width: 700px) {
-
-  .youtube-viewer,
-  .youtube-viewer-minimal {
-    max-width: 100vw;
-    padding: 8px 2vw 12px 2vw;
-  }
-
-  .youtube-viewer .video-container {
-    max-width: 100vw;
-    min-width: 0;
-  }
-}
 
 /* TimeMarkers modern style */
 .time-markers-container {

@@ -112,7 +112,7 @@ export default function TimeMarkers({ songId, getCurrentTime, seekTo, markers: p
         {markers.map((m, idx) => (
           <div className="time-marker-item" key={idx}>
             <span className="time-marker-time" onClick={() => handleJump(m.time)} title="Lompat ke waktu">{formatTime(m.time)}</span>
-            <button className="time-marker-play-btn" onClick={() => handleJump(m.time)} title="Play ke waktu ini" style={{marginLeft: 6, marginRight: 6}}>▶️</button>
+            <button className="btn-base time-marker-play-btn" onClick={() => handleJump(m.time)} title="Play ke waktu ini" style={{marginLeft: 6, marginRight: 6}}>▶️</button>
             {!readonly && (editingIdx === idx ? (
               <>
                 <input
@@ -122,15 +122,15 @@ export default function TimeMarkers({ songId, getCurrentTime, seekTo, markers: p
                   onKeyDown={e => e.key === 'Enter' && handleEditSave(idx)}
                   autoFocus
                 />
-                <button className="time-marker-save-btn" onClick={() => handleEditSave(idx)}>Simpan</button>
+                <button className="btn-base time-marker-save-btn" onClick={() => handleEditSave(idx)}>Simpan</button>
               </>
             ) : (
               <>
                 <span className="time-marker-label">{m.label}</span>
-                <button className="time-marker-edit-btn" onClick={() => handleEdit(idx)} title="Edit">✎</button>
+                <button className="btn-base time-marker-edit-btn" onClick={() => handleEdit(idx)} title="Edit">✎</button>
               </>
             ))}
-            {!readonly && <button className="time-marker-remove-btn" onClick={() => handleRemove(idx)} title="Hapus">🗑</button>}
+            {!readonly && <button className="btn-base time-marker-remove-btn" onClick={() => handleRemove(idx)} title="Hapus">🗑</button>}
           </div>
         ))}
       </div>
@@ -144,7 +144,7 @@ export default function TimeMarkers({ songId, getCurrentTime, seekTo, markers: p
             placeholder="Tulis label penanda..."
             onKeyDown={e => e.key === 'Enter' && handleAdd()}
           />
-          <button className="time-marker-add-btn" onClick={handleAdd} disabled={!input.trim() || !getCurrentTime}>+</button>
+          <button className="btn-base time-marker-add-btn" onClick={handleAdd} disabled={!input.trim() || !getCurrentTime}>+</button>
         </div>
       )}
     </div>
