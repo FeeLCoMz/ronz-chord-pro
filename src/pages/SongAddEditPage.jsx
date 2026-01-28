@@ -142,7 +142,16 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 
 	 return (
 		<>
-			<button className="btn-base back-btn" onClick={() => navigate(location.state?.from || '/')}>&larr; Kembali</button>
+			 <button
+				 className="btn-base back-btn"
+				 onClick={() => {
+					 if (mode === 'edit' && songId) {
+						 navigate(`/songs/${songId}`);
+					 } else {
+						 navigate('/');
+					 }
+				 }}
+			 >&larr; Kembali</button>
 			<div className="section-title">{mode === 'edit' ? 'Edit Lagu' : 'Tambah Lagu Baru'}</div>
 			<form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '0 auto' }}>
 				<button type="button" className="btn-base tab-btn" style={{ marginBottom: 16, float: 'right' }} onClick={handleAIAutofill} disabled={aiLoading || !title.trim()}>
