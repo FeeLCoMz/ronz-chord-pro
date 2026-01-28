@@ -41,40 +41,53 @@ export default function SongLyricsPage({ song, activeSetlist }) {
     if (idx > 0) navPrev = activeSetlist.songs[idx - 1];
     if (idx < activeSetlist.songs.length - 1) navNext = activeSetlist.songs[idx + 1];
   }
+  // Nomor urutan lagu di setlist
+  let songNumber = null, totalSongs = null;
+  if (activeSetlist && activeSetlist.songs && song && song.id) {
+    const idx = activeSetlist.songs.findIndex(id => String(id) === String(song.id));
+    if (idx !== -1) {
+      songNumber = idx + 1;
+      totalSongs = activeSetlist.songs.length;
+    }
+  }
   return (
     <div className="song-detail-container">
-      {/* Header: Back, Title, Edit */}
+      {/* Navigasi antar lagu (jika setlist aktif) */}
+      {activeSetlist && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8, justifyContent: 'center', alignItems: 'center' }}>
+          <button
+            className="tab-btn icon-btn"
+            disabled={!navPrev}
+            title="Lagu Sebelumnya"
+            onClick={() => navPrev && navigate(`/songs/${navPrev}`)}
+          >
+            &#8592;
+          </button>
+          {songNumber && totalSongs && (
+            <span style={{ fontWeight: 600, fontSize: '1.08em', color: '#6366f1' }}>
+              {songNumber} / {totalSongs}
+            </span>
+          )}
+          <button
+            className="tab-btn icon-btn"
+            disabled={!navNext}
+            title="Lagu Berikutnya"
+            onClick={() => navNext && navigate(`/songs/${navNext}`)}
+          >
+            &#8594;
+          </button>
+        </div>
+      )}
       <div className="song-detail-header">
-           <button className="back-btn" onClick={() => {
-             if (activeSetlist) {
-               navigate(`/setlists/${activeSetlist.id}/songs`);
-             } else {
-               navigate(location.state?.from || '/');
-             }
-           }}>
-             &larr; Kembali
-           </button>        
-        {activeSetlist && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8, justifyContent: 'center' }}>
-            <button
-              className="tab-btn icon-btn"
-              disabled={!navPrev}
-              title="Lagu Sebelumnya"
-              onClick={() => navPrev && navigate(`/songs/${navPrev}`)}
-            >
-              &#8592;
-            </button>
-            <button
-              className="tab-btn icon-btn"
-              disabled={!navNext}
-              title="Lagu Berikutnya"
-              onClick={() => navNext && navigate(`/songs/${navNext}`)}
-            >
-              &#8594;
-            </button>
-          </div>
-        )}
-
+        <button className="back-btn" onClick={() => {
+          if (activeSetlist) {
+            navigate(`/setlists/${activeSetlist.id}/songs`);
+          } else {
+            navigate(location.state?.from || '/');
+          }
+        }}>
+          &larr;
+        </button>
         <div style={{flex: 1}}>
           <div className="song-detail-title">{song.title}</div>
           {song.artist && (
