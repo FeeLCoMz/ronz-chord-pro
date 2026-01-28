@@ -36,7 +36,7 @@ export default function SongListPage({ songs, loading, error, search, setSearch,
       <div className="info-text">
         {songs.length} Lagu
       </div>
-      <button className="tab-btn add-song-btn" onClick={() => onSongClick('add')} title="Tambah Lagu">
+      <button className="btn-base tab-btn add-song-btn" onClick={() => onSongClick('add')} title="Tambah Lagu">
         <PlusIcon size={22} />
       </button>
       <div className="song-search-bar">
@@ -49,7 +49,7 @@ export default function SongListPage({ songs, loading, error, search, setSearch,
         />
         <button
           type="button"
-          className="tab-btn mic-btn"
+          className="btn-base tab-btn mic-btn"
           title="Cari dengan suara"
           onClick={handleVoiceSearch}
         >

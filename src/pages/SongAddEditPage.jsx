@@ -142,10 +142,10 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 
 	 return (
 		<>
-			 <button className="back-btn" onClick={() => navigate(location.state?.from || '/')}>&larr; Kembali</button>
+			<button className="btn-base back-btn" onClick={() => navigate(location.state?.from || '/')}>&larr; Kembali</button>
 			<div className="section-title">{mode === 'edit' ? 'Edit Lagu' : 'Tambah Lagu Baru'}</div>
 			<form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '0 auto' }}>
-				<button type="button" className="tab-btn" style={{ marginBottom: 16, float: 'right' }} onClick={handleAIAutofill} disabled={aiLoading || !title.trim()}>
+				<button type="button" className="btn-base tab-btn" style={{ marginBottom: 16, float: 'right' }} onClick={handleAIAutofill} disabled={aiLoading || !title.trim()}>
 					{aiLoading ? 'Mengisi Otomatis...' : 'Isi Otomatis (AI)'}
 				</button>
 				<label>Judul Lagu
@@ -218,7 +218,7 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 					<textarea value={lyrics} onChange={e => setLyrics(e.target.value)} className="search-input" rows={8} style={{ fontFamily: 'monospace', resize: 'vertical' }} placeholder="[C] Contoh lirik dan chord..." />
 				</label>
 				{error && <div className="error-text" style={{ marginTop: 10 }}>{error}</div>}
-				<button type="submit" className="tab-btn" style={{ marginTop: 18 }} disabled={loading}>
+				   <button type="submit" className="btn-base tab-btn" style={{ marginTop: 18 }} disabled={loading}>
 					{loading ? 'Menyimpan...' : (mode === 'edit' ? 'Simpan Perubahan' : 'Simpan Lagu')}
 				</button>
 			</form>
@@ -274,8 +274,8 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 								</div>
 							)}
 							<div style={{display:'flex', justifyContent:'flex-end', gap:10, marginTop:18}}>
-								<button type="button" className="tab-btn" onClick={() => { setShowAiConfirm(false); setAiResult(null); }}>Batal</button>
-								<button type="submit" className="tab-btn" style={{background:'#4f8cff', color:'#fff', fontWeight:600}}>Isi Field</button>
+								   <button type="button" className="btn-base tab-btn" onClick={() => { setShowAiConfirm(false); setAiResult(null); }}>Batal</button>
+								   <button type="submit" className="btn-base tab-btn" style={{background:'#4f8cff', color:'#fff', fontWeight:600}}>Isi Field</button>
 							</div>
 						</form>
 					</div>
