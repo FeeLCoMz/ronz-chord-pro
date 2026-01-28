@@ -169,10 +169,10 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists }) {
             <div className="modal-title">Bagikan Setlist</div>
             <textarea
               className="search-input full-width mb-12"
-              rows={Math.max(7, setlistSongs.length + 3)}
+              rows={7}
+              style={{ fontFamily: 'inherit', fontSize: '1.05em', background: '#f3f4fa', color: '#23243a', maxHeight: '220px', resize: 'vertical' }}
               value={shareText}
               readOnly
-              style={{ fontFamily: 'inherit', fontSize: '1.05em', background: '#f3f4fa', color: '#23243a' }}
             />
             <button className="tab-btn" style={{ width: '100%', marginBottom: 8 }} onClick={handleCopyShare}>{shareCopied ? '✅ Tersalin!' : 'Salin Teks'}</button>
             <button className="back-btn mt-8" onClick={() => setShowShareModal(false)}>Tutup</button>
