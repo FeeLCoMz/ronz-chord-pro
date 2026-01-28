@@ -37,16 +37,16 @@ function App() {
     }
     return 'dark';
   });
-  // State untuk setlist yang sedang dilihat di main content (tanpa fullscreen)
-  const [viewingSetlist, setViewingSetlist] = useState(null);
+  // State untuk setlist aktif (untuk navigasi antar lagu di lyric page)
+  const [activeSetlist, setActiveSetlist] = useState(null);
   // State untuk modal tambah lagu ke setlist
   const [showAddSongToSetlist, setShowAddSongToSetlist] = useState(false);
   const [addSongSearch, setAddSongSearch] = useState('');
   const [addSongSelectedId, setAddSongSelectedId] = useState(null);
   const addSongInputRef = useRef(null);
-  // Filter lagu yang belum ada di setlist
-  const availableSongsForSetlist = viewingSetlist
-    ? songs.filter(song => !(viewingSetlist.songs || []).includes(song.id))
+  // Filter lagu yang belum ada di setlist aktif
+  const availableSongsForSetlist = activeSetlist
+    ? songs.filter(song => !(activeSetlist.songs || []).includes(song.id))
     : [];
   const filteredAvailableSongs = availableSongsForSetlist.filter(song =>
     (song.title || '').toLowerCase().includes(addSongSearch.toLowerCase()) ||
@@ -151,8 +151,6 @@ function App() {
             element={
               <SetlistPage
                 setlists={setlists}
-                viewingSetlist={viewingSetlist}
-                setViewingSetlist={setViewingSetlist}
                 songs={songs}
                 showCreateSetlist={showCreateSetlist}
                 setShowCreateSetlist={setShowCreateSetlist}
@@ -178,7 +176,7 @@ function App() {
           />
           <Route
             path="/setlists/:setlistId/songs"
-            element={<SetlistSongsRoute setlists={setlists} songs={songs} />}
+            element={<SetlistSongsPage setlists={setlists} songs={songs} setSetlists={setSetlists} setActiveSetlist={setActiveSetlist} />}
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -205,7 +203,7 @@ function SongLyricsRoute() {
   }, [id]);
   if (loading) return <div className="main-content">Memuat data lagu...</div>;
   if (error) return <div className="main-content error-text">{error}</div>;
-  return <SongLyricsPage song={song} />;
+  return <SongLyricsPage song={song} activeSetlist={activeSetlist} />;
 }
 
 // Route wrapper for adding a song

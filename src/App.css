@@ -6,12 +6,14 @@
   font-weight: 600;
   transition: background 0.16s, color 0.16s, border 0.16s;
 }
+
 .danger-btn:hover,
 .danger-btn:focus {
   background: #d90429;
   color: #fff;
   border: 1.5px solid #d90429;
 }
+
 /* SetlistPage Flex and Utility Classes */
 .setlist-list-flex {
   display: flex;
@@ -706,7 +708,6 @@
   gap: 16px;
 }
 
-
 .tab-btn {
   font-weight: 400;
   font-size: 1.1rem;
@@ -723,13 +724,20 @@
 
 .tab-btn.active {
   font-weight: 700;
-  border: 2px solid #6366f1;
-  background: #eef2ff;
-  color: #3730a3;
+  border: 2px solid var(--primary-accent);
+  background: var(--primary-accent-light);
+  color: var(--primary-accent-dark);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.13);
 }
 
+
 .tab-btn:focus {
-  box-shadow: 0 0 0 2px #6366f1;
+  box-shadow: 0 0 0 2px var(--primary-accent);
+}
+
+.tab-btn:hover {
+  background: var(--primary-accent-light);
+  color: var(--primary-accent-dark);
 }
 
 .main-content {
@@ -1087,22 +1095,12 @@ body {
 
 
 
-.tab-btn.active {
-  font-weight: 700;
-  border: 2px solid var(--primary-accent);
-  background: var(--primary-accent-light);
-  color: var(--primary-accent-dark);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.13);
-}
 
-.tab-btn:focus {
-  box-shadow: 0 0 0 2px var(--primary-accent);
-}
 
-.tab-btn:hover {
-  background: var(--primary-accent-light);
-  color: var(--primary-accent-dark);
-}
+
+
+
+
 
 .main-content {
   min-height: 60vh;

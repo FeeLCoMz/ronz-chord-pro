@@ -3,9 +3,9 @@
 import SongList from '../components/SongList.jsx';
 import PlusIcon from '../components/PlusIcon.jsx';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
-export default function SetlistSongsPage({ setlists, songs, setSetlists }) {
+export default function SetlistSongsPage({ setlists, songs, setSetlists, setActiveSetlist }) {
       const [editSongIdx, setEditSongIdx] = useState(null);
       const [editSongKey, setEditSongKey] = useState('');
       const [editSongTempo, setEditSongTempo] = useState('');
@@ -64,6 +64,10 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists }) {
   const { setlistId } = useParams();
   const navigate = useNavigate();
   const setlist = setlists.find(s => String(s.id) === String(setlistId));
+  // Set setlist aktif saat halaman dibuka
+  useEffect(() => {
+    if (setActiveSetlist && setlist) setActiveSetlist(setlist);
+  }, [setlistId, setlists]);
   const [localOrder, setLocalOrder] = useState(setlist ? [...(setlist.songs || [])] : []);
   const [showAddSong, setShowAddSong] = useState(false);
   const [showAiModal, setShowAiModal] = useState(false);

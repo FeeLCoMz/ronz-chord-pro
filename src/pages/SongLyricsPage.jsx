@@ -7,7 +7,7 @@ import AutoScrollBar from '../components/AutoScrollBar.jsx';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { parseChordPro } from '../utils/chordUtils.js';
 
-export default function SongLyricsPage({ song }) {
+export default function SongLyricsPage({ song, activeSetlist }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [transpose, setTranspose] = React.useState(0);
@@ -27,18 +27,54 @@ export default function SongLyricsPage({ song }) {
     { label: 'Tempo', value: lyricMeta.tempo || song.tempo },
     { label: 'Style', value: song.style },
     { label: 'Capo', value: lyricMeta.capo },
-    { label: 'Time', value: lyricMeta.time },
+    { label: 'Time Signature', value: lyricMeta.time_signature || song.time_signature },
     { label: 'Original Key', value: lyricMeta.original_key },
   ].filter(row => row.value);
   // Metadata lain di lirik (selain yang sudah di atas)
   const extraMeta = Object.entries(lyricMeta)
     .filter(([k]) => !['key','tempo','capo','time','original_key'].includes(k))
     .map(([k,v]) => ({ label: k.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase()), value: v }));
+  // Navigasi antar lagu jika activeSetlist tersedia
+  let navPrev = null, navNext = null;
+  if (activeSetlist && activeSetlist.songs && song && song.id) {
+    const idx = activeSetlist.songs.findIndex(id => String(id) === String(song.id));
+    if (idx > 0) navPrev = activeSetlist.songs[idx - 1];
+    if (idx < activeSetlist.songs.length - 1) navNext = activeSetlist.songs[idx + 1];
+  }
   return (
     <div className="song-detail-container">
       {/* Header: Back, Title, Edit */}
       <div className="song-detail-header">
-        <button className="back-btn" onClick={() => navigate(location.state?.from || '/')}>&larr; Kembali</button>
+           <button className="back-btn" onClick={() => {
+             if (activeSetlist) {
+               navigate(`/setlists/${activeSetlist.id}/songs`);
+             } else {
+               navigate(location.state?.from || '/');
+             }
+           }}>
+             &larr; Kembali
+           </button>        
+        {activeSetlist && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 8, justifyContent: 'center' }}>
+            <button
+              className="tab-btn icon-btn"
+              disabled={!navPrev}
+              title="Lagu Sebelumnya"
+              onClick={() => navPrev && navigate(`/songs/${navPrev}`)}
+            >
+              &#8592;
+            </button>
+            <button
+              className="tab-btn icon-btn"
+              disabled={!navNext}
+              title="Lagu Berikutnya"
+              onClick={() => navNext && navigate(`/songs/${navNext}`)}
+            >
+              &#8594;
+            </button>
+          </div>
+        )}
+
         <div style={{flex: 1}}>
           <div className="song-detail-title">{song.title}</div>
           {song.artist && (
@@ -60,7 +96,7 @@ export default function SongLyricsPage({ song }) {
         {infoRows.map(row => (
           <span key={row.label}><b>{row.label}:</b> {row.value}</span>
         ))}
-        {/* Instruments used */}
+
         {song.instruments && song.instruments.length > 0 && (
           <span><b>Instrumen:</b> {Array.isArray(song.instruments) ? song.instruments.join(', ') : song.instruments}</span>
         )}
