@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS songs (
 CREATE TABLE IF NOT EXISTS setlists (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
+  desc TEXT,
   songs TEXT DEFAULT '[]',
   songKeys TEXT DEFAULT '{}',
   completedSongs TEXT DEFAULT '{}',

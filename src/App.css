@@ -1,3 +1,26 @@
+/* Tombol AI Setlist dan Bagikan Setlist */
+.ai-setlist-btn {
+  background: linear-gradient(90deg, #ffe066 70%, #ffd700 100%);
+  color: #7c5700;
+  border: 1.5px solid #ffd700;
+  box-shadow: 0 1px 6px #ffe06644;
+}
+.ai-setlist-btn:hover, .ai-setlist-btn:focus {
+  background: #ffd700;
+  color: #fff;
+  border: 1.5px solid #7c5700;
+}
+.share-setlist-btn {
+  background: linear-gradient(90deg, #e0e7ff 70%, #6366f1 100%);
+  color: #3730a3;
+  border: 1.5px solid #6366f1;
+  box-shadow: 0 1px 6px #6366f144;
+}
+.share-setlist-btn:hover, .share-setlist-btn:focus {
+  background: #6366f1;
+  color: #fff;
+  border: 1.5px solid #3730a3;
+}
 /* SetlistSongsPage custom classes */
 .info-spacing {
   margin-top: -12px;

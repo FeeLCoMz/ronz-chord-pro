@@ -155,10 +155,10 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists }) {
         <button className="tab-btn add-song-btn" onClick={() => setShowAddSong(true)} title="Tambah Lagu ke Setlist">
           <PlusIcon size={22} /> Tambah Lagu
         </button>
-        <button className="tab-btn add-song-btn" style={{ background: '#ffe066', color: '#7c5700', borderColor: '#ffd700' }} onClick={() => setShowAiModal(true)} title="AI Setlist">
+        <button className="tab-btn add-song-btn ai-setlist-btn" onClick={() => setShowAiModal(true)} title="AI Setlist">
           🤖 AI Setlist
         </button>
-        <button className="tab-btn add-song-btn" style={{ background: '#e0e7ff', color: '#3730a3', borderColor: '#6366f1' }} onClick={() => setShowShareModal(true)} title="Bagikan Setlist">
+        <button className="tab-btn add-song-btn share-setlist-btn" onClick={() => setShowShareModal(true)} title="Bagikan Setlist">
           📤 Bagikan
         </button>
       </div>

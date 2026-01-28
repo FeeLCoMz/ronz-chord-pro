@@ -121,6 +121,11 @@ export default function SetlistPage({
               onClick={() => navigate(`/setlists/${setlist.id}/songs`)}
             >
               {setlist.name}
+                {setlist.desc && (
+                  <div className="setlist-desc" style={{ fontWeight: 400, fontSize: '0.95em', color: '#666', marginTop: 2 }}>
+                    {setlist.desc}
+                  </div>
+                )}
             </span>
             <span
               className="setlist-count"
