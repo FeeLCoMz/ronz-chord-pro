@@ -37,7 +37,7 @@ export default function SetlistPage({
     <>
       <div className="section-title">Setlist</div>
       <button
-        className="tab-btn setlist-add-btn"
+        className="btn-base tab-btn setlist-add-btn"
         onClick={() => setShowCreateSetlist(true)}
         title="Buat Setlist Baru"
       >

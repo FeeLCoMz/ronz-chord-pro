@@ -217,13 +217,13 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
         {setlistSongs.length} Lagu
       </div>
       <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
-        <button className="tab-btn add-song-btn" onClick={() => setShowAddSong(true)} title="Tambah Lagu ke Setlist">
+        <button className="btn-base tab-btn add-song-btn" onClick={() => setShowAddSong(true)} title="Tambah Lagu ke Setlist">
           <PlusIcon size={22} /> Tambah Lagu
         </button>
-        <button className="tab-btn add-song-btn ai-setlist-btn" onClick={() => setShowAiModal(true)} title="AI Setlist">
+        <button className="btn-base tab-btn add-song-btn ai-setlist-btn" onClick={() => setShowAiModal(true)} title="AI Setlist">
           🤖 AI Setlist
         </button>
-        <button className="tab-btn add-song-btn share-setlist-btn" onClick={() => setShowShareModal(true)} title="Bagikan Setlist">
+        <button className="btn-base tab-btn add-song-btn share-setlist-btn" onClick={() => setShowShareModal(true)} title="Bagikan Setlist">
           📤 Bagikan
         </button>
       </div>
@@ -233,14 +233,15 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           <div className="modal add-song-modal">
             <div className="modal-title">Bagikan Setlist</div>
             <textarea
-              className="search-input full-width mb-12"
+              className="search-input full-width"
+              style={{ marginBottom: 12 }}
               rows={7}
               style={{ fontFamily: 'inherit', fontSize: '1.05em', background: '#f3f4fa', color: '#23243a', maxHeight: '220px', resize: 'vertical' }}
               value={shareText}
               readOnly
             />
-            <button className="tab-btn full-width mb-8" onClick={handleCopyShare}>{shareCopied ? '✅ Tersalin!' : 'Salin Teks'}</button>
-            <button className="back-btn mt-8" onClick={() => setShowShareModal(false)}>Tutup</button>
+            <button className="tab-btn full-width" style={{ marginBottom: 8 }} onClick={handleCopyShare}>{shareCopied ? '✅ Tersalin!' : 'Salin Teks'}</button>
+            <button className="back-btn" style={{ marginTop: 8 }} onClick={() => setShowShareModal(false)}>Tutup</button>
           </div>
         </div>
       )}
@@ -249,16 +250,17 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           <div className="modal add-song-modal">
                   <div className="modal-title">AI: Susun Setlist Otomatis</div>
                   <textarea
-                    className="search-input full-width mb-12"
+                    className="search-input full-width"
+                    style={{ marginBottom: 12 }}
                     rows={7}
                     placeholder="Masukkan daftar lagu, satu per baris. Bisa judul saja atau judul - artis.\nContoh:\nBintang Kehidupan\nSeparuh Aku - NOAH\n..."
                     value={aiInput}
                     onChange={e => setAiInput(e.target.value)}
                     autoFocus
                   />
-                  {aiError && <div className="error-text mb-8">{aiError}</div>}
-                  <button className="tab-btn full-width mb-8" onClick={handleAiSubmit} disabled={aiLoading || !aiInput.trim()}>{aiLoading ? 'Memproses...' : 'Susun & Tambah ke Setlist'}</button>
-                  <button className="back-btn mt-8" onClick={() => setShowAiModal(false)}>Batal</button>
+                  {aiError && <div className="error-text" style={{ marginBottom: 8 }}>{aiError}</div>}
+                  <button className="tab-btn full-width" style={{ marginBottom: 8 }} onClick={handleAiSubmit} disabled={aiLoading || !aiInput.trim()}>{aiLoading ? 'Memproses...' : 'Susun & Tambah ke Setlist'}</button>
+                  <button className="back-btn" style={{ marginTop: 8 }} onClick={() => setShowAiModal(false)}>Batal</button>
                 </div>
               </div>
         )}
@@ -273,22 +275,28 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
               placeholder="Cari judul atau artist..."
               value={addSongSearch}
               onChange={e => setAddSongSearch(e.target.value)}
-              className="search-input full-width mb-12"
+              className="search-input full-width"
+              style={{ marginBottom: 12 }}
               autoFocus
             />
-            <ul className="song-list song-list-scroll mb-8">
+            <ul className="song-list song-list-scroll" style={{ marginBottom: 8 }}>
               {filteredAvailableSongs.length === 0 && (
                 <li className="info-text">Tidak ada lagu tersedia.</li>
               )}
               {filteredAvailableSongs.map(song => (
-                <li key={song.id} className={`song-list-item pointer${addingSongId === song.id ? ' loading' : ''}`} onClick={() => handleAddSongToSetlist(song.id)}>
-                  <span className="fw-700">{song.title}</span> <span className="text-muted ml-8">{song.artist}</span>
-                  {addingSongId === song.id && <span className="ml-8">⏳</span>}
+                <li
+                  key={song.id}
+                  className="song-list-item pointer"
+                  style={addingSongId === song.id ? { opacity: 0.5 } : undefined}
+                  onClick={() => handleAddSongToSetlist(song.id)}
+                >
+                  <span style={{ fontWeight: 700, color: 'var(--primary-accent-dark, #3730a3)' }}>{song.title}</span> <span style={{ color: 'var(--text-muted, #888)', marginLeft: 8 }}>{song.artist}</span>
+                  {addingSongId === song.id && <span style={{ marginLeft: 8 }}>⏳</span>}
                 </li>
               ))}
             </ul>
-            {addSongError && <div className="error-text mb-8">{addSongError}</div>}
-            <button className="back-btn mt-8" onClick={() => setShowAddSong(false)}>Batal</button>
+            {addSongError && <div className="error-text" style={{ marginBottom: 8 }}>{addSongError}</div>}
+            <button className="back-btn" style={{ marginTop: 8 }} onClick={() => setShowAddSong(false)}>Batal</button>
           </div>
         </div>
       )}
@@ -312,16 +320,16 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           <div className="modal add-song-modal">
             <div className="modal-title">Edit Detail Lagu di Setlist</div>
             <label>Key
-              <input type="text" value={editSongKey} onChange={e => setEditSongKey(e.target.value)} className="search-input mb-8" />
+              <input type="text" value={editSongKey} onChange={e => setEditSongKey(e.target.value)} className="search-input" style={{ marginBottom: 8 }} />
             </label>
             <label>Tempo
-              <input type="text" value={editSongTempo} onChange={e => setEditSongTempo(e.target.value)} className="search-input mb-8" />
+              <input type="text" value={editSongTempo} onChange={e => setEditSongTempo(e.target.value)} className="search-input" style={{ marginBottom: 8 }} />
             </label>
             <label>Style
-              <input type="text" value={editSongStyle} onChange={e => setEditSongStyle(e.target.value)} className="search-input mb-8" />
+              <input type="text" value={editSongStyle} onChange={e => setEditSongStyle(e.target.value)} className="search-input" style={{ marginBottom: 8 }} />
             </label>
-            <button className="tab-btn full-width mb-8" onClick={handleEditSongSave}>Simpan</button>
-            <button className="back-btn mt-8" onClick={() => setEditSongIdx(null)}>Batal</button>
+            <button className="btn-base tab-btn full-width" style={{ marginBottom: 8 }} onClick={handleEditSongSave}>Simpan</button>
+            <button className="btn-base back-btn" style={{ marginTop: 8 }} onClick={() => setEditSongIdx(null)}>Batal</button>
           </div>
         </div>
       )}

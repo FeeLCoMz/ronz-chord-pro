@@ -4,7 +4,7 @@ export default function SetlistSongNavigator({ navPrev, navNext, songNumber, tot
   return (
     <div style={{ display: 'flex', gap: 8, marginBottom: 8, justifyContent: 'center', alignItems: 'center' }}>
       <button
-        className="tab-btn icon-btn"
+        className="btn-base tab-btn icon-btn"
         disabled={!navPrev}
         title="Lagu Sebelumnya"
         onClick={onPrev}
@@ -17,7 +17,7 @@ export default function SetlistSongNavigator({ navPrev, navNext, songNumber, tot
         </span>
       )}
       <button
-        className="tab-btn icon-btn"
+        className="btn-base tab-btn icon-btn"
         disabled={!navNext}
         title="Lagu Berikutnya"
         onClick={onNext}

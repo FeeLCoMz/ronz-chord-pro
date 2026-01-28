@@ -1,4 +1,151 @@
-/* Song search bar layout */
+@media (max-width: 600px) {
+  .btn-base,
+  .back-btn,
+  .auto-scroll-btn,
+  .highlight-btn,
+  .aksi-btn,
+  .tab-btn,
+  .theme-switch-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-size: 1.08em;
+  }
+}
+/* =====================
+   Aksesibilitas: Focus Visible
+   ===================== */
+.btn-base:focus-visible,
+.back-btn:focus-visible,
+.auto-scroll-btn:focus-visible,
+.highlight-btn:focus-visible,
+.aksi-btn:focus-visible,
+.tab-btn:focus-visible,
+.theme-switch-btn:focus-visible {
+  outline: 3px solid var(--primary-accent, #6366f1);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.18);
+}
+/* =====================
+   Base Button Styling
+   ===================== */
+
+.btn-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+  border: 1.5px solid var(--primary-accent);
+  border-radius: 8px;
+  font-size: 1.08em;
+  font-weight: 700;
+  padding: 8px 18px 8px 14px;
+  cursor: pointer;
+  box-shadow: 0 1px 6px #0002;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+}
+
+
+/* Semua tombol utama gunakan class .btn-base di HTML/JSX agar style konsisten. Tambahan style/override tetap di masing-masing selector di bawah ini. */
+
+.back-btn {
+  background: #fff;
+  color: #222;
+  border: 1px solid #ccc;
+  margin-bottom: 18px;
+  margin-top: 2px;
+}
+.back-btn:hover {
+  background: #eef2ff;
+  border-color: #6366f1;
+  color: #3730a3;
+}
+
+.tab-btn {
+  font-weight: 400;
+  font-size: 1.1rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--primary-accent-dark);
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.04);
+}
+.tab-btn.active {
+  font-weight: 700;
+  border: 2px solid var(--primary-accent);
+  background: var(--primary-accent-light);
+  color: var(--primary-accent-dark);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.13);
+}
+.tab-btn:focus {
+  box-shadow: 0 0 0 2px var(--primary-accent);
+}
+.tab-btn:hover {
+  background: var(--primary-accent-light);
+  color: var(--primary-accent-dark);
+}
+
+.auto-scroll-btn,
+.highlight-btn,
+.aksi-btn,
+.theme-switch-btn {
+  /* Only override if needed, else inherit from .btn-base */
+}
+
+.auto-scroll-btn.active,
+.highlight-btn.active {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
+
+.theme-switch-btn.dark {
+  background: var(--primary-accent-light, #23243a);
+  color: var(--primary-accent-dark, #a5b4fc);
+}
+.theme-switch-btn.light {
+  background: #fffbe6;
+  color: #f59e42;
+  border: 1.5px solid #f7c873;
+}
+.theme-switch-btn:hover,
+.theme-switch-btn:focus {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
+
+.btn-base:hover,
+.btn-base:focus {
+  background: var(--primary-accent);
+  color: #fff;
+  border: 1.5px solid var(--primary-accent-dark);
+  outline: none;
+}
+/*
+============================================================
+ App.css - Ronz Chord Pro
+------------------------------------------------------------
+Struktur utama:
+- Utility classes (flex, margin, pointer, loading, dll)
+- Komponen utama: Song List, Setlist, Modal, Tombol, YouTube Viewer, dsb
+- Theme: dark/light mode dengan CSS variables
+- Responsive: media query untuk mobile/tablet
+
+Catatan:
+- Gunakan utility class yang sudah ada untuk konsistensi styling.
+- Semua warna utama dikelola lewat CSS variables.
+- Komentar section utama untuk memudahkan navigasi file.
+============================================================
+*/
+/* =====================
+  Song search bar layout
+  ===================== */
 .song-search-bar {
   display: flex;
   gap: 8px;
@@ -6,35 +153,36 @@
   margin-bottom: 8px;
 }
 
-/* Utility for flex grow */
-.flex-1 {
-  flex: 1;
-}
-
-/* Mic button style for search */
+/* =========================
+  Mic button style for search
+  ========================= */
 .mic-btn {
   padding: 0.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-/* Tombol aksi berbahaya (hapus, dll) */
+/* ================================
+  Tombol aksi berbahaya (hapus, dll)
+  ================================ */
 .danger-btn {
-  background: #ff6b6b;
+  background: var(--danger, #ff6b6b);
   color: #fff;
-  border: 1.5px solid #ff6b6b;
+  border: 1.5px solid var(--danger, #ff6b6b);
   font-weight: 600;
   transition: background 0.16s, color 0.16s, border 0.16s;
 }
 
 .danger-btn:hover,
 .danger-btn:focus {
-  background: #d90429;
+  background: var(--danger-hover, #d90429);
   color: #fff;
-  border: 1.5px solid #d90429;
+  border: 1.5px solid var(--danger-hover, #d90429);
 }
 
-/* SetlistPage Flex and Utility Classes */
+/* =====================================
+  SetlistPage Flex and Utility Classes
+  ===================================== */
 .setlist-list-flex {
   display: flex;
   align-items: center;
@@ -59,6 +207,7 @@
   text-align: center;
   color: var(--text-muted, #888);
 }
+ 
 
 .setlist-actions-flex {
   flex: none;
@@ -74,11 +223,11 @@
 }
 
 .setlist-delete-color {
-  color: #ff6b6b !important;
+  color: var(--danger, #ff6b6b) !important;
 }
 
 .setlist-modal-title.setlist-delete-color {
-  color: #ff6b6b;
+  color: var(--danger, #ff6b6b);
 }
 
 .setlist-modal-desc {
@@ -96,38 +245,40 @@
 }
 
 .setlist-modal-delete-btn {
-  background: #ff6b6b;
+  background: var(--danger, #ff6b6b);
   color: #fff;
   font-weight: 600;
 }
 
-/* Tombol AI Setlist dan Bagikan Setlist */
+/* =====================================
+  Tombol AI Setlist dan Bagikan Setlist
+  ===================================== */
 .ai-setlist-btn {
-  background: linear-gradient(90deg, #ffe066 70%, #ffd700 100%);
-  color: #7c5700;
-  border: 1.5px solid #ffd700;
+  background: linear-gradient(90deg, #ffe066 70%, var(--ai-yellow, #ffd700) 100%);
+  color: var(--ai-yellow-dark, #7c5700);
+  border: 1.5px solid var(--ai-yellow, #ffd700);
   box-shadow: 0 1px 6px #ffe06644;
 }
 
 .ai-setlist-btn:hover,
 .ai-setlist-btn:focus {
-  background: #ffd700;
+  background: var(--ai-yellow, #ffd700);
   color: #fff;
-  border: 1.5px solid #7c5700;
+  border: 1.5px solid var(--ai-yellow-dark, #7c5700);
 }
 
 .share-setlist-btn {
-  background: linear-gradient(90deg, #e0e7ff 70%, #6366f1 100%);
-  color: #3730a3;
-  border: 1.5px solid #6366f1;
-  box-shadow: 0 1px 6px #6366f144;
+  background: linear-gradient(90deg, var(--ai-blue, #e0e7ff) 70%, var(--primary-accent, #6366f1) 100%);
+  color: var(--primary-accent-dark, #3730a3);
+  border: 1.5px solid var(--primary-accent, #6366f1);
+  box-shadow: 0 1px 6px var(--primary-accent-shadow, #6366f144);
 }
 
 .share-setlist-btn:hover,
 .share-setlist-btn:focus {
-  background: #6366f1;
+  background: var(--primary-accent, #6366f1);
   color: #fff;
-  border: 1.5px solid #3730a3;
+  border: 1.5px solid var(--primary-accent-dark, #3730a3);
 }
 
 /* SetlistSongsPage custom classes */
@@ -185,17 +336,6 @@
   width: 100%;
 }
 
-.mb-12 {
-  margin-bottom: 12px;
-}
-
-.mb-8 {
-  margin-bottom: 8px;
-}
-
-.mt-8 {
-  margin-top: 8px;
-}
 
 .song-list-scroll {
   max-height: 260px;
@@ -205,31 +345,8 @@
   box-shadow: 0 1px 6px #0001;
 }
 
-.pointer {
-  cursor: pointer;
-  transition: background 0.15s;
-}
 
-.pointer:hover {
-  background: var(--primary-accent-light, #f3f4fa);
-}
 
-.fw-700 {
-  font-weight: 700;
-  color: var(--primary-accent-dark, #3730a3);
-}
-
-.text-muted {
-  color: var(--text-muted, #888);
-}
-
-.ml-8 {
-  margin-left: 8px;
-}
-
-.loading {
-  opacity: 0.5;
-}
 
 .song-detail-controls {
   display: flex;
@@ -524,6 +641,7 @@
 }
 
 /* Modal overlay and modal window styling */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -535,6 +653,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  animation: modalFadeIn 0.25s ease forwards;
+}
+
+@keyframes modalFadeIn {
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
@@ -546,6 +672,16 @@
   max-width: 400px;
   box-shadow: 0 4px 32px #0008;
   position: relative;
+  opacity: 0;
+  transform: translateY(32px) scale(0.98);
+  animation: modalContentIn 0.32s cubic-bezier(.4,1.2,.4,1) forwards;
+}
+
+@keyframes modalContentIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* SongLyricsPage & SongDetailPage Styles */
@@ -832,6 +968,7 @@
   font-size: 1rem;
   color: var(--primary-accent-dark);
   margin-top: 2px;
+  text-align: center;
 }
 
 .setlist-title {
@@ -965,6 +1102,7 @@
 }
 
 /* Tombol kembali global */
+
 .back-btn {
   display: inline-flex;
   align-items: center;
@@ -976,20 +1114,14 @@
   font-size: 1.08em;
   font-weight: 700;
   padding: 8px 18px 8px 14px;
-  margin-bottom: 18px;
-  margin-top: 2px;
   cursor: pointer;
   box-shadow: 0 1px 6px #0002;
   transition: background 0.16s, color 0.16s, border 0.16s;
+  margin-bottom: 18px;
+  margin-top: 2px;
 }
 
-.back-btn:hover,
-.back-btn:focus {
-  background: var(--primary-accent);
-  color: #fff;
-  border: 1.5px solid var(--primary-accent-dark);
-  outline: none;
-}
+
 
 /* Modern ChordDisplay styles */
 .chord-display {
@@ -1081,6 +1213,12 @@
   --text-muted: #a1a6b8;
   --border: #282a36;
   --error: #fb7185;
+  --danger: #ff6b6b;
+  --danger-hover: #d90429;
+  --ai-yellow: #ffd700;
+  --ai-yellow-dark: #7c5700;
+  --ai-blue: #e0e7ff;
+  --primary-accent-shadow: #6366f144;
 }
 
 body {
@@ -1381,6 +1519,9 @@ body {
 
 /* Tampil button in setlist list */
 .setlist-list-item .aksi-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--primary-accent-light, #23243a);
   color: var(--primary-accent-dark, #a5b4fc);
   border: 1.5px solid var(--primary-accent);
@@ -1388,21 +1529,15 @@ body {
   font-size: 1.08em;
   font-weight: 700;
   padding: 8px 18px 8px 14px;
-  margin-left: 12px;
   cursor: pointer;
   box-shadow: 0 1px 6px #0002;
   transition: background 0.16s, color 0.16s, border 0.16s;
+  margin-left: 12px;
   position: relative;
   z-index: 1;
 }
 
-.setlist-list-item .aksi-btn:hover,
-.setlist-list-item .aksi-btn:focus {
-  background: var(--primary-accent);
-  color: #fff;
-  border: 1.5px solid var(--primary-accent-dark);
-  outline: none;
-}
+
 
 /* Navigasi antar lagu dalam setlist performance mode */
 .song-detail-fullscreen .aksi-btn {
@@ -1451,6 +1586,9 @@ body {
 }
 
 .auto-scroll-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--primary-accent-light, #23243a);
   color: var(--primary-accent-dark, #a5b4fc);
   border: 1.5px solid var(--primary-accent);
@@ -1463,9 +1601,7 @@ body {
   transition: background 0.16s, color 0.16s, border 0.16s;
 }
 
-.auto-scroll-btn.active,
-.auto-scroll-btn:hover,
-.auto-scroll-btn:focus {
+.auto-scroll-btn.active {
   background: var(--primary-accent);
   color: #fff;
   border: 1.5px solid var(--primary-accent-dark);
@@ -1646,6 +1782,9 @@ body {
 
 /* Highlight chord/bar toggle and style */
 .highlight-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--primary-accent-light, #23243a);
   color: var(--primary-accent-dark, #a5b4fc);
   border: 1.5px solid var(--primary-accent);
@@ -1658,9 +1797,7 @@ body {
   transition: background 0.16s, color 0.16s, border 0.16s;
 }
 
-.highlight-btn.active,
-.highlight-btn:hover,
-.highlight-btn:focus {
+.highlight-btn.active {
   background: var(--primary-accent);
   color: #fff;
   border: 1.5px solid var(--primary-accent-dark);
@@ -1678,32 +1815,20 @@ body {
   transition: background 0.15s, color 0.15s;
 }
 
-.bar-line {
-  background: var(--primary-accent-light, #23243a);
-  color: var(--primary-accent-dark, #a5b4fc);
-  border-radius: 4px;
-  padding: 1px 6px;
-  font-weight: 700;
-  margin: 0 2px;
-  box-shadow: 0 1px 3px #0001;
-}
-
-/* Theme switch button */
-.theme-switch-btn {
-  position: absolute;
-  top: 18px;
-  right: 24px;
+.btn-base {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: var(--primary-accent-light, #23243a);
   color: var(--primary-accent-dark, #a5b4fc);
   border: 1.5px solid var(--primary-accent);
   border-radius: 8px;
-  font-size: 1.15em;
+  font-size: 1.08em;
   font-weight: 700;
   padding: 8px 18px 8px 14px;
   cursor: pointer;
   box-shadow: 0 1px 6px #0002;
-  transition: background 0.16s, color 0.16s, border 0.16s;
-  z-index: 200;
+  transition: background 0.16s, color 0.16s, border 0.16s, box-shadow 0.18s, transform 0.18s;
 }
 
 .theme-switch-btn.dark {

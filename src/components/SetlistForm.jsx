@@ -47,8 +47,8 @@ export default function SetlistForm({
         </label>
         {error && <div className="error-text" style={{ marginTop: 10 }}>{error}</div>}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 18 }}>
-          <button type="button" className="tab-btn" onClick={onCancel}>Batal</button>
-          <button type="submit" className="tab-btn" style={{ background: '#4f8cff', color: '#fff', fontWeight: 600 }} disabled={loading || !name.trim()}>
+          <button type="button" className="btn-base tab-btn" onClick={onCancel}>Batal</button>
+          <button type="submit" className="btn-base tab-btn" style={{ background: '#4f8cff', color: '#fff', fontWeight: 600 }} disabled={loading || !name.trim()}>
             {loading ? (mode === 'edit' ? 'Menyimpan...' : 'Membuat...') : (mode === 'edit' ? 'Simpan Perubahan' : 'Buat Setlist')}
           </button>
         </div>

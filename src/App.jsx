@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 import SongListPage from './pages/SongListPage.jsx';
 import SongLyricsPage from './pages/SongLyricsPage.jsx';
 import SongAddEditPage from './pages/SongAddEditPage.jsx';
@@ -11,12 +11,12 @@ function SetlistSongsRoute({ setlists, songs }) {
   return <SetlistSongsPage setlists={setlists} songs={songs} />;
 }
 
+
 function App() {
-    // State untuk modal create setlist
-    const [showCreateSetlist, setShowCreateSetlist] = useState(false);
-    const [createSetlistName, setCreateSetlistName] = useState('');
-    const [createSetlistError, setCreateSetlistError] = useState('');
-  // Semua state harus dideklarasikan sebelum digunakan
+  // State untuk modal create setlist
+  const [showCreateSetlist, setShowCreateSetlist] = useState(false);
+  const [createSetlistName, setCreateSetlistName] = useState('');
+  const [createSetlistError, setCreateSetlistError] = useState('');
   const [addSongError, setAddSongError] = useState('');
   const [tab, setTab] = useState('songs');
   const [showAddSong, setShowAddSong] = useState(false);
@@ -44,6 +44,7 @@ function App() {
   const [addSongSearch, setAddSongSearch] = useState('');
   const [addSongSelectedId, setAddSongSelectedId] = useState(null);
   const addSongInputRef = useRef(null);
+  const location = useLocation();
   // Filter lagu yang belum ada di setlist aktif
   const availableSongsForSetlist = activeSetlist
     ? songs.filter(song => !(activeSetlist.songs || []).includes(song.id))
@@ -69,14 +70,14 @@ function App() {
 
   // Fetch setlists setiap kali route /setlists diakses
   useEffect(() => {
-    if (window.location.pathname.startsWith('/setlists')) {
+    if (location.pathname.startsWith('/setlists')) {
       setLoadingSetlists(true);
       fetch('/api/setlists')
         .then(res => { if (!res.ok) throw new Error('Gagal mengambil data setlist'); return res.json(); })
         .then(data => { setSetlists(Array.isArray(data) ? data : []); setLoadingSetlists(false); })
         .catch(err => { setErrorSetlists(err.message || 'Gagal mengambil data setlist'); setLoadingSetlists(false); });
     }
-  }, [window.location.pathname]);
+  }, [location.pathname]);
 
   const filteredSongs = songs.filter(song =>
     (song.title || '').toLowerCase().includes(search.toLowerCase()) ||
@@ -91,15 +92,15 @@ function App() {
       <header className="app-header">
         <h1 className="app-title" style={{fontSize: '1.5rem'}}>🎸 RoNz Chord</h1>
         <button
-          className={theme === 'dark' ? 'theme-switch-btn dark' : 'theme-switch-btn light'}
+          className={`btn-base theme-switch-btn ${theme === 'dark' ? 'dark' : 'light'}`}
           onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
           title="Ganti mode gelap/terang"
         >
-          {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
+          {theme === 'dark' ? '🌙' : '☀️'}
         </button>
         <div className="tab-nav">
-          <button onClick={() => navigate('/')} className={window.location.pathname === '/' ? 'tab-btn active' : 'tab-btn'}>Lagu</button>
-          <button onClick={() => navigate('/setlists')} className={window.location.pathname.startsWith('/setlists') ? 'tab-btn active' : 'tab-btn'}>Setlist</button>
+          <button onClick={() => navigate('/')} className={`btn-base tab-btn${location.pathname === '/' ? ' active' : ''}`}>Lagu</button>
+          <button onClick={() => navigate('/setlists')} className={`btn-base tab-btn${location.pathname.startsWith('/setlists') ? ' active' : ''}`}>Setlist</button>
         </div>
       </header>
       <main className="main-content">
@@ -107,18 +108,24 @@ function App() {
           <Route
             path="/"
             element={
-              <SongListPage
-                songs={filteredSongs}
-                loading={loadingSongs}
-                error={errorSongs}
-                search={search}
-                setSearch={setSearch}
-                onSongClick={songOrAction => {
-                  const from = window.location.pathname;
-                  if (songOrAction === 'add') navigate('/songs/add', { state: { from } });
-                  else if (songOrAction && songOrAction.id) navigate(`/songs/${songOrAction.id}`, { state: { from } });
-                }}
-              />
+              loadingSongs ? (
+                <div>Memuat data lagu...</div>
+              ) : errorSongs ? (
+                <div className="error-text">{errorSongs}</div>
+              ) : (
+                <SongListPage
+                  songs={filteredSongs}
+                  loading={loadingSongs}
+                  error={errorSongs}
+                  search={search}
+                  setSearch={setSearch}
+                  onSongClick={songOrAction => {
+                    const from = location.pathname;
+                    if (songOrAction === 'add') navigate('/songs/add', { state: { from } });
+                    else if (songOrAction && songOrAction.id) navigate(`/songs/${songOrAction.id}`, { state: { from } });
+                  }}
+                />
+              )
             }
           />
           <Route
@@ -141,10 +148,9 @@ function App() {
                 .then(data => { setSongs(Array.isArray(data) ? data : []); setLoadingSongs(false); });
             }} />}
           />
-
           <Route
             path="/songs/:id"
-            element={<SongLyricsRoute />}
+            element={<SongLyricsRoute activeSetlist={activeSetlist} />}
           />
           <Route
             path="/setlists"
@@ -184,8 +190,9 @@ function App() {
     </>
   );
 
+
 // Route wrapper for showing only lyrics and chord by id from URL
-function SongLyricsRoute() {
+function SongLyricsRoute({ activeSetlist }) {
   const { id } = useParams();
   const [song, setSong] = React.useState(null);
   const [loading, setLoading] = React.useState(true);

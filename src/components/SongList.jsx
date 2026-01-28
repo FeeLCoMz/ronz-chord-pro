@@ -259,7 +259,7 @@ function SortableSongItem({ song, idx, renderSongItem }) {
           {sortOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
         </select>
         {sortBy !== 'default' && (
-          <button className="tab-btn" style={{ padding:'6px 10px' }} onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}>
+          <button className="btn-base tab-btn" style={{ padding:'6px 10px' }} onClick={() => setSortOrder(o => o === 'asc' ? 'desc' : 'asc')}>
             {sortOrder === 'asc' ? '⬆️' : '⬇️'}
           </button>
         )}
