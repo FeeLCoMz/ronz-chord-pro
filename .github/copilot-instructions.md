@@ -23,6 +23,13 @@
 - **Testing:** Place tests in `src/__tests__/`, use descriptive test names.
 - **Styling:** Use `App.css` for global styles; component-specific styles inline or via CSS modules if present.
 
+## UI Consistency Guidelines
+- Use `App.css` for global styles and main theme.
+- UI components in `src/components/` should follow the same styling pattern (inline style or CSS module if present).
+- Avoid introducing new style approaches outside the established standards unless required for special features.
+- When adding new components, mimic the structure and style of existing components.
+- Ensure elements like buttons, inputs, and layouts match the look and feel already used in the app.
+
 ## Integration & Data Flow
 - **Frontend ↔ Backend:** Frontend calls API endpoints in `api/` (see `src/apiClient.js`).
 - **Database:** API uses SQL schema from `db/schema.sql`.

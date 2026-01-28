@@ -1,3 +1,17 @@
+/* Tombol aksi berbahaya (hapus, dll) */
+.danger-btn {
+  background: #ff6b6b;
+  color: #fff;
+  border: 1.5px solid #ff6b6b;
+  font-weight: 600;
+  transition: background 0.16s, color 0.16s, border 0.16s;
+}
+.danger-btn:hover,
+.danger-btn:focus {
+  background: #d90429;
+  color: #fff;
+  border: 1.5px solid #d90429;
+}
 /* SetlistPage Flex and Utility Classes */
 .setlist-list-flex {
   display: flex;
@@ -584,7 +598,7 @@
 }
 
 .song-detail-title {
-  font-size: 2em;
+  font-size: 2.7em;
   font-weight: 700;
   flex: 1;
   text-align: center;

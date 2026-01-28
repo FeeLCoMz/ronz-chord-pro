@@ -15,6 +15,8 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import DragHandleIcon from './DragHandleIcon.jsx';
+import EditIcon from './EditIcon.jsx';
+import DeleteIcon from './DeleteIcon.jsx';
 
 function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.', enableSearch = false, showNumber = false, setlistSongKeys: setlistSongMeta = null, draggable = false, onReorder = null }) {
   const [search, setSearch] = useState('');
@@ -143,7 +145,7 @@ function SortableSongItem({ song, idx, renderSongItem }) {
         {showNumber && (
           <span className="song-number-badge">{idx + 1}</span>
         )}
-        <div style={{ marginLeft: showNumber ? 38 : 0, display: 'flex', alignItems: 'center' }}>
+        <div style={{ marginLeft: showNumber ? 16 : 0, display: 'flex', alignItems: 'center' }}>
           {draggable && (
             <span {...dragHandleProps} style={{ cursor: 'grab', marginRight: 8 }} onClick={e => e.stopPropagation()}>
               <DragHandleIcon size={18} />
@@ -175,21 +177,19 @@ function SortableSongItem({ song, idx, renderSongItem }) {
               {onSongClick.onEditSong && (
                 <button
                   className="tab-btn"
-                  style={{ marginLeft: 12, background: '#e0e7ff', color: '#3730a3', fontWeight: 600, border: 'none', padding: '6px 12px', borderRadius: 8, cursor: 'pointer' }}
                   title="Edit detail lagu di setlist"
                   onClick={e => { e.stopPropagation(); onSongClick.onEditSong(idx); }}
                 >
-                  Edit
+                  <EditIcon size={18} />
                 </button>
               )}
               {onSongClick.onDeleteSong && (
                 <button
-                  className="tab-btn"
-                  style={{ marginLeft: 8, background: '#ff6b6b', color: '#fff', fontWeight: 600, border: 'none', padding: '6px 12px', borderRadius: 8, cursor: 'pointer' }}
+                  className="tab-btn danger-btn"
                   title="Hapus lagu dari setlist"
                   onClick={e => { e.stopPropagation(); onSongClick.onDeleteSong(song.id); }}
                 >
-                  Hapus
+                  <DeleteIcon size={18} />
                 </button>
               )}
             </>

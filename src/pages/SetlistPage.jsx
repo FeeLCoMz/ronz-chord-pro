@@ -134,20 +134,18 @@ export default function SetlistPage({
             </span>
             <div className="setlist-actions-flex">
               <button
-                className="tab-btn setlist-edit-btn setlist-action-btn"
+                className="tab-btn setlist-edit-btn setlist-action-btn icon-btn"
                 title="Edit Setlist"
                 onClick={e => { e.stopPropagation(); setEditSetlist(setlist); }}
               >
                 <EditIcon size={16} />
-                <span>Edit</span>
               </button>
               <button
-                className="tab-btn setlist-delete-btn setlist-action-btn setlist-delete-color"
+                className="tab-btn setlist-delete-btn setlist-action-btn setlist-delete-color icon-btn"
                 title="Hapus Setlist"
                 onClick={e => { e.stopPropagation(); setDeleteSetlist(setlist); }}
               >
                 <DeleteIcon size={16} />
-                <span>Hapus</span>
               </button>
             </div>
                 {/* Modal Konfirmasi Hapus Setlist */}

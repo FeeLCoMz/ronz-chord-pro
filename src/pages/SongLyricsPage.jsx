@@ -46,13 +46,11 @@ export default function SongLyricsPage({ song }) {
           )}
         </div>
         <button
-          className="tab-btn setlist-edit-btn"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 15, padding: '4px 10px' }}
+          className="tab-btn setlist-edit-btn icon-btn"
           title="Edit Lagu"
           onClick={() => navigate(`/songs/${song.id}/edit`)}
         >
           <EditIcon size={16} />
-          <span>Edit</span>
         </button>
       </div>
 
