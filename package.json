@@ -7,7 +7,7 @@
   "author": "RoNz",
   "license": "MIT",
   "scripts": {
-    "prebuild": "node bump-version.js",
+    "prebuild": "",
     "dev": "vite",
     "dev:api": "node api/index.js",
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\"",
