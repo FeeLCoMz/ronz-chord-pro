@@ -706,17 +706,19 @@
   gap: 16px;
 }
 
+
 .tab-btn {
   font-weight: 400;
   font-size: 1.1rem;
   padding: 0.7rem 1.5rem;
   border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #fff;
-  color: #222;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--primary-accent-dark);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s cubic-bezier(.4, 0, .2, 1);
   outline: none;
+  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.04);
 }
 
 .tab-btn.active {
@@ -1083,19 +1085,7 @@ body {
   gap: 16px;
 }
 
-.tab-btn {
-  font-weight: 400;
-  font-size: 1.1rem;
-  padding: 0.7rem 1.5rem;
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  background: var(--card-bg);
-  color: var(--primary-accent-dark);
-  cursor: pointer;
-  transition: all 0.18s cubic-bezier(.4, 0, .2, 1);
-  outline: none;
-  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.04);
-}
+
 
 .tab-btn.active {
   font-weight: 700;

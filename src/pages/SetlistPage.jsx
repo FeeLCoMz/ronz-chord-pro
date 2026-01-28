@@ -132,7 +132,7 @@ export default function SetlistPage({
             >
               {(setlist.songs?.length || 0)} lagu
             </span>
-            <div className="setlist-actions-flex">
+            <span className="setlist-actions-flex">
               <button
                 className="tab-btn setlist-edit-btn setlist-action-btn icon-btn"
                 title="Edit Setlist"
@@ -147,7 +147,7 @@ export default function SetlistPage({
               >
                 <DeleteIcon size={16} />
               </button>
-            </div>
+            </span>
                 {/* Modal Konfirmasi Hapus Setlist */}
                 {deleteSetlist && (
                   <div className="modal-overlay" onClick={() => setDeleteSetlist(null)}>
