@@ -229,7 +229,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists }) {
               value={shareText}
               readOnly
             />
-            <button className="tab-btn" style={{ width: '100%', marginBottom: 8 }} onClick={handleCopyShare}>{shareCopied ? '✅ Tersalin!' : 'Salin Teks'}</button>
+            <button className="tab-btn full-width mb-8" onClick={handleCopyShare}>{shareCopied ? '✅ Tersalin!' : 'Salin Teks'}</button>
             <button className="back-btn mt-8" onClick={() => setShowShareModal(false)}>Tutup</button>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists }) {
                     autoFocus
                   />
                   {aiError && <div className="error-text mb-8">{aiError}</div>}
-                  <button className="tab-btn" style={{ width: '100%', marginBottom: 8 }} onClick={handleAiSubmit} disabled={aiLoading || !aiInput.trim()}>{aiLoading ? 'Memproses...' : 'Susun & Tambah ke Setlist'}</button>
+                  <button className="tab-btn full-width mb-8" onClick={handleAiSubmit} disabled={aiLoading || !aiInput.trim()}>{aiLoading ? 'Memproses...' : 'Susun & Tambah ke Setlist'}</button>
                   <button className="back-btn mt-8" onClick={() => setShowAiModal(false)}>Batal</button>
                 </div>
               </div>
@@ -310,7 +310,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists }) {
             <label>Style
               <input type="text" value={editSongStyle} onChange={e => setEditSongStyle(e.target.value)} className="search-input mb-8" />
             </label>
-            <button className="tab-btn" style={{ width: '100%', marginBottom: 8 }} onClick={handleEditSongSave}>Simpan</button>
+            <button className="tab-btn full-width mb-8" onClick={handleEditSongSave}>Simpan</button>
             <button className="back-btn mt-8" onClick={() => setEditSongIdx(null)}>Batal</button>
           </div>
         </div>
