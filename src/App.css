@@ -613,11 +613,7 @@ Catatan:
   margin-bottom: 8px;
 }
 
-.youtube-viewer .scrubber-time {
-  color: var(--primary-accent-dark, #a5b4fc);
-  font-weight: 600;
-  font-size: 0.98em;
-}
+
 
 .youtube-viewer .video-controls {
   display: flex;
@@ -892,8 +888,7 @@ Catatan:
 }
 
 .song-detail-youtube {
-  margin: 18px 0 12px 0;
-  display: flex;
+  margin: 18px 0 12px 0;  
   justify-content: center;
 }
 
@@ -1842,8 +1837,7 @@ body {
   justify-content: center;
 }
 .youtube-viewer .video-scrubber,
-.youtube-viewer .video-controls,
-.youtube-viewer .scrubber-time {
+.youtube-viewer .video-controls {
   width: 100%;
   box-sizing: border-box;
 }
@@ -1870,6 +1864,10 @@ body {
   color: var(--primary-accent-dark, #a5b4fc);
   font-weight: 600;
   font-size: 0.98em;
+  margin-left: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-align: left;
 }
 
 .youtube-viewer .video-controls {
