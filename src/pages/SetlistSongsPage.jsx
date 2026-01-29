@@ -44,23 +44,35 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           console.error('Gagal update detail lagu di setlist', e);
         }
       }
-    async function handleDeleteSongFromSetlist(songId) {
-      const newOrder = localOrder.filter(id => id !== songId);
-      setLocalOrder(newOrder);
-      if (setSetlists) {
-        setSetlists(prev => prev.map(s => s.id === setlist.id ? { ...s, songs: newOrder } : s));
+      const [confirmDeleteSongId, setConfirmDeleteSongId] = useState(null);
+      const [deleting, setDeleting] = useState(false);
+
+      async function handleDeleteSongFromSetlist(songId) {
+        setConfirmDeleteSongId(songId);
       }
-      try {
-        await fetch(`/api/setlists/${setlist.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...setlist, songs: newOrder }),
-        });
-      } catch (e) {
-        // Optional: tampilkan error ke user
-        console.error('Gagal hapus lagu dari setlist', e);
+
+      async function confirmDeleteSong() {
+        if (!confirmDeleteSongId) return;
+        setDeleting(true);
+        const songId = confirmDeleteSongId;
+        const newOrder = localOrder.filter(id => id !== songId);
+        setLocalOrder(newOrder);
+        if (setSetlists) {
+          setSetlists(prev => prev.map(s => s.id === setlist.id ? { ...s, songs: newOrder } : s));
+        }
+        try {
+          await fetch(`/api/setlists/${setlist.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...setlist, songs: newOrder }),
+          });
+        } catch (e) {
+          // Optional: tampilkan error ke user
+          console.error('Gagal hapus lagu dari setlist', e);
+        }
+        setDeleting(false);
+        setConfirmDeleteSongId(null);
       }
-    }
   const { setlistId } = useParams();
   const navigate = useNavigate();
   const setlist = setlists.find(s => String(s.id) === String(setlistId));
@@ -329,6 +341,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       </div>
     </div>
   )}
+
       <SongList
         songs={setlistSongs}
         onSongClick={{
@@ -342,6 +355,24 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
         draggable={true}
         onReorder={handleReorder}
       />
+
+      {/* Konfirmasi Hapus Lagu dari Setlist */}
+      {confirmDeleteSongId && (
+        <div className="modal-overlay" tabIndex={-1}>
+          <div className="modal" role="dialog" aria-modal="true" tabIndex={0}>
+            <div className="modal-title">Konfirmasi Hapus Lagu</div>
+            <div style={{ marginBottom: 16 }}>
+              Apakah Anda yakin ingin menghapus lagu ini dari setlist?
+            </div>
+            <button className="btn-base danger-btn" onClick={confirmDeleteSong} disabled={deleting}>
+              {deleting ? 'Menghapus...' : 'Ya, Hapus'}
+            </button>
+            <button className="btn-base back-btn" style={{ marginLeft: 8 }} onClick={() => setConfirmDeleteSongId(null)} disabled={deleting}>
+              Batal
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modal Edit Lagu di Setlist */}
       {editSongIdx != null && (

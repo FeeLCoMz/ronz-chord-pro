@@ -140,28 +140,29 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 
 	if (loadingData) return <div className="main-content">Memuat data lagu...</div>;
 
-	 return (
-		<>
-			 <button
-				 className="btn-base back-btn"
-				 onClick={() => {
-					 if (mode === 'edit' && songId) {
-						 navigate(`/songs/${songId}`);
-					 } else {
-						 navigate('/');
-					 }
-				 }}
-			 >&larr; Kembali</button>
+	return (
+		<div className="song-edit-page-container">
+			<button
+				className="btn-base back-btn"
+				onClick={() => {
+					if (mode === 'edit' && songId) {
+						navigate(`/songs/${songId}`);
+					} else {
+						navigate('/');
+					}
+				}}
+				style={{ marginBottom: 18 }}
+			>&larr; Kembali</button>
 			<div className="section-title">{mode === 'edit' ? 'Edit Lagu' : 'Tambah Lagu Baru'}</div>
-			<form onSubmit={handleSubmit} style={{ maxWidth: 400, margin: '0 auto' }}>
-				<button type="button" className="btn-base tab-btn" style={{ marginBottom: 16, float: 'right' }} onClick={handleAIAutofill} disabled={aiLoading || !title.trim()}>
+			<form onSubmit={handleSubmit} className="song-edit-form">
+				<button type="button" className="btn-base tab-btn" onClick={handleAIAutofill} disabled={aiLoading || !title.trim()}>
 					{aiLoading ? 'Mengisi Otomatis...' : 'Isi Otomatis (AI)'}
 				</button>
 				<label>Judul Lagu
-					<input type="text" value={title} onChange={e => setTitle(e.target.value)} className="search-input" required />
+					<input type="text" value={title} onChange={e => setTitle(e.target.value)} required />
 				</label>
 				<label>Artist
-					<input type="text" value={artist} onChange={e => setArtist(e.target.value)} className="search-input" required />
+					<input type="text" value={artist} onChange={e => setArtist(e.target.value)} required />
 				</label>
 				<label>YouTube ID
 					<input
@@ -177,27 +178,25 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 								setYoutubeId(val);
 							}
 						}}
-						className="search-input"
 						placeholder="Contoh: dQw4w9WgXcQ atau URL YouTube"
 					/>
 				</label>
 				<div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
 					<label style={{ flex: 1 }}>Key
-						<input type="text" value={key} onChange={e => setKey(e.target.value)} className="search-input" style={{ marginBottom: 0 }} />
+						<input type="text" value={key} onChange={e => setKey(e.target.value)} style={{ marginBottom: 0 }} />
 					</label>
 					<label style={{ flex: 1 }}>Tempo
-						<input type="number" value={tempo} onChange={e => setTempo(e.target.value)} className="search-input" style={{ marginBottom: 0 }} />
+						<input type="number" value={tempo} onChange={e => setTempo(e.target.value)} style={{ marginBottom: 0 }} />
 					</label>
 				</div>
 				<label>Style
-					<input type="text" value={style} onChange={e => setStyle(e.target.value)} className="search-input" />
+					<input type="text" value={style} onChange={e => setStyle(e.target.value)} />
 				</label>
 				<label>Instrumen (pisahkan dengan koma)
 					<input
 						type="text"
 						value={instruments.join(', ')}
 						onChange={e => setInstruments(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-						className="search-input"
 						placeholder="Contoh: gitar, piano, drum"
 					/>
 				</label>
@@ -224,10 +223,16 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 					</div>
 				)}
 				<label>Lirik/Chord
-					<textarea value={lyrics} onChange={e => setLyrics(e.target.value)} className="search-input" rows={8} style={{ fontFamily: 'monospace', resize: 'vertical' }} placeholder="[C] Contoh lirik dan chord..." />
+					<textarea
+						className="lyrics-editor"
+						value={lyrics}
+						onChange={e => setLyrics(e.target.value)}
+						rows={8}
+						placeholder="[C] Contoh lirik dan chord..."
+					/>
 				</label>
-				{error && <div className="error-text" style={{ marginTop: 10 }}>{error}</div>}
-				   <button type="submit" className="btn-base tab-btn" style={{ marginTop: 18 }} disabled={loading}>
+				{error && <div className="error-text">{error}</div>}
+				<button type="submit" className="btn-base tab-btn" style={{ marginTop: 18 }} disabled={loading}>
 					{loading ? 'Menyimpan...' : (mode === 'edit' ? 'Simpan Perubahan' : 'Simpan Lagu')}
 				</button>
 			</form>
@@ -235,18 +240,16 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 			{/* AI Confirm Modal */}
 			{showAiConfirm && aiResult && (
 				<div
-				  className="modal-overlay"
-				  style={{ position: 'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(0,0,0,0.35)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}
-				  tabIndex={-1}
-				  onKeyDown={e => { if (e.key === 'Escape') { setShowAiConfirm(false); setAiResult(null); } }}
-				  onClick={e => { if (e.target.classList.contains('modal-overlay')) { setShowAiConfirm(false); setAiResult(null); } }}
+					className="modal-overlay"
+					tabIndex={-1}
+					onKeyDown={e => { if (e.key === 'Escape') { setShowAiConfirm(false); setAiResult(null); } }}
+					onClick={e => { if (e.target.classList.contains('modal-overlay')) { setShowAiConfirm(false); setAiResult(null); } }}
 				>
 					<div
-					  className="modal-content"
-					  style={{ background:'#222', color:'#fff', borderRadius:10, padding:28, minWidth:320, maxWidth:400, boxShadow:'0 4px 32px #0008', position:'relative' }}
-					  role="dialog"
-					  aria-modal="true"
-					  tabIndex={0}
+						className="modal-content"
+						role="dialog"
+						aria-modal="true"
+						tabIndex={0}
 					>
 						<h3 style={{marginTop:0, marginBottom:16}}>Konfirmasi Isi Otomatis</h3>
 						<div style={{marginBottom:16, fontSize:'0.98em'}}>Pilih field yang ingin diisi otomatis:</div>
@@ -295,14 +298,14 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 								</div>
 							)}
 							<div style={{display:'flex', justifyContent:'flex-end', gap:10, marginTop:18}}>
-								   <button type="button" className="btn-base tab-btn" onClick={() => { setShowAiConfirm(false); setAiResult(null); }}>Batal</button>
-								   <button type="submit" className="btn-base tab-btn" style={{background:'#4f8cff', color:'#fff', fontWeight:600}}>Isi Field</button>
+								<button type="button" className="btn-base tab-btn" onClick={() => { setShowAiConfirm(false); setAiResult(null); }}>Batal</button>
+								<button type="submit" className="btn-base tab-btn" style={{background:'#4f8cff', color:'#fff', fontWeight:600}}>Isi Field</button>
 							</div>
 						</form>
 					</div>
 				</div>
 			)}
-		</>
+		</div>
 	);
 }
 

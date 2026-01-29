@@ -1,3 +1,154 @@
+/* =====================
+   Song Add/Edit Page Layout
+   ===================== */
+.song-edit-page-container {
+  max-width: 720px;
+  margin: 32px auto 0 auto;
+  padding: 32px 32px 40px 32px;
+  background: #18192b;
+  border-radius: 14px;
+  box-shadow: 0 4px 32px #0005;
+  min-height: 70vh;
+  box-sizing: border-box;
+}
+.song-edit-form label {
+  display: block;
+  margin-bottom: 18px;
+  font-weight: 500;
+  color: #e0e6f7;
+}
+.song-edit-form input[type="text"],
+.song-edit-form input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1.2px solid #35376a;
+  background: #23243a;
+  color: #e0e6f7;
+  font-size: 1em;
+  margin-top: 6px;
+  margin-bottom: 2px;
+  box-sizing: border-box;
+  transition: border 0.18s;
+}
+.song-edit-form input[type="text"]:focus,
+.song-edit-form input[type="number"]:focus {
+  outline: none;
+  border-color: var(--primary-accent, #6366f1);
+}
+.song-edit-form .lyrics-editor {
+  margin-top: 8px;
+}
+.song-edit-form .btn-base.tab-btn {
+  float: right;
+  margin-bottom: 16px;
+}
+.song-edit-form .error-text {
+  color: #ff6b6b;
+  font-size: 0.98em;
+  margin-top: 10px;
+}
+.song-edit-form .section-title {
+  font-size: 1.4em;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #a5b4fc;
+}
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+  .song-edit-page-container {
+    max-width: 100vw;
+    margin: 0;
+    padding: 14px 4vw 24px 4vw;
+    border-radius: 0;
+    min-height: 100vh;
+    box-shadow: none;
+  }
+  .song-edit-form label {
+    margin-bottom: 14px;
+    font-size: 1em;
+  }
+  .song-edit-form input[type="text"],
+  .song-edit-form input[type="number"] {
+    font-size: 0.98em;
+    padding: 9px 8px;
+  }
+  .song-edit-form .btn-base.tab-btn {
+    float: none;
+    width: 100%;
+    margin-bottom: 14px;
+  }
+}
+
+/* Modal overlay and content for AI confirm */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: #222;
+  color: #fff;
+  border-radius: 10px;
+  padding: 28px;
+  min-width: 320px;
+  max-width: 400px;
+  box-shadow: 0 4px 32px #0008;
+  position: relative;
+}
+@media (max-width: 600px) {
+  .modal-content {
+    min-width: 0;
+    width: 96vw;
+    max-width: 98vw;
+    padding: 16px 6vw;
+  }
+}
+/* =====================
+   Lirik/Chord Editor Styling
+   ===================== */
+.lyrics-editor {
+  width: 100%;
+  min-height: 180px;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', 'Monaco', monospace;
+  font-size: 1.08em;
+  background: #18192b;
+  color: #e0e6f7;
+  border: 1.5px solid var(--primary-accent, #6366f1);
+  border-radius: 7px;
+  padding: 14px 12px;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  resize: vertical;
+  box-shadow: 0 2px 8px 0 rgba(99,102,241,0.07);
+  transition: border 0.18s, box-shadow 0.18s;
+  box-sizing: border-box;
+  line-height: 1.6;
+  max-width: 700px;
+}
+.lyrics-editor:focus {
+  outline: none;
+  border-color: var(--primary-accent, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.18);
+}
+@media (max-width: 600px) {
+  .lyrics-editor {
+    min-height: 120px;
+    font-size: 1em;
+    padding: 12px 8px;
+    border-radius: 6px;
+    max-width: 100vw;
+    margin-left: 0;
+    margin-right: 0;
+    /* Touch-friendly */
+    touch-action: manipulation;
+  }
+}
+
 @media (max-width: 600px) {
   .btn-base,
   .back-btn,
@@ -1435,6 +1586,7 @@ body {
   font-weight: 700;
   color: var(--primary-accent-dark, #a5b4fc);
   letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
 /* Modern back button for lyric viewer */
@@ -1661,9 +1813,7 @@ body {
   background: var(--card-bg, #23243a);
   border-radius: 12px;
   box-shadow: 0 2px 12px #0002;
-  padding: 12px 18px 18px 18px;
-  max-width: 560px;
-  width: 100%;
+  padding: 12px 18px 18px 18px;    
   display: flex;
   flex-direction: column;
   align-items: center;
