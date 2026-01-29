@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import YouTubeViewer from '../components/YouTubeViewer.jsx';
 import TimeMarkers from '../components/TimeMarkers.jsx';
+import TapTempo from '../components/TapTempo.jsx';
 
 function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 	const location = useLocation();
@@ -184,14 +185,15 @@ function SongAddEditPage({ mode = 'add', songId, onSongUpdated }) {
 						placeholder="Contoh: dQw4w9WgXcQ atau URL YouTube"
 					/>
 				</label>
-				<div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
-					<label style={{ flex: 1 }}>Key
-						<input type="text" value={key} onChange={e => setKey(e.target.value)} style={{ marginBottom: 0 }} />
-					</label>
-					<label style={{ flex: 1 }}>Tempo
-						<input type="number" value={tempo} onChange={e => setTempo(e.target.value)} style={{ marginBottom: 0 }} />
-					</label>
-				</div>
+				   <div style={{ display: 'flex', gap: 12, marginBottom: 24, alignItems: 'flex-end' }}>
+					   <label style={{ flex: 1 }}>Key
+						   <input type="text" value={key} onChange={e => setKey(e.target.value)} style={{ marginBottom: 0 }} />
+					   </label>
+					   <label style={{ flex: 1 }}>Tempo
+						   <input type="number" value={tempo} onChange={e => setTempo(e.target.value)} style={{ marginBottom: 0 }} />
+					   </label>
+					   <TapTempo onTempo={setTempo} initialTempo={tempo} />
+				   </div>
 				<label>Style
 					<input type="text" value={style} onChange={e => setStyle(e.target.value)} />
 				</label>

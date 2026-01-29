@@ -1,6 +1,9 @@
 import React from 'react';
 import { transposeChord as transposeChordUtil, getNoteIndex } from '../utils/chordUtils.js';
 
+// Regex chord mirip dengan chordUtils.js (tanpa global flag)
+const CHORD_REGEX = /-?[A-G][#b]?(maj7|maj9|min7|min9|m|maj|min|dim|aug|sus2|sus4|sus|add9|add)?[0-9]*(\/[A-G][#b]?)?(\.+)?/;
+
 /**
  * Komponen untuk menampilkan lirik dan chord lagu.
  * Props:
@@ -38,7 +41,7 @@ function parseSection(line) {
       // Tiup
       'saxophone', 'saksofon', 'saxofon','trumpet', 'terompet', 'flute', 'suling', 'clarinet', 'klarinet',
       // Gesek
-      'violin', 'biola', 'cello', 'kontrabas',
+      'violin', 'biola', 'cello', 'kontrabas', 'strings',
       // Vokal
       'vokal', 'vocal', 'vocalist', 'vokalist', 'choir', 'vokal grup',
       // Perkusi/Drum
@@ -57,6 +60,50 @@ function parseSection(line) {
 export default function ChordDisplay({ song, transpose = 0, highlightChords = false }) {
   if (!song || !song.lyrics) return <div>Tidak ada lirik</div>;
   const lines = song.lyrics.split(/\r?\n/);
+
+
+  // Regex untuk not angka dan bar
+  const numberNoteRegex = /\b[1-7](?:[.']*)\b/g;
+  // urutan penting: double bar, repeat, single bar
+  const barRegex = /\|\:|\:\||\[\:|\:\]|\|\||\|/g;
+  // Gabungkan regex untuk split (not angka, bar, dan sisanya)
+  const splitRegex = /(\|\:|\:\||\[\:|\:\]|\|\||\||\b[1-7](?:[.']*)\b)/g;
+
+  // Fungsi render line dengan highlight not angka, bar, dan chord di antara bar
+  function renderLyricsLine(line, key) {
+    const tokens = line.split(splitRegex).filter(Boolean);
+    let lastWasBar = false;
+    return (
+      <span key={key} className="lyrics-line">
+        {tokens.map((token, idx) => {
+          // Not angka
+          if (numberNoteRegex.test(token)) {
+            lastWasBar = false;
+            return <span key={idx} className="not-angka-highlight">{token}</span>;
+          }
+          // Bar
+          if (barRegex.test(token)) {
+            lastWasBar = true;
+            let barClass = 'bar-highlight';
+            if (token === '||') barClass += ' double-bar';
+            if (token === '|:' || token === ':|' || token === '[:' || token === ':]') barClass += ' repeat-bar';
+            return <span key={idx} className={barClass}>{token}</span>;
+          }
+          // Chord di antara bar
+          if (CHORD_REGEX.test(token.trim())) {
+            // Cek jika token diapit bar (| C |), atau setelah bar
+            // (tidak harus, highlight semua chord di line non-chord)
+            let chord = transpose ? transposeChord(token.trim(), transpose) : token.trim();
+            lastWasBar = false;
+            return <span key={idx} className="chord-highlight">{chord}</span>;
+          }
+          lastWasBar = false;
+          return token;
+        })}
+      </span>
+    );
+  }
+
   return (
     <div className="chord-display">
       <pre>
@@ -91,7 +138,8 @@ export default function ChordDisplay({ song, transpose = 0, highlightChords = fa
               </span>
             );
           } else {
-            return <span key={i} className="lyrics-line">{line}</span>;
+            // Render lirik dengan highlight not angka & bar
+            return renderLyricsLine(line, i);
           }
         })}
       </pre>

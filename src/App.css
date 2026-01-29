@@ -1,3 +1,26 @@
+/* =====================
+   Not Angka & Bar Highlight
+   ===================== */
+.not-angka-highlight {
+  color: #facc15;
+  font-weight: bold;
+  background: rgba(250, 204, 21, 0.12);
+  border-radius: 3px;
+  padding: 0 2px;
+}
+.bar-highlight {
+  color: #60a5fa;
+  font-weight: bold;
+  padding: 0 2px;
+}
+.bar-highlight.double-bar {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.10);
+}
+.bar-highlight.repeat-bar {
+  color: #f472b6;
+  background: rgba(244, 114, 182, 0.10);
+}
 /* TimeMarkers collapsible toggle */
 .time-markers-toggle-btn {
   background: none;
@@ -916,12 +939,14 @@ Catatan:
 }
 
 .chord-highlight {
-  color: #1976d2;
-  font-weight: 600;
-  background: #eef2ff;
+  color: #fff;
+  font-weight: 700;
+  background: #38bdf8cc;
   border-radius: 4px;
-  padding: 0 3px;
+  padding: 0 4px;
   margin: 0 1px;
+  box-shadow: 0 1px 6px 0 #38bdf855;
+  letter-spacing: 0.5px;
 }
 
 .back-btn {
@@ -1286,13 +1311,15 @@ Catatan:
 }
 
 .chord-display .chord-highlight {
-  color: var(--primary-accent);
-  background: var(--primary-accent-light);
+  color: #fff;
+  background: #38bdf8cc;
   border-radius: 4px;
   padding: 0 4px;
   margin: 0 1px;
   font-weight: 700;
   display: inline-block;
+  box-shadow: 0 1px 6px 0 #38bdf855;
+  letter-spacing: 0.5px;
 }
 
 @media (max-width: 600px) {
