@@ -251,6 +251,7 @@ const YouTubeViewer = React.forwardRef(({
           onInput={minimalControls ? (e) => handleSeek(e.target.value) : undefined}
           onMouseUp={minimalControls ? undefined : handleScrubberCommit}
           onTouchEnd={minimalControls ? undefined : handleScrubberCommit}
+          onBlur={minimalControls ? undefined : handleScrubberCommit}
           disabled={!player || !duration}
           aria-label="Scrub waktu video"
         />
