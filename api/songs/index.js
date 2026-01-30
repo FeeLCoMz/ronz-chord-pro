@@ -54,6 +54,13 @@ export default async function handler(req, res) {
       const now = new Date().toISOString();
       const upsertOne = async (item) => {
         const id = item.id?.toString() || randomUUID();
+        // Pastikan tempo disimpan sebagai string integer tanpa koma
+        let tempoStr = null;
+        if (item.tempo !== undefined && item.tempo !== null && item.tempo !== '') {
+          // Ambil hanya bagian integer, buang koma/desimal
+          const tempoInt = parseInt(String(item.tempo).replace(/,/g, '.'), 10);
+          if (!isNaN(tempoInt)) tempoStr = tempoInt.toString();
+        }
         await client.execute(
           `INSERT INTO songs (id, title, artist, youtubeId, lyrics, key, tempo, style, instruments, timestamps, createdAt, updatedAt)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -75,12 +82,12 @@ export default async function handler(req, res) {
             item.youtubeId || null,
             item.lyrics || null,
             item.key || null,
-            item.tempo || null,
+            tempoStr,
             item.style || null,
             (Array.isArray(item.instruments) ? JSON.stringify(item.instruments) : (item.instruments || null)),
             (Array.isArray(item.timestamps) ? JSON.stringify(item.timestamps) : (item.timestamps || null)),
             item.createdAt || now,
-            now,
+            now
           ]
         );
         return id;

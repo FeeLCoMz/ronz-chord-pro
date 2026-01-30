@@ -73,13 +73,19 @@ export default async function handler(req, res) {
         style = COALESCE(?, style),
         instruments = COALESCE(?, instruments),
         updatedAt = ?`;
+      // Pastikan tempo disimpan sebagai string integer tanpa koma
+      let tempoStr = null;
+      if (body.tempo !== undefined && body.tempo !== null && body.tempo !== '') {
+        const tempoInt = parseInt(String(body.tempo).replace(/,/g, '.'), 10);
+        if (!isNaN(tempoInt)) tempoStr = tempoInt.toString();
+      }
       let updateParams = [
         body.title ?? null,
         body.artist ?? null,
         body.youtubeId ?? null,
         body.lyrics ?? null,
         body.key ?? null,
-        body.tempo ?? null,
+        tempoStr,
         body.style ?? null,
         (Array.isArray(body.instruments) ? JSON.stringify(body.instruments) : (body.instruments ?? null)),
         now
