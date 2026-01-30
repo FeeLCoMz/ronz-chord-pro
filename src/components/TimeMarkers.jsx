@@ -12,6 +12,8 @@ function formatTime(sec) {
 async function fetchSongMarkers(songId) {
   const res = await fetch(`/api/songs/${songId}`);
   if (!res.ok) return [];
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) return [];
   const data = await res.json();
   return Array.isArray(data.timestamps) ? data.timestamps : [];
 }
