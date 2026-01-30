@@ -188,7 +188,8 @@ function App() {
           <Route
             path="/setlists/:setlistId/songs"
             element={<SetlistSongsPage setlists={setlists} songs={songs} setSetlists={setSetlists} setActiveSetlist={setActiveSetlist} />}
-          />          
+          />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
     </>
