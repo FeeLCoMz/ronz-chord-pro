@@ -119,8 +119,8 @@ export default function TimeMarkers({ markers: initialMarkers = [], onMarkersCha
                   style={{marginLeft: 6, marginRight: 6}}
                 >
                   ▶️
-                </button>
-                {!readonly && (editingIdx === idx ? (
+                </button>                
+                {editingIdx === idx && !readonly ? (
                   <>
                     <input
                       className="time-marker-edit-input"
@@ -134,9 +134,9 @@ export default function TimeMarkers({ markers: initialMarkers = [], onMarkersCha
                 ) : (
                   <>
                     <span className="time-marker-label">{m.label}</span>
-                    <button type="button" className="btn-base time-marker-edit-btn" onClick={() => handleEdit(idx)} title="Edit">✎</button>
+                    {!readonly && <button type="button" className="btn-base time-marker-edit-btn" onClick={() => handleEdit(idx)} title="Edit">✎</button>}
                   </>
-                ))}
+                )}
                 {!readonly && <button type="button" className="btn-base time-marker-remove-btn" onClick={() => handleRemove(idx)} title="Hapus">🗑</button>}
               </div>
             ))}
