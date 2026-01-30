@@ -1042,19 +1042,6 @@ Catatan:
   margin-bottom: 24px;
 }
 
-.search-input {
-  font-size: 1.1rem;
-  padding: 0.7rem 1.1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  margin-bottom: 24px;
-  width: 100%;
-  max-width: 400px;
-  box-sizing: border-box;
-  background: #fff;
-  color: #222;
-  transition: border 0.2s;
-}
 
 .search-input:focus {
   border: 1.5px solid #6366f1;
@@ -1408,8 +1395,7 @@ body {
   font-size: 1.1rem;
   padding: 0.7rem 1.1rem;
   border-radius: 8px;
-  border: 1.5px solid var(--border);
-  margin-bottom: 24px;
+  border: 1.5px solid var(--border);  
   width: 100%;
   max-width: 400px;
   box-sizing: border-box;
