@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -16,13 +16,42 @@ import { CSS } from '@dnd-kit/utilities';
 import DragHandleIcon from './DragHandleIcon.jsx';
 import EditIcon from './EditIcon.jsx';
 import DeleteIcon from './DeleteIcon.jsx';
+import SearchBar from './SearchBar.jsx';
+import ChordLinks from './ChordLinks.jsx';
 
-function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.', enableSearch = false, showNumber = false, setlistSongKeys: setlistSongMeta = null, draggable = false, onReorder = null }) {
+function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.', enableSearch = false, showNumber = false, setlistSongKeys: setlistSongMeta = null, draggable = false, onReorder = null, searchQuery = '' }) {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [sortOrder, setSortOrder] = useState('asc');
+  const recognitionRef = useRef(null);
   // Always call hooks at the top
   const sensors = useSensors(useSensor(PointerSensor));
+
+  const isSpeechSupported = typeof window !== 'undefined' && (
+    window.SpeechRecognition || window.webkitSpeechRecognition
+  );
+
+  const handleVoiceSearch = () => {
+    if (!isSpeechSupported) {
+      alert('Fitur pencarian suara tidak didukung di browser Anda.');
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!recognitionRef.current) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.lang = 'id-ID';
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.maxAlternatives = 1;
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setSearch(transcript);
+      };
+      recognitionRef.current.onerror = (event) => {
+        alert('Terjadi kesalahan saat mengenali suara: ' + event.error);
+      };
+    }
+    recognitionRef.current.start();
+  };
 
   let filteredSongs = enableSearch
     ? (songs || []).filter(song =>
@@ -68,16 +97,6 @@ function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.',
   if (!filteredSongs || filteredSongs.length === 0) {
     return (
       <>
-        {enableSearch && (
-          <input
-            type="text"
-            placeholder="Cari judul atau artist..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="search-input"
-            style={{ marginBottom: 18 }}
-          />
-        )}
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="search-input" style={{ width: 150 }}>
             {sortOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
@@ -88,7 +107,10 @@ function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.',
             </button>
           )}
         </div>
-        <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: 24 }}>{emptyText}</div>
+        <div style={{ color: 'var(--text-muted)', textAlign: 'center', marginTop: 24 }}>
+          <div style={{ marginBottom: 16 }}>{emptyText}</div>
+          <ChordLinks searchQuery={searchQuery || search} />
+        </div>
       </>
     );
   }
@@ -209,13 +231,10 @@ function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.',
     return (
       <>
         {enableSearch && (
-          <input
-            type="text"
-            placeholder="Cari judul atau artist..."
+          <SearchBar 
             value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="search-input"
-            style={{ marginBottom: 18 }}
+            onChange={(e) => setSearch(e.target.value)}
+            onVoiceSearch={handleVoiceSearch}
           />
         )}
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
@@ -244,13 +263,10 @@ function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.',
   return (
     <>
       {enableSearch && (
-        <input
-          type="text"
-          placeholder="Cari judul atau artist..."
+        <SearchBar 
           value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="search-input"
-          style={{ marginBottom: 18 }}
+          onChange={(e) => setSearch(e.target.value)}
+          onVoiceSearch={handleVoiceSearch}
         />
       )}
       <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>

@@ -267,6 +267,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
         showNumber={true}
         draggable={true}
         onReorder={handleReorder}
+        enableSearch={true}
       />
 
       {/* Konfirmasi Hapus Lagu dari Setlist */}

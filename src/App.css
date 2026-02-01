@@ -1014,21 +1014,6 @@ Catatan:
   max-width: 480px;
 }
 
-.song-list-item,
-.setlist-list-item {
-  background: #fff;
-  color: #222;
-  border-radius: 10px;
-  margin-bottom: 14px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  padding: 1.1rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  transition:
-    box-shadow 0.2s,
-    background 0.2s;
-}
 
 .song-list-item:hover,
 .setlist-list-item:hover {
