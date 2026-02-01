@@ -1,11 +1,14 @@
 {
   "version": 2,
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "routes": [
+    {
+      "src": "/api/songs/([^/]+)$",
+      "dest": "/api/songs/[id].js?id=$1"
+    },
+    {
+      "src": "/api/setlists/([^/]+)$",
+      "dest": "/api/setlists/[id].js?id=$1"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
