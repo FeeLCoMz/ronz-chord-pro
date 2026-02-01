@@ -97,6 +97,13 @@ function SongList({ songs, onSongClick, emptyText = 'Tidak ada lagu ditemukan.',
   if (!filteredSongs || filteredSongs.length === 0) {
     return (
       <>
+        {enableSearch && (
+          <SearchBar 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onVoiceSearch={handleVoiceSearch}
+          />
+        )}
         <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
           <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="search-input" style={{ width: 150 }}>
             {sortOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
