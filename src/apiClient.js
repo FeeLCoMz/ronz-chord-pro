@@ -92,17 +92,3 @@ export async function aiSongSearch({ title, artist }) {
   }
   return await res.json();
 }
-
-export async function aiBatchSongSearch(songs) {
-  const res = await fetch(`${API_BASE}/ai/batch-search`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ songs })
-  });
-  if (!res.ok) {
-    let err;
-    try { err = await res.json(); } catch {}
-    throw new Error(err?.error || 'Failed to batch search songs');
-  }
-  return await res.json();
-}

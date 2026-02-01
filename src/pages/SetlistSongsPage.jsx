@@ -91,10 +91,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
     }
   }, [setlist]);
   const [showAddSong, setShowAddSong] = useState(false);
-  const [showAiModal, setShowAiModal] = useState(false);
-  const [aiInput, setAiInput] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [addSongSearch, setAddSongSearch] = useState('');
@@ -171,60 +167,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
     }
   }
 
-  async function handleAiSubmit() {
-    setAiLoading(true);
-    setAiError('');
-    try {
-      // Parse input: satu lagu per baris, format: Judul - Artis (opsional)
-      const lines = aiInput.split('\n').map(l => l.trim()).filter(Boolean);
-      if (lines.length === 0) throw new Error('Daftar lagu kosong');
-      // Buat array objek lagu
-      const songInputs = lines.map((line, idx) => {
-        const [title, ...artistArr] = line.split(' - ');
-        return { songId: `ai-${idx}`, title: title.trim(), artist: artistArr.join(' - ').trim() || undefined };
-      });
-      // Panggil API batch-search
-      const res = await fetch('/api/ai/batch-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ songs: songInputs })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.results) throw new Error(data.error || 'Gagal memproses AI');
-      // Cocokkan hasil dengan lagu di database sesuai urutan input
-      const matchedIds = [];
-      const notFound = [];
-      data.results.forEach((result, idx) => {
-        if (result.error) return notFound.push(result.title);
-        // Cari lagu di songs (by title & artist, case-insensitive)
-        const match = songs.find(s =>
-          s.title && result.title && s.title.toLowerCase() === result.title.toLowerCase() &&
-          (!result.artist || (s.artist && s.artist.toLowerCase() === result.artist.toLowerCase()))
-        );
-        if (match) matchedIds.push(match.id);
-        else notFound.push(result.title);
-      });
-      if (matchedIds.length === 0) throw new Error('Tidak ada lagu yang cocok ditemukan di database.');
-      // Update setlist: urutkan sesuai input, lagu yang sudah ada tetap ikut urutan input
-      setLocalOrder(matchedIds);
-      if (setSetlists) {
-        setSetlists(prev => prev.map(s => s.id === setlist.id ? { ...s, songs: matchedIds } : s));
-      }
-      await fetch(`/api/setlists/${setlist.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...setlist, songs: matchedIds }),
-      });
-      setShowAiModal(false);
-      setAiInput('');
-      setAiError(notFound.length ? `Beberapa lagu tidak ditemukan: ${notFound.join(', ')}` : '');
-    } catch (e) {
-      setAiError(e.message || 'Gagal memproses AI');
-    } finally {
-      setAiLoading(false);
-    }
-  }
-
   return (
     <>
       <button className="back-btn" onClick={() => navigate('/setlists')}>&larr;</button>
@@ -235,9 +177,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
         <button className="btn-base tab-btn add-song-btn" onClick={() => setShowAddSong(true)} title="Tambah Lagu ke Setlist">
           <PlusIcon size={22} /> Tambah Lagu
-        </button>
-        <button className="btn-base tab-btn add-song-btn ai-setlist-btn" onClick={() => setShowAiModal(true)} title="AI Setlist">
-          🤖 AI Setlist
         </button>
         <button className="btn-base tab-btn add-song-btn share-setlist-btn" onClick={() => setShowShareModal(true)} title="Bagikan Setlist">
           📤 Bagikan
@@ -270,36 +209,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           </div>
         </div>
       )}
-      {showAiModal && (
-        <div
-          className="modal-overlay"
-          onClick={e => { if (e.target.classList.contains('modal-overlay')) setShowAiModal(false); }}
-          tabIndex={-1}
-          onKeyDown={e => { if (e.key === 'Escape') setShowAiModal(false); }}
-        >
-          <div
-            className="modal add-song-modal"
-            role="dialog"
-            aria-modal="true"
-            tabIndex={0}
-          >
-            <div className="modal-title">AI: Susun Setlist Otomatis</div>
-            <textarea
-              className="search-input full-width"
-              style={{ marginBottom: 12 }}
-              rows={7}
-              placeholder={"Masukkan daftar lagu, satu per baris. Bisa judul saja atau judul - artis.\nContoh:\nBintang Kehidupan\nSeparuh Aku - NOAH\n..."}
-              value={aiInput}
-              onChange={e => setAiInput(e.target.value)}
-              autoFocus
-            />
-            {aiError && <div className="error-text" style={{ marginBottom: 8 }}>{aiError}</div>}
-            <button className="tab-btn full-width" style={{ marginBottom: 8 }} onClick={handleAiSubmit} disabled={aiLoading || !aiInput.trim()}>{aiLoading ? 'Memproses...' : 'Susun & Tambah ke Setlist'}</button>
-            <button className="back-btn" style={{ marginTop: 8 }} onClick={() => setShowAiModal(false)}>Batal</button>
-          </div>
-        </div>
-      )}
-
   {showAddSong && (
     <div
       className="modal-overlay"

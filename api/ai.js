@@ -18,7 +18,6 @@ async function readJson(req) {
 export default async function handler(req, res) {
   const url = req.url || '';
   if (url.startsWith('/song-search')) return await handleSongSearch(req, res);
-  if (url.startsWith('/batch-search')) return await handleBatchSearch(req, res);
   if (url.startsWith('/transcribe')) return await handleTranscribe(req, res);
   return await handleChat(req, res);
 }
@@ -166,55 +165,6 @@ async function handleSongSearch(req, res) {
   } catch (error) {
     console.error('Error in song search:', error);
     return res.status(500).json({ error: 'Failed to search song information', message: error.message, details: process.env.NODE_ENV === 'development' ? error.stack : undefined });
-  }
-}
-
-// --- Batch search handler ---
-async function handleBatchSearch(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-  let body = {};
-  try {
-    body = await readJson(req);
-  } catch (err) {
-    console.error('Body parsing error:', err);
-    return res.status(400).json({ error: 'Invalid request body', details: err.message });
-  }
-  const { songs } = body;
-  if (!Array.isArray(songs) || songs.length === 0) {
-    return res.status(400).json({ error: 'songs array required with at least 1 song', received: { songs, type: Array.isArray(songs) ? 'array' : typeof songs, length: songs?.length } });
-  }
-  if (songs.length > 50) {
-    return res.status(400).json({ error: 'Maximum 50 songs per batch request' });
-  }
-  try {
-    const results = [];
-    for (let i = 0; i < songs.length; i++) {
-      const song = songs[i];
-      const isPending = song.isPending || false;
-      if (!song.title) {
-        results.push({ songId: song.songId, title: song.title, artist: song.artist, isPending: isPending, error: 'Title required' });
-        continue;
-      }
-      if (!isPending && !song.artist) {
-        results.push({ songId: song.songId, title: song.title, artist: song.artist, isPending: isPending, error: 'Artist required for regular songs' });
-        continue;
-      }
-      try {
-        // Reuse single song search logic
-        const searchResult = await handleSongSearch({ method: 'POST', body: song }, { status: () => ({ json: (v) => v }) });
-        results.push({ songId: song.songId, title: song.title, artist: song.artist || '', isPending: isPending, ...searchResult });
-        if (i < songs.length - 1) await new Promise(resolve => setTimeout(resolve, 500));
-      } catch (err) {
-        console.error(`Error searching song ${song.title}:`, err);
-        results.push({ songId: song.songId, title: song.title, artist: song.artist || '', isPending: isPending, error: err.message });
-      }
-    }
-    return res.status(200).json({ success: true, totalProcessed: results.length, results: results });
-  } catch (error) {
-    console.error('Error in batch search:', error);
-    return res.status(500).json({ error: 'Failed to process batch song search', message: error.message, details: process.env.NODE_ENV === 'development' ? error.stack : undefined });
   }
 }
 
