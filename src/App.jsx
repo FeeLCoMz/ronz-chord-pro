@@ -7,21 +7,12 @@ import SetlistPage from './pages/SetlistPage.jsx';
 import NotFound from './components/NotFound.jsx';
 import SetlistSongsPage from './pages/SetlistSongsPage.jsx';
 
-function SetlistSongsRoute({ setlists, songs }) {
-  return <SetlistSongsPage setlists={setlists} songs={songs} />;
-}
-
-
 function App() {
   // State untuk modal create setlist
   const [showCreateSetlist, setShowCreateSetlist] = useState(false);
   const [createSetlistName, setCreateSetlistName] = useState('');
   const [createSetlistError, setCreateSetlistError] = useState('');
   const [addSongError, setAddSongError] = useState('');
-  const [tab, setTab] = useState('songs');
-  const [showAddSong, setShowAddSong] = useState(false);
-  const [showEditSong, setShowEditSong] = useState(false);
-  const [editSongId, setEditSongId] = useState(null);
   const [songs, setSongs] = useState([]);
   const [setlists, setSetlists] = useState([]);
   const [search, setSearch] = useState('');
