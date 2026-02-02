@@ -266,7 +266,7 @@ export default function GigPage() {
                   className="btn-base tab-btn"
                   style={{ background: '#4f8cff', color: '#fff', fontWeight: 600 }}
                 >
-                  {editGig ? 'Simpan Perubahan' : 'Buat Jadwal'}}
+                  {editGig ? 'Simpan Perubahan' : 'Buat Jadwal'}
                 </button>
               </div>
             </form>

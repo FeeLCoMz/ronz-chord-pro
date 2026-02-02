@@ -1,0 +1,21 @@
+# Auth consolidated into api/auth.js
+api/auth/
+
+# Practice & Gigs - optional features (disable for free tier)
+api/practice/
+api/gigs/
+
+# Band sub-endpoints - consolidate into bands/[id].js
+api/bands/members.js
+api/bands/invitations.js
+
+# Middleware utilities (not serverless functions)
+api/middleware/
+
+# Development files
+node_modules/
+.env.local
+.env.development
+*.log
+.DS_Store
+
