@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       try {
         const result = await client.execute(
-          `SELECT id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, createdAt, updatedAt
+          `SELECT id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, userId, createdAt, updatedAt
            FROM songs WHERE id = ? LIMIT 1`,
           [idStr]
         );
@@ -65,6 +65,23 @@ export default async function handler(req, res) {
     if (req.method === 'PUT' || req.method === 'PATCH') {
       const body = await readJson(req);
       const now = new Date().toISOString();
+      const userId = req.user?.userId;
+
+      // Check if song exists and user is the creator
+      const songCheck = await client.execute(
+        'SELECT userId FROM songs WHERE id = ?',
+        [idStr]
+      );
+
+      if (!songCheck.rows || songCheck.rows.length === 0) {
+        res.status(404).json({ error: 'Song not found' });
+        return;
+      }
+
+      if (songCheck.rows[0].userId !== userId) {
+        res.status(403).json({ error: 'You can only edit your own songs' });
+        return;
+      }
 
       // DEBUG: log payload yang diterima
 
@@ -116,6 +133,24 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
+      const userId = req.user?.userId;
+
+      // Check if song exists and user is the creator
+      const songCheck = await client.execute(
+        'SELECT userId FROM songs WHERE id = ?',
+        [idStr]
+      );
+
+      if (!songCheck.rows || songCheck.rows.length === 0) {
+        res.status(404).json({ error: 'Song not found' });
+        return;
+      }
+
+      if (songCheck.rows[0].userId !== userId) {
+        res.status(403).json({ error: 'You can only delete your own songs' });
+        return;
+      }
+
       await client.execute(`DELETE FROM songs WHERE id = ?`, [idStr]);
       res.status(204).end();
       return;

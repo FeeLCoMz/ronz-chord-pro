@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import PlusIcon from '../components/PlusIcon.jsx';
 import EditIcon from '../components/EditIcon.jsx';
 import DeleteIcon from '../components/DeleteIcon.jsx';
@@ -8,6 +9,7 @@ import { updatePageMeta, pageMetadata } from '../utils/metaTagsUtil.js';
 
 export default function SongListPage({ songs, loading, error, onSongClick }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [filterArtist, setFilterArtist] = useState('all');
   const [filterKey, setFilterKey] = useState('all');
@@ -267,28 +269,32 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                 className="song-actions"
                 onClick={(e) => e.stopPropagation()}
               >
-                <button
-                  onClick={() => onSongClick('edit', song.id)}
-                  className="btn-base"
-                  style={{ padding: '6px 12px', fontSize: '0.85em' }}
-                  title="Edit"
-                >
-                  <EditIcon size={16} />
-                </button>
-                <button
-                  onClick={() => onSongClick('delete', song.id)}
-                  className="btn-base"
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '0.85em',
-                    background: '#dc2626',
-                    borderColor: '#b91c1c',
-                    color: '#fff'
-                  }}
-                  title="Hapus"
-                >
-                  <DeleteIcon size={16} />
-                </button>
+                {user?.id === song.userId && (
+                  <>
+                    <button
+                      onClick={() => onSongClick('edit', song.id)}
+                      className="btn-base"
+                      style={{ padding: '6px 12px', fontSize: '0.85em' }}
+                      title="Edit"
+                    >
+                      <EditIcon size={16} />
+                    </button>
+                    <button
+                      onClick={() => onSongClick('delete', song.id)}
+                      className="btn-base"
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: '0.85em',
+                        background: '#dc2626',
+                        borderColor: '#b91c1c',
+                        color: '#fff'
+                      }}
+                      title="Hapus"
+                    >
+                      <DeleteIcon size={16} />
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))}

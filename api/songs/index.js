@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         )`
       );
       const rows = await client.execute(
-        `SELECT id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, createdAt, updatedAt
+        `SELECT id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, userId, createdAt, updatedAt
          FROM songs
          ORDER BY (updatedAt IS NULL) ASC, datetime(updatedAt) DESC, datetime(createdAt) DESC`
       );
@@ -59,6 +59,8 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const body = await readJson(req);
       const now = new Date().toISOString();
+      const userId = req.user?.userId;
+
       const upsertOne = async (item) => {
         const id = item.id?.toString() || randomUUID();
         // Pastikan tempo disimpan sebagai string integer tanpa koma
@@ -75,8 +77,8 @@ export default async function handler(req, res) {
           if (!isNaN(capoInt)) capoStr = capoInt.toString();
         }
         await client.execute(
-          `INSERT INTO songs (id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `INSERT INTO songs (id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, userId, createdAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
              title = excluded.title,
              artist = excluded.artist,
@@ -101,6 +103,7 @@ export default async function handler(req, res) {
             capoStr,
             (Array.isArray(item.instruments) ? JSON.stringify(item.instruments) : (item.instruments || null)),
             (Array.isArray(item.timestamps) ? JSON.stringify(item.timestamps) : (item.timestamps || null)),
+            userId,
             item.createdAt || now,
             now
           ]
