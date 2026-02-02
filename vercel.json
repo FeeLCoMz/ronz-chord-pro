@@ -15,12 +15,12 @@
       "dest": "/api/songs/[id].js?id=$1"
     },
     {
-      "src": "/api/setlists/([^/]+)$",
-      "dest": "/api/setlists/[id].js?id=$1"
+      "src": "/api/bands/invitations/([^/]+)$",
+      "dest": "/api/invitations.js?id=$1"
     },
     {
-      "src": "/api/bands/invitations/([^/]+)$",
-      "dest": "/api/bands/invitations/[invId].js?invId=$1"
+      "src": "/api/setlists/([^/]+)$",
+      "dest": "/api/setlists/[id].js?id=$1"
     },
     {
       "src": "/api/bands/([^/]+)$",
