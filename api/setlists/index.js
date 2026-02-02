@@ -1,4 +1,5 @@
 import { getTursoClient } from '../_turso.js';
+import { verifyToken } from '../_auth.js';
 import { randomUUID } from 'crypto';
 
 async function readJson(req) {
@@ -16,13 +17,13 @@ async function readJson(req) {
 
 export default async function handler(req, res) {
   try {
+    // Verify JWT token first
+    if (!verifyToken(req, res)) {
+      return;
+    }
+
     const client = getTursoClient();
     const userId = req.user?.userId;
-    
-    // Debug: log user info
-    if (!userId) {
-      console.warn('[setlists] No userId found in req.user:', req.user);
-    }
 
     if (req.method === 'GET') {
       // Create table if not exists
@@ -192,6 +193,6 @@ export default async function handler(req, res) {
     res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
     console.error('API /api/setlists error:', err);
-    res.status(500).json({ error: 'Internal Server Error', message: err.message, details: process.env.NODE_ENV === 'development' ? err.stack : undefined });
+    res.status(500).json({ error: 'Internal Server Error', message: err.message });
   }
 }
