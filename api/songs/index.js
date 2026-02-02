@@ -1,4 +1,5 @@
 import { getTursoClient } from '../_turso.js';
+import { verifyToken } from '../_auth.js';
 import { randomUUID } from 'crypto';
 
 async function readJson(req) {
@@ -16,6 +17,11 @@ async function readJson(req) {
 
 export default async function handler(req, res) {
   try {
+    // Verify JWT token first
+    if (!verifyToken(req, res)) {
+      return;
+    }
+
     const client = getTursoClient();
 
     if (req.method === 'GET') {

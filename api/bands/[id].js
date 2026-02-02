@@ -1,4 +1,5 @@
 import { getTursoClient } from '../_turso.js';
+import { verifyToken } from '../_auth.js';
 
 async function readJson(req) {
   if (req.body) return req.body;
@@ -15,6 +16,11 @@ async function readJson(req) {
 
 export default async function handler(req, res) {
   try {
+    // Verify JWT token first
+    if (!verifyToken(req, res)) {
+      return;
+    }
+
     const client = getTursoClient();
     const userId = req.user?.userId;
     const bandId = req.params?.id || req.url?.split('/').pop();
