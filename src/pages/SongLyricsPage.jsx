@@ -66,7 +66,7 @@ export default function SongLyricsPage({ song: songProp }) {
 
   const handleBack = () => {
     if (setlistId) {
-      navigate(`/setlists/${setlistId}/songs`);
+      navigate(`/setlists/${setlistId}`);
     } else {
       navigate('/songs');
     }

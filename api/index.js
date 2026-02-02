@@ -205,6 +205,7 @@ app.get('/api/invitations/pending', verifyToken, async (req, res) => {
 
 app.use('/api/invitations/:id', verifyToken, (req, res, next) => {
   Promise.resolve(bandInvIdHandler(req, res)).catch(next);
+});
 
 // Route for /api/bands/invitations/:id
 app.use('/api/bands/invitations/:id', verifyToken, (req, res, next) => {
@@ -212,7 +213,6 @@ app.use('/api/bands/invitations/:id', verifyToken, (req, res, next) => {
   req.query = req.query || {};
   req.query.id = req.params.id;
   Promise.resolve(bandInvIdHandler(req, res)).catch(next);
-});
 });
 app.use('/api/bands/:id', verifyToken, (req, res, next) => {
   Promise.resolve(bandsIdHandler(req, res)).catch(next);

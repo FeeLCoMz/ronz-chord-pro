@@ -274,7 +274,7 @@ export default function BandDetailPage() {
                   transition: 'all 0.2s'
                 }}
                 className="hover-lift"
-                onClick={() => navigate(`/setlists/${setlist.id}/songs`)}
+                onClick={() => navigate(`/setlists/${setlist.id}`)}
               >
                 <div style={{ fontWeight: '500' }}>{setlist.name}</div>
                 {setlist.desc && (
