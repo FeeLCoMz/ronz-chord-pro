@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   try {
     const client = getTursoClient();
     const userId = req.user?.userId;
-    const invitationId = req.params?.invId || req.url?.split('/').pop();
+    const invitationId = req.query?.invId || req.params?.invId || req.url?.split('/').pop();
     const action = req.url?.split('/').slice(-1)[0]; // 'accept' or 'reject'
 
     if (!userId) {

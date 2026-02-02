@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
     const client = getTursoClient();
     const userId = req.user?.userId;
-    const bandId = req.params?.id || req.url?.split('/').pop();
+    const bandId = req.query?.id || req.params?.id || req.url?.split('/').pop();
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
