@@ -1,17 +1,7 @@
-# Auth endpoints consolidated into api/auth.js
-api/auth/login.js
-api/auth/register.js
-api/auth/me.js
-api/auth/forgot-password.js
-api/auth/reset-password.js
-api/auth/2fa-setup.js
-api/auth/2fa-verify.js
+# Auth endpoints - directly handled in api/index.js
+api/auth/
 
-# Practice & Gigs consolidated into api/resources.js
-api/practice/
-api/gigs/
-
-# Songs & Setlists & Bands consolidated into root api files
+# Individual route handlers - consolidated into umbrella handlers
 api/songs/index.js
 api/songs/[id].js
 api/setlists/index.js
@@ -20,6 +10,10 @@ api/bands/index.js
 api/bands/[id].js
 api/bands/members.js
 api/bands/invitations.js
+
+# Practice & Gigs consolidated into api/resources.js
+api/practice/
+api/gigs/
 
 # Middleware utilities (not serverless functions)
 api/middleware/

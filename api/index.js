@@ -22,7 +22,6 @@ import http from 'http';
 import songsHandler from './songs.js';
 import setlistsHandler from './setlists.js';
 import bandsHandler from './bands.js';
-import statusHandler from './status.js';
 import aiHandler from './ai.js';
 import authRegisterHandler from './auth/register.js';
 import authLoginHandler from './auth/login.js';
@@ -204,9 +203,12 @@ app.use('/api/practice', verifyToken, (req, res, next) => {
 app.use('/api/gigs', verifyToken, (req, res, next) => {
   Promise.resolve(resourcesHandler(req, res)).catch(next);
 });
-app.use('/api/status', (req, res, next) => {
-  Promise.resolve(statusHandler(req, res)).catch(next);
+
+// Status endpoint
+app.get('/api/status', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
 app.use('/api/ai', (req, res, next) => {
   Promise.resolve(aiHandler(req, res)).catch(next);
 });
