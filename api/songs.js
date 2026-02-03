@@ -5,16 +5,30 @@
 
 import songsIndexHandler from './songs/index.js';
 import songsIdHandler from './songs/[id].js';
+import { verifyToken } from './_auth.js';
 
 export default async function consolidatedSongsHandler(req, res) {
-  const pathParts = req.url.split('/').filter(Boolean);
-  const songId = pathParts[2]; // api/songs/:id
+  try {
+    // Ensure token is verified (in case this is called directly on Vercel without middleware)
+    if (!req.user && !verifyToken(req, res)) {
+      return;
+    }
 
-  if (songId) {
-    // Route to [id].js handler
-    return songsIdHandler(req, res);
-  } else {
-    // Route to index.js handler
-    return songsIndexHandler(req, res);
+    // Extract song ID from path (path is relative to mount point when using app.use)
+    const path = req.path || req.url || '';
+    const pathParts = path.split('/').filter(Boolean);
+    const songId = pathParts[0]; // First part after /songs mount point
+
+    if (songId) {
+      // Route to [id].js handler
+      req.params = { ...req.params, id: songId };
+      return await songsIdHandler(req, res);
+    } else {
+      // Route to index.js handler
+      return await songsIndexHandler(req, res);
+    }
+  } catch (error) {
+    console.error('Songs handler error:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
   }
 }

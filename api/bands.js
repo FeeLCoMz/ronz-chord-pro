@@ -8,39 +8,55 @@ import bandsIdHandler from './bands/[id].js';
 import bandMembersHandler from './bands/members.js';
 import bandInvitationsHandler from './bands/invitations.js';
 import bandInvIdHandler from './bands/invitations/[id].js';
+import { verifyToken } from './_auth.js';
 
 export default async function consolidatedBandsHandler(req, res) {
-  const pathParts = req.url.split('/').filter(Boolean);
-  // api/bands/:id/members/:userId -> ['api', 'bands', 'id', 'members', 'userId']
-  // api/bands/:id/members -> ['api', 'bands', 'id', 'members']
-  // api/bands/invitations/:id -> ['api', 'bands', 'invitations', 'id']
-  // api/bands/:id -> ['api', 'bands', 'id']
-  // api/bands -> ['api', 'bands']
-
-  const bandId = pathParts[2];
-  const thirdSegment = pathParts[3];
-
-  // Handle invitations
-  if (pathParts[1] === 'bands' && pathParts[2] === 'invitations') {
-    if (pathParts[3]) {
-      // /api/bands/invitations/:id
-      return bandInvIdHandler(req, res);
-    } else {
-      // /api/bands/invitations
-      return bandInvitationsHandler(req, res);
+  try {
+    // Ensure token is verified (in case this is called directly on Vercel without middleware)
+    if (!req.user && !verifyToken(req, res)) {
+      return;
     }
-  }
 
-  // Handle nested paths like /api/bands/:id/members
-  if (thirdSegment === 'members') {
-    return bandMembersHandler(req, res);
-  }
+    const path = req.path || req.url || '';
+    const pathParts = path.split('/').filter(Boolean);
+    // When mounted at /api/bands, path is relative:
+    // /bands -> pathParts = ['bands'] or []
+    // /bands/:id -> pathParts = ['bands', 'id'] or ['id']
+    // /bands/:id/members -> pathParts = ['bands', 'id', 'members'] or ['id', 'members']
+    // /bands/invitations/:id -> pathParts = ['bands', 'invitations', 'id'] or ['invitations', 'id']
 
-  // Handle /api/bands/:id
-  if (bandId && thirdSegment !== 'members' && thirdSegment !== 'invitations') {
-    return bandsIdHandler(req, res);
-  }
+    const bandId = pathParts[0];
+    const secondSegment = pathParts[1];
+    const thirdSegment = pathParts[2];
 
-  // Handle /api/bands
-  return bandsIndexHandler(req, res);
+    // Handle invitations: /api/bands/invitations or /api/bands/invitations/:id
+    if (bandId === 'invitations') {
+      if (secondSegment) {
+        // /api/bands/invitations/:id
+        req.params = { ...req.params, invId: secondSegment };
+        return await bandInvIdHandler(req, res);
+      } else {
+        // /api/bands/invitations
+        return await bandInvitationsHandler(req, res);
+      }
+    }
+
+    // Handle nested paths like /api/bands/:id/members
+    if (secondSegment === 'members') {
+      req.params = { ...req.params, id: bandId };
+      return await bandMembersHandler(req, res);
+    }
+
+    // Handle /api/bands/:id
+    if (bandId && secondSegment !== 'members' && secondSegment !== 'invitations') {
+      req.params = { ...req.params, id: bandId };
+      return await bandsIdHandler(req, res);
+    }
+
+    // Handle /api/bands
+    return await bandsIndexHandler(req, res);
+  } catch (error) {
+    console.error('Bands handler error:', error);
+    res.status(500).json({ error: error.message || 'Internal server error' });
+  }
 }
