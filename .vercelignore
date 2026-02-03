@@ -1,23 +1,20 @@
-# Auth consolidated into api/auth.js
-api/auth/
+# Auth endpoints consolidated into api/auth.js
+api/auth/login.js
+api/auth/register.js
+api/auth/me.js
+api/auth/forgot-password.js
+api/auth/reset-password.js
+api/auth/2fa-setup.js
+api/auth/2fa-verify.js
 
-# Practice & Gigs - optional features (disable for free tier)
+# Practice & Gigs consolidated into api/resources.js
 api/practice/
 api/gigs/
 
-# Band sub-endpoints - consolidate into bands/[id].js
-api/bands/members.js
-api/bands/invitations.js
-api/bands/invitations/
-
-# Unused API endpoints
-api/ai.js
-api/permissions.js
-api/status.js
-api/index.js
-
 # Middleware utilities (not serverless functions)
 api/middleware/
+api/_turso.js
+api/_auth.js
 
 # Development files
 node_modules/
