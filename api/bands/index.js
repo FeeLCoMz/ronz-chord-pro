@@ -71,7 +71,7 @@ export default async function handler(req, res) {
         description: row.description,
         genre: row.genre,
         createdBy: row.createdBy,
-        role: row.role || (row.createdBy === userId ? 'leader' : null),
+        role: row.role || (row.createdBy === userId ? 'owner' : null),
         joinedAt: row.joinedAt,
         createdAt: row.createdAt,
         isOwner: row.createdBy === userId
@@ -98,10 +98,10 @@ export default async function handler(req, res) {
         [bandId, name, description || null, genre || null, userId, now]
       );
 
-      // Add creator as leader
+      // Add creator as owner
       await client.execute(
         'INSERT INTO band_members (bandId, userId, role, joinedAt) VALUES (?, ?, ?, ?)',
-        [bandId, userId, 'leader', now]
+        [bandId, userId, 'owner', now]
       );
 
       return res.status(201).json({
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
         description,
         genre,
         createdBy: userId,
-        role: 'leader',
+        role: 'owner',
         createdAt: now,
         isOwner: true
       });

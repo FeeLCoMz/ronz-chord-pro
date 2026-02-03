@@ -77,7 +77,7 @@ export default async function handler(req, res) {
         ...band,
         members,
         isOwner,
-        userRole: memberCheck.rows?.[0]?.role || (isOwner ? 'leader' : null)
+        userRole: memberCheck.rows?.[0]?.role || (isOwner ? 'owner' : null)
       });
     }
 

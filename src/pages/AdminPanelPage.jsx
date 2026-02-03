@@ -12,38 +12,47 @@ export default function AdminPanelPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   
-  // Create user band info for permission checking
-  const userBandInfo = {
-    userId: user?.userId,
-    role: 'member' // Will be loaded from API
-  };
-  
-  const { can, isOwner } = usePermission(bandId, userBandInfo);
-
   const [members, setMembers] = useState([]);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingMemberId, setEditingMemberId] = useState(null);
   const [newRole, setNewRole] = useState('member');
 
+  // Create user band info for permission checking
+  const userBandInfo = {
+    userId: user?.userId,
+    role: userRole || 'member'
+  };
+  
+  const { can, isOwner } = usePermission(bandId, userBandInfo);
+
   useEffect(() => {
     if (!bandId) return;
-    fetchMembers();
+    fetchBandData();
   }, [bandId]);
 
-  const fetchMembers = useCallback(async () => {
+  const fetchBandData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Fetch members and get current user's role
       const data = await apiClient.getBandMembers(bandId);
       setMembers(data || []);
+      
+      // Find current user's role
+      const currentUserMember = data?.find(m => m.userId === user?.userId);
+      if (currentUserMember) {
+        setUserRole(currentUserMember.role);
+      }
     } catch (err) {
       console.error('Failed to fetch members:', err);
       setError(err.message || 'Failed to load members');
     } finally {
       setLoading(false);
     }
-  }, [bandId]);
+  }, [bandId, user?.userId]);
 
   const handleRoleChange = async (memberId, role) => {
     try {
