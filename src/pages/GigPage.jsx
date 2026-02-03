@@ -14,7 +14,7 @@ export default function GigPage() {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editGig, setEditGig] = useState(null);
-  const [deleteGig, setDeleteGig] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -113,13 +113,13 @@ export default function GigPage() {
   };
 
   const handleDelete = async () => {
-    if (!deleteGig) return;
+    if (!deleteConfirm) return;
     
     try {
-      await deleteGig(deleteGig.id);
+      await deleteGig(deleteConfirm.id);
       const data = await fetchGigs(selectedBandId || null);
       setGigs(Array.isArray(data) ? data : []);
-      setDeleteGig(null);
+      setDeleteConfirm(null);
     } catch (err) {
       console.error('Failed to delete:', err);
     }
@@ -276,15 +276,15 @@ export default function GigPage() {
       )}
 
       {/* Delete Confirmation */}
-      {deleteGig && (
-        <div className="modal-overlay" onClick={() => setDeleteGig(null)}>
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2 style={{ color: 'var(--error)' }}>Hapus Jadwal Konser?</h2>
             <p style={{ color: 'var(--text-muted)' }}>
-              Yakin ingin menghapus konser di <b>{deleteGig.venue || deleteGig.city || 'lokasi ini'}</b> tanggal <b>{new Date(deleteGig.date).toLocaleDateString('id-ID')}</b>?
+              Yakin ingin menghapus konser di <b>{deleteConfirm.venue || deleteConfirm.city || 'lokasi ini'}</b> tanggal <b>{new Date(deleteConfirm.date).toLocaleDateString('id-ID')}</b>?
             </p>
             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-              <button className="btn-base" onClick={() => setDeleteGig(null)}>Batal</button>
+              <button className="btn-base" onClick={() => setDeleteConfirm(null)}>Batal</button>
               <button
                 className="btn-base"
                 style={{ backgroundColor: 'var(--error)', color: 'white' }}
@@ -383,7 +383,7 @@ export default function GigPage() {
                 </button>
                 <button
                   className="icon-btn-small delete-btn"
-                  onClick={() => setDeleteGig(gig)}
+                  onClick={() => setDeleteConfirm(gig)}
                   title="Hapus"
                 >
                   <DeleteIcon size={16} />

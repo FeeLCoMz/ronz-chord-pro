@@ -40,9 +40,7 @@ export default async function handler(req, res) {
          FROM gigs g
          LEFT JOIN bands b ON g.bandId = b.id
          LEFT JOIN setlists s ON g.setlistId = s.id
-         WHERE g.id = ? AND g.bandId IN (
-           SELECT bandId FROM band_members WHERE userId = ?
-         ) LIMIT 1`,
+         WHERE g.id = ? AND g.userId = ? LIMIT 1`,
         [idStr, userId]
       );
 

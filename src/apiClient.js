@@ -400,6 +400,10 @@ export async function deleteGig(id) {
     try { err = await res.json(); } catch {}
     throw new Error(err?.error || 'Failed to delete gig');
   }
+  // 204 No Content has no body
+  if (res.status === 204) {
+    return { success: true };
+  }
   return await res.json();
 }
 
