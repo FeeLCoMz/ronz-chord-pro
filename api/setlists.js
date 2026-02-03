@@ -3,9 +3,9 @@
  * Handles: GET/POST /api/setlists, GET/PUT/DELETE /api/setlists/:id
  */
 
-import setlistsIndexHandler from './setlists/index.js';
-import setlistsIdHandler from './setlists/[id].js';
-import { verifyToken } from './_auth.js';
+import setlistsIndexHandler from '../server/setlists/index.js';
+import setlistsIdHandler from '../server/setlists/[id].js';
+import { verifyToken } from '../server/_auth.js';
 
 export default async function consolidatedSetlistsHandler(req, res) {
   try {

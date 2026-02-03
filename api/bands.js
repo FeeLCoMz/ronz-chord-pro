@@ -3,12 +3,12 @@
  * Handles: GET/POST /api/bands, GET/PUT/DELETE /api/bands/:id, /api/bands/:id/members, etc.
  */
 
-import bandsIndexHandler from './bands/index.js';
-import bandsIdHandler from './bands/[id].js';
-import bandMembersHandler from './bands/members.js';
-import bandInvitationsHandler from './bands/invitations.js';
-import bandInvIdHandler from './bands/invitations/[id].js';
-import { verifyToken } from './_auth.js';
+import bandsIndexHandler from '../server/bands/index.js';
+import bandsIdHandler from '../server/bands/[id].js';
+import bandMembersHandler from '../server/bands/members.js';
+import bandInvitationsHandler from '../server/bands/invitations.js';
+import bandInvIdHandler from '../server/bands/invitations/[id].js';
+import { verifyToken } from '../server/_auth.js';
 
 export default async function consolidatedBandsHandler(req, res) {
   try {

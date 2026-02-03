@@ -3,9 +3,9 @@
  * Handles: GET/POST /api/songs, GET/PUT/DELETE /api/songs/:id
  */
 
-import songsIndexHandler from './songs/index.js';
-import songsIdHandler from './songs/[id].js';
-import { verifyToken } from './_auth.js';
+import songsIndexHandler from '../server/songs/index.js';
+import songsIdHandler from '../server/songs/[id].js';
+import { verifyToken } from '../server/_auth.js';
 
 export default async function consolidatedSongsHandler(req, res) {
   try {

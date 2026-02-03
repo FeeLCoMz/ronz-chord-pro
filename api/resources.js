@@ -3,11 +3,11 @@
  * Handles practice sessions and gigs to reduce function count
  */
 
-import practiceIndexHandler from './practice/index.js';
-import practiceIdHandler from './practice/[id].js';
-import gigsIndexHandler from './gigs/index.js';
-import gigsIdHandler from './gigs/[id].js';
-import { verifyToken } from './_auth.js';
+import practiceIndexHandler from '../server/practice/index.js';
+import practiceIdHandler from '../server/practice/[id].js';
+import gigsIndexHandler from '../server/gigs/index.js';
+import gigsIdHandler from '../server/gigs/[id].js';
+import { verifyToken } from '../server/_auth.js';
 
 export default async function handler(req, res) {
   try {
