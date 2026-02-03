@@ -7,10 +7,6 @@
   },
   "routes": [
     {
-      "src": "/api/auth/(login|register|me|forgot-password|reset-password|2fa-setup|2fa-verify)",
-      "dest": "/api/auth.js"
-    },
-    {
       "src": "/api/practice(/.*)?",
       "dest": "/api/resources.js"
     },
@@ -19,24 +15,20 @@
       "dest": "/api/resources.js"
     },
     {
-      "src": "/api/songs/([^/]+)$",
-      "dest": "/api/songs/[id].js?id=$1"
+      "src": "/api/songs(/.*)?",
+      "dest": "/api/songs.js"
     },
     {
-      "src": "/api/bands/invitations/([^/]+)$",
-      "dest": "/api/invitations.js?id=$1"
+      "src": "/api/setlists(/.*)?",
+      "dest": "/api/setlists.js"
     },
     {
-      "src": "/api/setlists/([^/]+)$",
-      "dest": "/api/setlists/[id].js?id=$1"
-    },
-    {
-      "src": "/api/bands/([^/]+)$",
-      "dest": "/api/bands/[id].js?id=$1"
+      "src": "/api/bands(/.*)?",
+      "dest": "/api/bands.js"
     },
     {
       "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "dest": "/api/index.js"
     },
     {
       "handle": "filesystem"
