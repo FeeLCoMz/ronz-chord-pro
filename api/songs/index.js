@@ -1,6 +1,7 @@
 import { getTursoClient } from '../_turso.js';
 import { verifyToken } from '../_auth.js';
 import { randomUUID } from 'crypto';
+import songIdHandler from './[id].js';
 
 async function readJson(req) {
   if (req.body) return req.body;
@@ -20,6 +21,17 @@ export default async function handler(req, res) {
     // Verify JWT token first
     if (!verifyToken(req, res)) {
       return;
+    }
+
+    // Check if this is a request for a specific song ID
+    const path = req.path || req.url.split('?')[0];
+    const relativePath = path.replace(/^\/api\/songs\/?/, '').replace(/^\//, '');
+    
+    if (relativePath && (req.method === 'GET' || req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE')) {
+      // Delegate to [id].js handler
+      req.params = { ...req.params, id: relativePath };
+      req.query = { ...req.query, id: relativePath };
+      return songIdHandler(req, res);
     }
 
     const client = getTursoClient();

@@ -1,5 +1,6 @@
 import { getTursoClient } from '../_turso.js';
 import { verifyToken } from '../_auth.js';
+import bandIdHandler from './[id].js';
 
 async function readJson(req) {
   if (req.body) return req.body;
@@ -19,6 +20,20 @@ export default async function handler(req, res) {
     // Verify JWT token first
     if (!verifyToken(req, res)) {
       return;
+    }
+
+    // Check if this is a request for a specific band ID
+    const path = req.path || req.url.split('?')[0];
+    const relativePath = path.replace(/^\/api\/bands\/?/, '').replace(/^\//, '');
+    
+    // Check for special endpoints (members, invitations)
+    if (relativePath.includes('/')) {
+      // Let this fall through to handle members/invitations routes below
+    } else if (relativePath && (req.method === 'GET' || req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE')) {
+      // Delegate to [id].js handler for single band operations
+      req.params = { ...req.params, id: relativePath };
+      req.query = { ...req.query, id: relativePath };
+      return bandIdHandler(req, res);
     }
 
     const client = getTursoClient();

@@ -132,6 +132,29 @@ export async function addSong(song) {
   return await res.json();
 }
 
+export async function updateSong(id, song) {
+  const res = await fetch(`${API_BASE}/songs/${id}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(song)
+  });
+  if (!res.ok) throw new Error('Failed to update song');
+  return await res.json();
+}
+
+export async function deleteSong(id) {
+  const res = await fetch(`${API_BASE}/songs/${id}`, {
+    method: 'DELETE',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    if (res.status === 204) return; // No content is success
+    throw new Error('Failed to delete song');
+  }
+  if (res.status === 204) return; // No content response
+  return await res.json();
+}
+
 export async function fetchSetLists() {
   const res = await fetch(`${API_BASE}/setlists`, {
     headers: getHeaders()

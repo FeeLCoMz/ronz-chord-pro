@@ -434,17 +434,19 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       {/* Konfirmasi Hapus Lagu dari Setlist */}
       {confirmDeleteSongId && (
         <div className="modal-overlay" tabIndex={-1}>
-          <div className="modal" role="dialog" aria-modal="true" tabIndex={0}>
+          <div className="modal delete-confirm-modal" role="dialog" aria-modal="true" tabIndex={0}>
             <div className="modal-title">Konfirmasi Hapus Lagu</div>
-            <div style={{ marginBottom: 16 }}>
+            <div className="modal-message">
               Apakah Anda yakin ingin menghapus lagu ini dari setlist?
             </div>
-            <button className="btn-base danger-btn" onClick={confirmDeleteSong} disabled={deleting}>
-              {deleting ? 'Menghapus...' : 'Ya, Hapus'}
-            </button>
-            <button className="btn-base back-btn" style={{ marginLeft: 8 }} onClick={() => setConfirmDeleteSongId(null)} disabled={deleting}>
-              Batal
-            </button>
+            <div className="modal-actions">
+              <button className="btn-base danger-btn" onClick={confirmDeleteSong} disabled={deleting}>
+                {deleting ? 'Menghapus...' : 'Ya, Hapus'}
+              </button>
+              <button className="btn-base back-btn" onClick={() => setConfirmDeleteSongId(null)} disabled={deleting}>
+                Batal
+              </button>
+            </div>
           </div>
         </div>
       )}
