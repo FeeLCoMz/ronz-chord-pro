@@ -1,23 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import ChordDisplay from '../components/ChordDisplay';
 import TransposeBar from '../components/TransposeBar';
 import AutoScrollBar from '../components/AutoScrollBar';
 import YouTubeViewer from '../components/YouTubeViewer';
 import TimeMarkers from '../components/TimeMarkers';
 import SetlistSongNavigator from '../components/SetlistSongNavigator';
+import { getAuthHeader } from '../utils/auth.js';
 
 export default function SongLyricsPage({ song: songProp }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { id } = useParams();
+  
+  // State for fetched song data
+  const [fetchedSong, setFetchedSong] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   
   // Get metadata from location state (setlist context)
   const setlistSongData = location.state?.setlistSong || {};
   const setlistData = location.state?.setlist || {};
   const setlistId = location.state?.setlistId;
   
-  // Merge song data: prioritize setlist metadata > location state > song prop
-  const song = songProp || location.state?.song;
+  // Use fetched song if available, otherwise fallback to prop or state
+  const song = fetchedSong || songProp || location.state?.song;
   const artist = setlistSongData.artist || song?.artist || '';
   const key = setlistSongData.key || song?.key || '';
   const tempo = setlistSongData.tempo || song?.tempo || '';
@@ -30,6 +37,52 @@ export default function SongLyricsPage({ song: songProp }) {
   const [transpose, setTranspose] = useState(0);
   const [zoom, setZoom] = useState(1);
   const highlightChords = false;
+  
+  // In-place editing state
+  const [isEditingLyrics, setIsEditingLyrics] = useState(false);
+  const [editedLyrics, setEditedLyrics] = useState('');
+  const [savingLyrics, setSavingLyrics] = useState(false);
+  const [editError, setEditError] = useState(null);
+
+  // Fetch song data from API when ID changes (to ensure fresh data after edits)
+  useEffect(() => {
+    if (!id) return;
+    
+    // Determine if we should fetch fresh data
+    // - Fetch when coming from edit (fromEdit flag)
+    // - Fetch when no songProp provided (direct URL access)
+    // - Don't fetch if coming from setlist context (has setlistId in state)
+    const fromSetlist = location.state?.setlistId;
+    const fromEdit = location.state?.fromEdit;
+    const shouldFetch = fromEdit || (!songProp && !fromSetlist);
+    
+    if (shouldFetch) {
+      // Clear previous fetched data to avoid showing stale data
+      setFetchedSong(null);
+      setLoading(true);
+      setError(null);
+      
+      fetch(`/api/songs/${id}`, {
+        headers: getAuthHeader()
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Gagal memuat lagu');
+          return res.json();
+        })
+        .then(data => {
+          setFetchedSong(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          setError(err.message);
+          setLoading(false);
+        });
+    } else if (songProp) {
+      // Use songProp if available and not coming from edit
+      setFetchedSong(songProp);
+    }
+  }, [id, location.pathname, location.state?.fromEdit]); // Re-fetch when ID, path, or edit flag changes
+
 
   // Auto-calculate transpose if setlist has different key
   useEffect(() => {
@@ -44,6 +97,37 @@ export default function SongLyricsPage({ song: songProp }) {
       }
     }
   }, [setlistSongData.key, song?.key]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="page-container">
+        <div className="not-found-container">
+          <div className="not-found-icon">⏳</div>
+          <h2 className="not-found-title">Memuat Lagu...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="page-container">
+        <div className="not-found-container">
+          <div className="not-found-icon">⚠️</div>
+          <h2 className="not-found-title">Error</h2>
+          <p className="not-found-message">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="btn-submit"
+          >
+            ← Kembali
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!song) {
     return (
@@ -76,6 +160,81 @@ export default function SongLyricsPage({ song: songProp }) {
   const handleEdit = () => {
     navigate(`/songs/edit/${song.id}`);
   };
+  
+  const handleEditLyrics = () => {
+    setEditedLyrics(song.lyrics || '');
+    setIsEditingLyrics(true);
+    setEditError(null);
+  };
+  
+  const handleCancelEditLyrics = () => {
+    setIsEditingLyrics(false);
+    setEditedLyrics('');
+    setEditError(null);
+  };
+  
+  const handleSaveLyrics = async () => {
+    if (!song.id) return;
+    
+    setSavingLyrics(true);
+    setEditError(null);
+    
+    try {
+      const res = await fetch(`/api/songs/${song.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeader()
+        },
+        body: JSON.stringify({
+          ...song,
+          lyrics: editedLyrics
+        })
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Gagal menyimpan lirik');
+      }
+      
+      // API returns only { id }, so fetch fresh data
+      const fetchRes = await fetch(`/api/songs/${song.id}`, {
+        headers: getAuthHeader()
+      });
+      
+      if (!fetchRes.ok) {
+        throw new Error('Gagal memuat data terbaru');
+      }
+      
+      const updatedSong = await fetchRes.json();
+      setFetchedSong(updatedSong);
+      setIsEditingLyrics(false);
+      setEditedLyrics('');
+    } catch (err) {
+      setEditError(err.message);
+    } finally {
+      setSavingLyrics(false);
+    }
+  };
+  
+  // Keyboard shortcut for saving lyrics (Ctrl+S / Cmd+S)
+  useEffect(() => {
+    if (!isEditingLyrics) return;
+    
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSaveLyrics();
+      }
+      if (e.key === 'Escape') {
+        handleCancelEditLyrics();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditingLyrics, editedLyrics, song?.id]);
 
   return (
     <div className="page-container">
@@ -182,11 +341,40 @@ export default function SongLyricsPage({ song: songProp }) {
 
       {/* Lyrics Section */}
       <div className="song-section-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div className="lyrics-header">
           <h3 className="song-section-title">
             🎤 Lirik & Chord
           </h3>
-          <div className="zoom-controls">
+          <div className="lyrics-controls">
+            {!isEditingLyrics ? (
+              <button
+                type="button"
+                onClick={handleEditLyrics}
+                className="btn btn-secondary lyrics-edit-btn"
+              >
+                ✏️ Edit Lirik
+              </button>
+            ) : (
+              <div className="lyrics-edit-actions">
+                <button
+                  type="button"
+                  onClick={handleSaveLyrics}
+                  disabled={savingLyrics}
+                  className="btn btn-primary lyrics-edit-btn"
+                >
+                  {savingLyrics ? '⏳ Menyimpan...' : '✓ Simpan'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCancelEditLyrics}
+                  disabled={savingLyrics}
+                  className="btn btn-secondary lyrics-edit-btn"
+                >
+                  ✕ Batal
+                </button>
+              </div>
+            )}
+            <div className="zoom-controls">
             <button
               onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}
               className="btn-base zoom-btn"
@@ -210,13 +398,39 @@ export default function SongLyricsPage({ song: songProp }) {
               ⟲
             </button>
           </div>
+          </div>
         </div>
-        <ChordDisplay
-          song={song}
-          transpose={transpose}
-          highlightChords={highlightChords}
-          zoom={zoom}
-        />
+        
+        {editError && (
+          <div className="error-message">
+            {editError}
+          </div>
+        )}
+        
+        {isEditingLyrics && (
+          <div className="info-text lyrics-editor-tips">
+            💡 Tips: Tekan <kbd>Ctrl+S</kbd> untuk simpan, <kbd>Esc</kbd> untuk batal
+          </div>
+        )}
+        
+        {isEditingLyrics ? (
+          <textarea
+            value={editedLyrics}
+            onChange={(e) => setEditedLyrics(e.target.value)}
+            className="lyrics-editor-textarea"
+            autoFocus
+            placeholder="Masukkan lirik dan chord...
+Contoh:
+[C]Amazing grace how [F]sweet the [C]sound"
+          />
+        ) : (
+          <ChordDisplay
+            song={song}
+            transpose={transpose}
+            highlightChords={highlightChords}
+            zoom={zoom}
+          />
+        )}
       </div>
 
       {/* Setlist Navigation (if in setlist context) */}

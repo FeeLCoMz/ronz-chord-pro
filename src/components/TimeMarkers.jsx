@@ -97,6 +97,7 @@ export default function TimeMarkers({
     }}>
       {/* Header */}
       <button
+        type="button"
         onClick={() => setIsExpanded(!isExpanded)}
         style={{
           width: '100%',
@@ -194,6 +195,7 @@ export default function TimeMarkers({
                       />
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button
+                          type="button"
                           onClick={handleSaveEdit}
                           style={{
                             flex: 1,
@@ -210,6 +212,7 @@ export default function TimeMarkers({
                           ✓ Simpan
                         </button>
                         <button
+                          type="button"
                           onClick={handleCancelEdit}
                           style={{
                             flex: 1,
@@ -244,6 +247,7 @@ export default function TimeMarkers({
                     }}
                   >
                     <button
+                      type="button"
                       onClick={() => handlePlay(marker.time)}
                       style={{
                         padding: '8px 12px',
@@ -269,6 +273,7 @@ export default function TimeMarkers({
                     {!readonly && (
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <button
+                          type="button"
                           onClick={() => handleEdit(marker)}
                           style={{
                             padding: '6px 10px',
@@ -283,6 +288,7 @@ export default function TimeMarkers({
                           ✏️
                         </button>
                         <button
+                          type="button"
                           onClick={() => handleDelete(marker)}
                           style={{
                             padding: '6px 10px',
@@ -361,8 +367,7 @@ export default function TimeMarkers({
                   fontSize: '0.95em'
                 }}
               />
-              <button
-                onClick={handleAddNew}
+              <button                type="button"                onClick={handleAddNew}
                 disabled={!newTime}
                 style={{
                   padding: '10px',

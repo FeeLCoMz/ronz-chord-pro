@@ -337,6 +337,68 @@ body {
 /* ========================================
    6. BUTTONS & INPUTS
    ======================================== */
+/* Standard button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--primary-accent);
+  color: white;
+  border: 1px solid var(--primary-accent);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--primary-accent-dark);
+  border-color: var(--primary-accent-dark);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Button variants */
+.btn.btn-primary,
+.btn-primary {
+  background: var(--primary-accent);
+  color: white;
+  border-color: var(--primary-accent);
+}
+
+.btn.btn-primary:hover:not(:disabled),
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-accent-dark);
+  border-color: var(--primary-accent-dark);
+}
+
+.btn.btn-secondary,
+.btn-secondary {
+  background: var(--secondary-bg);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.btn.btn-secondary:hover:not(:disabled),
+.btn-secondary:hover:not(:disabled) {
+  background: var(--border-color);
+}
+
+/* Legacy btn-base (for backward compatibility) */
 .btn-base {
   display: inline-flex;
   align-items: center;
@@ -900,6 +962,117 @@ textarea::placeholder {
   font-size: var(--font-size-sm);
 }
 
+.info-text {
+  padding: var(--spacing-md);
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+body.dark-mode .info-text {
+  background: #1e3a5f;
+  color: #93c5fd;
+  border-color: #1e40af;
+}
+
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background: var(--secondary-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85em;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* In-place editing styles */
+.lyrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.lyrics-controls {
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.lyrics-edit-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lyrics-edit-btn {
+  font-size: 0.9em;
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+
+.lyrics-editor-textarea {
+  width: 100%;
+  min-height: 400px;
+  padding: var(--spacing-lg);
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 2px solid var(--primary-accent);
+  border-radius: var(--radius-md);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  transition: all var(--transition-fast);
+  animation: fadeIn 0.3s ease-in;
+}
+
+.lyrics-editor-textarea:focus {
+  outline: none;
+  border-color: var(--primary-accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.lyrics-editor-tips {
+  margin-bottom: var(--spacing-md);
+  font-size: 0.9em;
+  animation: slideDown 0.3s ease-in;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 100px;
+    margin-bottom: var(--spacing-md);
+  }
+}
+
+body.dark-mode .lyrics-editor-textarea {
+  background: var(--secondary-bg);
+}
+
 .text-center {
   text-align: center;
 }
@@ -1018,6 +1191,35 @@ textarea::placeholder {
   }
 
   .btn-base {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* In-place editing mobile adjustments */
+  .lyrics-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lyrics-controls {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .lyrics-edit-actions {
+    width: 100%;
+  }
+
+  .lyrics-edit-actions button {
+    flex: 1;
+  }
+
+  .lyrics-editor-textarea {
+    font-size: 13px;
+    min-height: 300px;
+  }
+
+  .zoom-controls {
     width: 100%;
     justify-content: center;
   }

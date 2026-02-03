@@ -197,14 +197,18 @@ export default function SongAddEditPage({ onSongUpdated }) {
       
       const savedSong = await res.json();
       
-      // Call callback for new songs to refresh list
-      if (!isEditMode && onSongUpdated) {
+      // Call callback to refresh list for both new and edited songs
+      if (onSongUpdated) {
         onSongUpdated();
       }
       
       // Navigate based on mode: list for new song, detail for edit
       if (isEditMode) {
-        navigate(`/songs/view/${savedSong.id || id}`);
+        // Navigate with fromEdit flag to force SongLyricsPage to fetch fresh data
+        navigate(`/songs/view/${savedSong.id || id}`, { 
+          replace: true,
+          state: { fromEdit: true }
+        });
       } else {
         navigate('/songs');
       }
