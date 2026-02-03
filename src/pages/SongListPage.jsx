@@ -16,6 +16,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
   const [filterArtist, setFilterArtist] = useState('all');
   const [filterKey, setFilterKey] = useState('all');
   const [filterGenre, setFilterGenre] = useState('all');
+  const [filterBand, setFilterBand] = useState('all');
   const [sortBy, setSortBy] = useState('created');
   const [sortOrder, setSortOrder] = useState('desc');
 
@@ -24,21 +25,24 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
   }, []);
 
   // Extract unique values for filters
-  const { artists, keys, genres } = useMemo(() => {
+  const { artists, keys, genres, bands } = useMemo(() => {
     const artistSet = new Set();
     const keySet = new Set();
     const genreSet = new Set();
+    const bandSet = new Set();
 
     songs.forEach(song => {
       if (song.artist) artistSet.add(song.artist);
       if (song.key) keySet.add(song.key);
       if (song.genre) genreSet.add(song.genre);
+      if (song.bandId && song.bandName) bandSet.add(JSON.stringify({ id: song.bandId, name: song.bandName }));
     });
 
     return {
       artists: Array.from(artistSet).sort(),
       keys: Array.from(keySet).sort(),
-      genres: Array.from(genreSet).sort()
+      genres: Array.from(genreSet).sort(),
+      bands: Array.from(bandSet).map(b => JSON.parse(b)).sort((a, b) => a.name.localeCompare(b.name))
     };
   }, [songs]);
 
@@ -65,6 +69,9 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
     }
     if (filterGenre !== 'all') {
       result = result.filter(song => song.genre === filterGenre);
+    }
+    if (filterBand !== 'all') {
+      result = result.filter(song => song.bandId === filterBand);
     }
 
     // Apply sorting
@@ -109,11 +116,12 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
     setFilterArtist('all');
     setFilterKey('all');
     setFilterGenre('all');
+    setFilterBand('all');
     setSortBy('created');
     setSortOrder('desc');
   };
 
-  const hasActiveFilters = search || filterArtist !== 'all' || filterKey !== 'all' || filterGenre !== 'all';
+  const hasActiveFilters = search || filterArtist !== 'all' || filterKey !== 'all' || filterGenre !== 'all' || filterBand !== 'all';
 
   if (loading) {
     return (
@@ -201,6 +209,17 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
           </select>
 
           <select
+            value={filterBand}
+            onChange={(e) => setFilterBand(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">Semua Band</option>
+            {bands.map(band => (
+              <option key={band.id} value={band.id}>{band.name}</option>
+            ))}
+          </select>
+
+          <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className="filter-select"
@@ -255,6 +274,11 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
               <div className="song-info">
                 <h3 className="song-title">
                   {song.title}
+                  {song.bandName && (
+                    <span className="badge-band" style={{ marginLeft: '8px', fontSize: '0.75rem', padding: '2px 8px', background: 'var(--primary-accent)', color: '#fff', borderRadius: '4px' }}>
+                      🎤 {song.bandName}
+                    </span>
+                  )}
                 </h3>
                 <div className="song-meta">
                   {song.artist && <span>👤 {song.artist}</span>}

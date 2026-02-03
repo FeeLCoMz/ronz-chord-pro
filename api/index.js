@@ -152,12 +152,18 @@ app.use('/api/setlists/:id', verifyToken, (req, res, next) => {
 app.use('/api/setlists', verifyToken, (req, res, next) => {
   Promise.resolve(setlistsHandler(req, res)).catch(next);
 });
-app.use('/api/bands/:id/members/:userId', verifyToken, (req, res, next) => {
+
+// Band members endpoints
+app.get('/api/bands/:id/members', verifyToken, (req, res, next) => {
   Promise.resolve(bandMembersHandler(req, res)).catch(next);
 });
-app.use('/api/bands/:id/members', verifyToken, (req, res, next) => {
+app.patch('/api/bands/:id/members/:userId', verifyToken, (req, res, next) => {
   Promise.resolve(bandMembersHandler(req, res)).catch(next);
 });
+app.delete('/api/bands/:id/members/:userId', verifyToken, (req, res, next) => {
+  Promise.resolve(bandMembersHandler(req, res)).catch(next);
+});
+
 app.use('/api/bands/:id/invitations', verifyToken, (req, res, next) => {
   Promise.resolve(bandInvitationsHandler(req, res)).catch(next);
 });

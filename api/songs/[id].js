@@ -65,8 +65,12 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       try {
         const result = await client.execute(
-          `SELECT id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, userId, createdAt, updatedAt
-           FROM songs WHERE id = ? LIMIT 1`,
+          `SELECT s.id, s.title, s.artist, s.youtubeId, s.lyrics, s.key, s.tempo, s.genre, s.capo, 
+                  s.instruments, s.time_markers, s.userId, s.bandId, s.createdAt, s.updatedAt,
+                  b.name as bandName
+           FROM songs s
+           LEFT JOIN bands b ON s.bandId = b.id
+           WHERE s.id = ? LIMIT 1`,
           [idStr]
         );
         const row = result.rows?.[0] || null;
@@ -94,9 +98,11 @@ export default async function handler(req, res) {
         return;
       }
 
-      // Check if song exists and user is the creator
+      // Check if song exists and user has permission (owner OR band member)
       const songCheck = await client.execute(
-        'SELECT userId FROM songs WHERE id = ?',
+        `SELECT s.userId, s.bandId
+         FROM songs s
+         WHERE s.id = ?`,
         [idStr]
       );
 
@@ -105,8 +111,23 @@ export default async function handler(req, res) {
         return;
       }
 
-      if (songCheck.rows[0].userId && songCheck.rows[0].userId !== userId) {
-        res.status(403).json({ error: 'You can only edit your own songs' });
+      const song = songCheck.rows[0];
+      const isOwner = song.userId && song.userId === userId;
+      const isBandSong = !!song.bandId;
+      
+      // Check if user is band member (for band songs)
+      let isBandMember = false;
+      if (isBandSong) {
+        const memberCheck = await client.execute(
+          `SELECT 1 FROM band_members WHERE bandId = ? AND userId = ? LIMIT 1`,
+          [song.bandId, userId]
+        );
+        isBandMember = memberCheck.rows && memberCheck.rows.length > 0;
+      }
+
+      // Allow edit if: owner OR (band song AND band member) OR (public song - no userId)
+      if (song.userId && !isOwner && !isBandMember) {
+        res.status(403).json({ error: 'You can only edit your own songs or band songs' });
         return;
       }
 
@@ -125,6 +146,7 @@ export default async function handler(req, res) {
         instruments = COALESCE(?, instruments),
         time_markers = COALESCE(?, time_markers),
         userId = COALESCE(userId, ?),
+        bandId = ?,
         updatedAt = ?`;
       // Pastikan tempo disimpan sebagai string integer tanpa koma
       let tempoStr = null;
@@ -150,6 +172,7 @@ export default async function handler(req, res) {
         (Array.isArray(body.instruments) ? JSON.stringify(body.instruments) : (body.instruments ?? null)),
         (Array.isArray(body.time_markers) ? JSON.stringify(body.time_markers) : (body.time_markers ?? null)),
         userId,
+        body.bandId ?? null,
         now
       ];
       updateSql += ' WHERE id = ?';

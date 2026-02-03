@@ -49,11 +49,24 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
-      const rows = await client.execute(
-        `SELECT id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, userId, createdAt, updatedAt
-         FROM songs
-         ORDER BY (updatedAt IS NULL) ASC, datetime(updatedAt) DESC, datetime(createdAt) DESC`
-      );
+      const userId = req.user?.userId;
+      
+      // Query untuk mendapatkan songs:
+      // 1. Personal songs (userId = current user, bandId = NULL)
+      // 2. Band songs (bandId IN user's bands)
+      // 3. Public songs (userId = NULL, bandId = NULL)
+      const rows = await client.execute({
+        sql: `SELECT s.id, s.title, s.artist, s.youtubeId, s.lyrics, s.key, s.tempo, s.genre, s.capo, 
+                     s.instruments, s.time_markers, s.userId, s.bandId, s.createdAt, s.updatedAt,
+                     b.name as bandName
+              FROM songs s
+              LEFT JOIN bands b ON s.bandId = b.id
+              WHERE s.userId = ? 
+                 OR s.bandId IN (SELECT bandId FROM band_members WHERE userId = ?)
+                 OR (s.userId IS NULL AND s.bandId IS NULL)
+              ORDER BY (s.updatedAt IS NULL) ASC, datetime(s.updatedAt) DESC, datetime(s.createdAt) DESC`,
+        args: [userId || '', userId || '']
+      });
       const list = (rows.rows ?? []).map(row => ({
         ...row,
         time_markers: row.time_markers ? JSON.parse(row.time_markers) : [],
@@ -84,8 +97,8 @@ export default async function handler(req, res) {
           if (!isNaN(capoInt)) capoStr = capoInt.toString();
         }
         await client.execute(
-          `INSERT INTO songs (id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, userId, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `INSERT INTO songs (id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, userId, bandId, createdAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
              title = excluded.title,
              artist = excluded.artist,
@@ -97,6 +110,7 @@ export default async function handler(req, res) {
              capo = excluded.capo,
              instruments = excluded.instruments,
              time_markers = excluded.time_markers,
+             bandId = excluded.bandId,
              updatedAt = excluded.updatedAt`,
           [
             id,
@@ -111,6 +125,7 @@ export default async function handler(req, res) {
             (Array.isArray(item.instruments) ? JSON.stringify(item.instruments) : (item.instruments || null)),
             (Array.isArray(item.timestamps) ? JSON.stringify(item.timestamps) : (item.timestamps || null)),
             userId,
+            item.bandId || null,
             item.createdAt || now,
             now
           ]

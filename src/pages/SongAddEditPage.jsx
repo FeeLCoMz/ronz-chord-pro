@@ -22,6 +22,7 @@ export default function SongAddEditPage({ onSongUpdated }) {
   const [youtubeId, setYoutubeId] = useState('');
   const [instruments, setInstruments] = useState('');
   const [timeMarkers, setTimeMarkers] = useState([]);
+  const [bandId, setBandId] = useState('');
   
   // UI states
   const [loading, setLoading] = useState(false);
@@ -31,11 +32,25 @@ export default function SongAddEditPage({ onSongUpdated }) {
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [aiConfirmFields, setAiConfirmFields] = useState({});
+  const [bands, setBands] = useState([]);
   
   // YouTube ref
   const ytRef = useRef(null);
   const [ytCurrentTime, setYtCurrentTime] = useState(0);
   const [ytDuration, setYtDuration] = useState(0);
+
+  // Load bands on mount
+  useEffect(() => {
+    fetch('/api/bands', {
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader()
+      }
+    })
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setBands(data || []))
+      .catch(err => console.error('Failed to load bands:', err));
+  }, []);
 
   // Load song data for edit mode
   useEffect(() => {
@@ -62,6 +77,7 @@ export default function SongAddEditPage({ onSongUpdated }) {
           setYoutubeId(extractYouTubeId(data.youtubeId || data.youtube_url || ''));
           setInstruments(Array.isArray(data.instruments) ? data.instruments.join(', ') : '');
           setTimeMarkers(data.time_markers || []);
+          setBandId(data.bandId || '');
           setLoadingData(false);
         })
         .catch(err => {
@@ -174,7 +190,8 @@ export default function SongAddEditPage({ onSongUpdated }) {
       lyrics: lyrics.trim(),
       youtubeId: extractYouTubeId(youtubeId),
       instruments: instruments.split(',').map(i => i.trim()).filter(Boolean),
-      time_markers: timeMarkers
+      time_markers: timeMarkers,
+      bandId: bandId || null
     };
     
     try {
@@ -295,6 +312,25 @@ export default function SongAddEditPage({ onSongUpdated }) {
                 placeholder="Nama artist atau band"
                 className="form-input-field"
               />
+            </div>
+
+            <div>
+              <label className="form-label-required">
+                🎤 Band (Opsional)
+              </label>
+              <select
+                value={bandId}
+                onChange={(e) => setBandId(e.target.value)}
+                className="form-input-field"
+              >
+                <option value="">-- Lagu Personal --</option>
+                {bands.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+              <p className="info-text" style={{ marginTop: '4px', fontSize: '0.85rem' }}>
+                Pilih band agar lagu bisa diakses oleh semua member band
+              </p>
             </div>
 
             <div className="form-grid-2col">
