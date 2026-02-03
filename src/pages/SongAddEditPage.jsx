@@ -6,7 +6,7 @@ import TapTempo from '../components/TapTempo';
 import AIAutofillModal from '../components/AIAutofillModal';
 import { getAuthHeader } from '../utils/auth';
 
-export default function SongAddEditPage() {
+export default function SongAddEditPage({ onSongUpdated }) {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
@@ -196,6 +196,11 @@ export default function SongAddEditPage() {
       }
       
       const savedSong = await res.json();
+      
+      // Call callback for new songs to refresh list
+      if (!isEditMode && onSongUpdated) {
+        onSongUpdated();
+      }
       
       // Navigate based on mode: list for new song, detail for edit
       if (isEditMode) {
