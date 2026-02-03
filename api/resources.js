@@ -9,30 +9,37 @@ import gigsIndexHandler from './gigs/index.js';
 import gigsIdHandler from './gigs/[id].js';
 
 export default async function handler(req, res) {
-  const path = req.url.split('?')[0];
+  // Use req.baseUrl (from Express mount point) or full URL (from Vercel)
+  const baseUrl = req.baseUrl || '';
+  const path = req.path || req.url.split('?')[0];
+  const fullPath = baseUrl + path;
   
-  // Practice sessions routes
-  if (path === '/api/resources/practice' || path === '/api/practice') {
-    return practiceIndexHandler(req, res);
+  // Determine which resource based on the URL
+  const isPractice = fullPath.includes('/practice');
+  const isGigs = fullPath.includes('/gigs');
+  
+  // Extract ID from path if present (path relative to mount point)
+  const relativePath = path.replace(/^\//, ''); // Remove leading slash
+  const id = relativePath && !isNaN(relativePath) ? relativePath : null;
+  
+  if (isPractice) {
+    if (id) {
+      req.query = { ...req.query, id };
+      req.params = { ...req.params, id };
+      return practiceIdHandler(req, res);
+    } else {
+      return practiceIndexHandler(req, res);
+    }
   }
   
-  if (path.startsWith('/api/resources/practice/') || path.startsWith('/api/practice/')) {
-    const id = path.split('/').pop();
-    req.query = { ...req.query, id };
-    req.params = { ...req.params, id };
-    return practiceIdHandler(req, res);
-  }
-  
-  // Gigs routes
-  if (path === '/api/resources/gigs' || path === '/api/gigs') {
-    return gigsIndexHandler(req, res);
-  }
-  
-  if (path.startsWith('/api/resources/gigs/') || path.startsWith('/api/gigs/')) {
-    const id = path.split('/').pop();
-    req.query = { ...req.query, id };
-    req.params = { ...req.params, id };
-    return gigsIdHandler(req, res);
+  if (isGigs) {
+    if (id) {
+      req.query = { ...req.query, id };
+      req.params = { ...req.params, id };
+      return gigsIdHandler(req, res);
+    } else {
+      return gigsIndexHandler(req, res);
+    }
   }
   
   res.status(404).json({ error: 'Resource not found' });
