@@ -1,7 +1,8 @@
 // __tests__/api.gigs.test.js
 // Jest test for /api/gigs endpoint
+require('./setupEnv');
 const request = require('supertest');
-const app = require('../index');
+const app = require('../server');
 
 describe('API /api/gigs', () => {
   test('should reject POST without date', async () => {

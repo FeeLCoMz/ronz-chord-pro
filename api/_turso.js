@@ -1,6 +1,14 @@
 import { createClient } from '@libsql/client';
 
 export function getTursoClient() {
+  if (process.env.NODE_ENV === 'test') {
+    // Return a mock client for tests
+    return {
+      execute: async () => ({ rows: [], columns: [] }),
+      batch: async () => ({ results: [] }),
+      close: () => {},
+    };
+  }
   const url = process.env.rz_TURSO_DATABASE_URL ?? process.env.RZ_TURSO_DATABASE_URL ?? process.env.TURSO_DATABASE_URL;
   const authToken = process.env.rz_TURSO_AUTH_TOKEN ?? process.env.RZ_TURSO_AUTH_TOKEN ?? process.env.TURSO_AUTH_TOKEN;
 

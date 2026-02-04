@@ -5,6 +5,8 @@ import EditIcon from '../components/EditIcon.jsx';
 import DeleteIcon from '../components/DeleteIcon.jsx';
 
 export default function BandDetailPage() {
+  import { usePermission } from '../hooks/usePermission.js';
+  import { PERMISSIONS } from '../utils/permissionUtils.js';
   const { id } = useParams();
   const navigate = useNavigate();
   const [band, setBand] = useState(null);
@@ -107,19 +109,29 @@ export default function BandDetailPage() {
             <p className="band-description">{band.description}</p>
           )}
         </div>
-        {band.isOwner && (
-          <div className="band-actions">
-            <button className="icon-btn-small" onClick={() => navigate(`/bands/admin/${id}`)} title="Kelola Member & Roles">
-              ⚙️
-            </button>
-            <button className="icon-btn-small" onClick={() => setShowEditModal(true)} title="Edit Band">
-              <EditIcon size={18} />
-            </button>
-            <button className="icon-btn-small delete-btn" onClick={handleDelete} title="Hapus Band">
-              <DeleteIcon size={18} />
-            </button>
-          </div>
-        )}
+        {(() => {
+          const userBandInfo = { role: band.userRole || (band.isOwner ? 'owner' : 'member') };
+          const { can } = usePermission(id, userBandInfo);
+          return (
+            <div className="band-actions">
+              {can(PERMISSIONS.ADMIN_MANAGE_ROLES) && (
+                <button className="icon-btn-small" onClick={() => navigate(`/bands/admin/${id}`)} title="Kelola Member & Roles">
+                  ⚙️
+                </button>
+              )}
+              {can(PERMISSIONS.BAND_EDIT) && (
+                <button className="icon-btn-small" onClick={() => setShowEditModal(true)} title="Edit Band">
+                  <EditIcon size={18} />
+                </button>
+              )}
+              {can(PERMISSIONS.BAND_DELETE) && (
+                <button className="icon-btn-small delete-btn" onClick={handleDelete} title="Hapus Band">
+                  <DeleteIcon size={18} />
+                </button>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Info Bar */}
@@ -134,15 +146,19 @@ export default function BandDetailPage() {
       <div className="dashboard-card" style={{ marginBottom: '24px' }}>
         <div className="card-header">
           <h2 className="card-title">👥 Anggota Band ({band.members?.length || 0})</h2>
-          {band.isOwner && (
-            <button 
-              className="btn-base"
-              onClick={() => setShowInviteModal(true)}
-              style={{ fontSize: '0.9em', padding: '8px 14px' }}
-            >
-              + Undang Member
-            </button>
-          )}
+          {(() => {
+            const userBandInfo = { role: band.userRole || (band.isOwner ? 'owner' : 'member') };
+            const { can } = usePermission(id, userBandInfo);
+            return can(PERMISSIONS.MEMBER_INVITE) && (
+              <button 
+                className="btn-base"
+                onClick={() => setShowInviteModal(true)}
+                style={{ fontSize: '0.9em', padding: '8px 14px' }}
+              >
+                + Undang Member
+              </button>
+            );
+          })()}
         </div>
         {!band.members || band.members.length === 0 ? (
           <div className="empty-state">

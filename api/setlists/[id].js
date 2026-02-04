@@ -134,7 +134,15 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      // Check if user has permission to delete this setlist
+      // Permission constants
+      const { SETLIST_DELETE } = require('../../src/utils/permissionUtils.js').PERMISSIONS;
+      const { hasPermission } = require('../../src/utils/permissionUtils.js');
+      const userRole = req.user?.role;
+      if (!hasPermission(userRole, SETLIST_DELETE)) {
+        res.status(403).json({ error: 'You do not have permission to delete setlists' });
+        return;
+      }
+      // Check if user is band member or owner for this setlist
       const checkResult = await client.execute(
         `SELECT s.id FROM setlists s
          WHERE s.id = ? 
@@ -144,12 +152,10 @@ export default async function handler(req, res) {
          LIMIT 1`,
         [idStr, userId]
       );
-      
       if (!checkResult.rows || checkResult.rows.length === 0) {
         res.status(403).json({ error: 'Access denied' });
         return;
       }
-      
       await client.execute(`DELETE FROM setlists WHERE id = ?`, [idStr]);
       res.status(204).end();
       return;

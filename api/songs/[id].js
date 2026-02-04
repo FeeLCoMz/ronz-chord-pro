@@ -93,29 +93,26 @@ export default async function handler(req, res) {
       const body = await readJson(req);
       const now = new Date().toISOString();
       const userId = req.user?.userId;
+      const userRole = req.user?.role;
       if (!userId) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
 
-      // Check if song exists and user has permission (owner OR band member)
+      // Check if song exists and get ownership/band info
       const songCheck = await client.execute(
         `SELECT s.userId, s.bandId
          FROM songs s
          WHERE s.id = ?`,
         [idStr]
       );
-
       if (!songCheck.rows || songCheck.rows.length === 0) {
         res.status(404).json({ error: 'Song not found' });
         return;
       }
-
       const song = songCheck.rows[0];
       const isOwner = song.userId && song.userId === userId;
       const isBandSong = !!song.bandId;
-      
-      // Check if user is band member (for band songs)
       let isBandMember = false;
       if (isBandSong) {
         const memberCheck = await client.execute(
@@ -124,8 +121,15 @@ export default async function handler(req, res) {
         );
         isBandMember = memberCheck.rows && memberCheck.rows.length > 0;
       }
-
-      // Allow edit if: owner OR (band song AND band member) OR (public song - no userId)
+      // Permission constants
+      const { SONG_EDIT } = require('../../src/utils/permissionUtils.js').PERMISSIONS;
+      const { hasPermission } = require('../../src/utils/permissionUtils.js');
+      // Only allow edit if user has SONG_EDIT permission for their role
+      if (!hasPermission(userRole, SONG_EDIT)) {
+        res.status(403).json({ error: 'You do not have permission to edit songs' });
+        return;
+      }
+      // Still require ownership or band membership for band songs
       if (song.userId && !isOwner && !isBandMember) {
         res.status(403).json({ error: 'You can only edit your own songs or band songs' });
         return;

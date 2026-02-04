@@ -1,7 +1,8 @@
 // __tests__/api.setlists.test.js
 // Jest test for /api/setlists endpoint
+require('./setupEnv');
 const request = require('supertest');
-const app = require('../api/index'); // Adjust if using custom server
+const app = require('../server');
 
 describe('API /api/setlists', () => {
   test('should reject POST without name', async () => {

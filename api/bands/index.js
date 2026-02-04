@@ -97,36 +97,34 @@ export default async function handler(req, res) {
 
     // POST - Create new band
     if (req.method === 'POST') {
+      // Permission constants
+      const { BAND_CREATE } = require('../../src/utils/permissionUtils.js').PERMISSIONS;
+      const { hasPermission } = require('../../src/utils/permissionUtils.js');
+      const userRole = req.user?.role;
+      if (!hasPermission(userRole, BAND_CREATE)) {
+        return res.status(403).json({ error: 'You do not have permission to create bands' });
+      }
       const body = await readJson(req);
-      // Simple sanitization
       function sanitize(str, maxLen = 100) {
         if (typeof str !== 'string') return '';
         return str.replace(/[<>"'`]/g, '').slice(0, maxLen);
       }
-
-      // Validate and sanitize required fields
       const name = sanitize(body.name, 100);
       if (!name || name.length < 1) {
         return res.status(400).json({ error: 'Band name is required' });
       }
       const description = sanitize(body.description || '', 300);
       const genre = sanitize(body.genre || '', 50);
-
       const bandId = `band_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const now = new Date().toISOString();
-
-      // Create band
       await client.execute(
         'INSERT INTO bands (id, name, description, genre, createdBy, createdAt) VALUES (?, ?, ?, ?, ?, ?)',
         [bandId, name, description || null, genre || null, userId, now]
       );
-
-      // Add creator as owner
       await client.execute(
         'INSERT INTO band_members (bandId, userId, role, joinedAt) VALUES (?, ?, ?, ?)',
         [bandId, userId, 'owner', now]
       );
-
       return res.status(201).json({
         id: bandId,
         name,

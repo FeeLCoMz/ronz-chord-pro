@@ -10,6 +10,8 @@ import { fetchBands, addSetList, updateSetList, deleteSetList, fetchSetLists } f
 import { updatePageMeta, pageMetadata } from '../utils/metaTagsUtil.js';
 
 export default function SetlistPage({
+  import { usePermission } from '../hooks/usePermission.js';
+  import { PERMISSIONS } from '../utils/permissionUtils.js';
   setlists,
   loadingSetlists,
   errorSetlists,
@@ -22,6 +24,9 @@ export default function SetlistPage({
   setSetlists
 }) {
   const navigate = useNavigate();
+  // Example: Assume userBandInfo is available from props or context (replace as needed)
+  const userBandInfo = bands && bands.length > 0 ? bands[0] : { role: 'member' };
+  const { can } = usePermission(null, userBandInfo);
   const [editSetlist, setEditSetlist] = React.useState(null);
   const [editLoading, setEditLoading] = React.useState(false);
   const [editError, setEditError] = React.useState('');
@@ -168,9 +173,11 @@ export default function SetlistPage({
           <h1>🎵 Setlist</h1>
           <p>{filteredSetlists.length} dari {setlists.length} setlist</p>
         </div>
-        <button className="btn-base" onClick={() => setShowCreateSetlist(true)}>
-          <PlusIcon size={18} /> Buat Setlist
-        </button>
+        {can(PERMISSIONS.SETLIST_CREATE) && (
+          <button className="btn-base" onClick={() => setShowCreateSetlist(true)}>
+            <PlusIcon size={18} /> Buat Setlist
+          </button>
+        )}
       </div>
 
       {/* Filters & Search */}
@@ -273,28 +280,32 @@ export default function SetlistPage({
                 className="setlist-actions"
                 onClick={(e) => e.stopPropagation()}
               >
-                <button
-                  onClick={() => setEditSetlist(setlist)}
-                  className="btn-base"
-                  style={{ padding: '6px 12px', fontSize: '0.85em' }}
-                  title="Edit"
-                >
-                  <EditIcon size={16} />
-                </button>
-                <button
-                  onClick={() => setDeleteSetlist(setlist)}
-                  className="btn-base"
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '0.85em',
-                    background: '#dc2626',
-                    borderColor: '#b91c1c',
-                    color: '#fff'
-                  }}
-                  title="Hapus"
-                >
-                  <DeleteIcon size={16} />
-                </button>
+                {can(PERMISSIONS.SETLIST_EDIT) && (
+                  <button
+                    onClick={() => setEditSetlist(setlist)}
+                    className="btn-base"
+                    style={{ padding: '6px 12px', fontSize: '0.85em' }}
+                    title="Edit"
+                  >
+                    <EditIcon size={16} />
+                  </button>
+                )}
+                {can(PERMISSIONS.SETLIST_DELETE) && (
+                  <button
+                    onClick={() => setDeleteSetlist(setlist)}
+                    className="btn-base"
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '0.85em',
+                      background: '#dc2626',
+                      borderColor: '#b91c1c',
+                      color: '#fff'
+                    }}
+                    title="Hapus"
+                  >
+                    <DeleteIcon size={16} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
