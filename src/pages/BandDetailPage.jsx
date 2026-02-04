@@ -280,9 +280,9 @@ export default function BandDetailPage() {
                 onClick={() => navigate(`/setlists/${setlist.id}`)}
               >
                 <div style={{ fontWeight: '500' }}>{setlist.name}</div>
-                {setlist.desc && (
+                {setlist.description && (
                   <div style={{ fontSize: '0.85em', color: 'var(--text-muted)', marginTop: '4px' }}>
-                    {setlist.desc}
+                    {setlist.description}
                   </div>
                 )}
                 <div style={{ fontSize: '0.85em', color: 'var(--text-muted)', marginTop: '4px' }}>

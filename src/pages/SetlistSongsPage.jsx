@@ -350,6 +350,16 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       <div className="page-header">
         <div>
           <h1>📋 {setlist.name}</h1>
+          {setlist.bandName && (
+            <div className="setlist-band-name" style={{ fontWeight: 500, color: 'var(--primary-accent, #3730a3)', marginBottom: 2 }}>
+              🎸 {setlist.bandName}
+            </div>
+          )}
+          {setlist.description && (
+            <div className="setlist-description" style={{ color: 'var(--text-secondary, #666)', marginBottom: 2, fontSize: '1em' }}>
+              {setlist.description}
+            </div>
+          )}
           <p>{setlistSongs.length} lagu di setlist ini</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>

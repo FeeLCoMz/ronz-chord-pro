@@ -11,19 +11,19 @@ export default function SetlistForm({
   bands = [],
 }) {
   const [name, setName] = useState(initialData.name || '');
-  const [desc, setDesc] = useState(initialData.desc || '');
+  const [description, setDescription] = useState(initialData.description || initialData.desc || '');
   const [bandId, setBandId] = useState(initialData.bandId || '');
 
   useEffect(() => {
     setName(initialData.name || '');
-    setDesc(initialData.desc || '');
+    setDescription(initialData.description || initialData.desc || '');
     setBandId(initialData.bandId || '');
   }, [initialData]);
 
   const handleSubmit = e => {
     e.preventDefault();
     if (!name.trim()) return;
-    onSubmit({ name: name.trim(), desc: desc.trim(), bandId: bandId || null });
+    onSubmit({ name: name.trim(), description: description.trim(), bandId: bandId || null });
   };
 
   return (
@@ -51,8 +51,8 @@ export default function SetlistForm({
             📝 Description (Optional)
           </label>
           <textarea
-            value={desc}
-            onChange={e => setDesc(e.target.value)}
+            value={description}
+            onChange={e => setDescription(e.target.value)}
             className="modal-input"
             placeholder="Add description..."
             rows={3}

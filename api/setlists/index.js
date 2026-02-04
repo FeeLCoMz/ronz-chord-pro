@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         `CREATE TABLE IF NOT EXISTS setlists (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
-          desc TEXT DEFAULT '',
+          description TEXT DEFAULT '',
           bandId TEXT,
           songs TEXT DEFAULT '[]',
           setlistSongMeta TEXT DEFAULT '{}',
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
 
       // Try to add desc and completedSongs column if not exist (for existing tables)
       try {
-        await client.execute(`ALTER TABLE setlists ADD COLUMN desc TEXT DEFAULT ''`);
+        await client.execute(`ALTER TABLE setlists ADD COLUMN description TEXT DEFAULT ''`);
       } catch (e) {}
       try {
         await client.execute(`ALTER TABLE setlists ADD COLUMN completedSongs TEXT DEFAULT '{}'`);
@@ -70,7 +70,7 @@ export default async function handler(req, res) {
       // Get only setlists user has access to
       // Rules: user's own setlists OR setlists from bands they're a member of
       const rows = await client.execute(
-        `SELECT s.id, s.name, s.desc, s.bandId, s.songs, s.setlistSongMeta, s.completedSongs, s.createdAt, s.updatedAt,
+        `SELECT s.id, s.name, s.description, s.bandId, s.songs, s.setlistSongMeta, s.completedSongs, s.createdAt, s.updatedAt,
                 b.name as bandName
          FROM setlists s
          LEFT JOIN bands b ON s.bandId = b.id
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
       const setlists = (rows.rows ?? []).map(row => ({
         id: row.id,
         name: row.name,
-        desc: row.desc || '',
+        description: row.description || '',
         bandId: row.bandId,
         bandName: row.bandName,
         songs: (() => {
@@ -149,12 +149,12 @@ export default async function handler(req, res) {
         const completedSongsJson = JSON.stringify(body.completedSongs || {});
         
         await client.execute(
-          `INSERT INTO setlists (id, name, desc, bandId, songs, setlistSongMeta, completedSongs, createdAt, updatedAt)
+          `INSERT INTO setlists (id, name, description, bandId, songs, setlistSongMeta, completedSongs, createdAt, updatedAt)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             id,
             body.name.trim(),
-            body.desc || '',
+            body.description || '',
             body.bandId || null,
             songsJson,
             setlistSongMetaJson,
@@ -175,7 +175,7 @@ export default async function handler(req, res) {
           await client.execute(
             `UPDATE setlists SET 
                name = ?, 
-               desc = ?,
+               description = ?,
                bandId = ?,
                songs = ?, 
                setlistSongMeta = ?, 
@@ -184,7 +184,7 @@ export default async function handler(req, res) {
              WHERE id = ?`,
             [
               body.name.trim(),
-              body.desc || '',
+              body.description || '',
               body.bandId || null,
               songsJson,
               setlistSongMetaJson,

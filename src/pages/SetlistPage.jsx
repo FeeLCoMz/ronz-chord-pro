@@ -82,7 +82,7 @@ export default function SetlistPage({
       const searchLower = search.toLowerCase();
       result = result.filter(setlist =>
         setlist.name?.toLowerCase().includes(searchLower) ||
-        setlist.desc?.toLowerCase().includes(searchLower) ||
+        setlist.description?.toLowerCase().includes(searchLower) || 
         setlist.bandName?.toLowerCase().includes(searchLower)
       );
     }
@@ -262,7 +262,7 @@ export default function SetlistPage({
                   {setlist.name}
                 </h3>
                 <div className="setlist-meta">
-                  {setlist.desc && <span>{setlist.desc}</span>}
+                  {setlist.description && <span>{setlist.description}</span>}
                   {setlist.bandName && <span>🎸 {setlist.bandName}</span>}
                   <span>🎵 {setlist.songs?.length || 0} lagu</span>
                 </div>
@@ -319,11 +319,11 @@ export default function SetlistPage({
             loading={editLoading}
             error={createSetlistError}
             onCancel={() => setShowCreateSetlist(false)}
-            onSubmit={async ({ name, desc, bandId }) => {
+            onSubmit={async ({ name, description, bandId }) => {
               setCreateSetlistError('');
               setEditLoading(true);
               try {
-                await addSetList({ name, desc, bandId });
+                await addSetList({ name, description, bandId });
                 setShowCreateSetlist(false);
                 setCreateSetlistName('');
                 setCreateSetlistError('');
@@ -356,11 +356,11 @@ export default function SetlistPage({
             loading={editLoading}
             error={editError}
             onCancel={() => setEditSetlist(null)}
-            onSubmit={async ({ name, desc, bandId }) => {
+            onSubmit={async ({ name, description, bandId }) => {
               setEditError('');
               setEditLoading(true);
               try {
-                await updateSetList({ id: editSetlist.id, name, desc, bandId });
+                await updateSetList({ id: editSetlist.id, name, description, bandId });
                 setEditSetlist(null);
                 await refreshSetlists();
               } catch (err) {

@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       try {
         const result = await client.execute(
-          `SELECT s.id, s.name, s.desc, s.bandId, s.songs, s.setlistSongMeta, s.completedSongs, s.createdAt, s.updatedAt,
+          `SELECT s.id, s.name, s.description, s.bandId, s.songs, s.setlistSongMeta, s.completedSongs, s.createdAt, s.updatedAt,
                   b.name as bandName
            FROM setlists s
            LEFT JOIN bands b ON s.bandId = b.id
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
         res.status(200).json({
           id: row.id,
           name: row.name,
-          desc: row.desc || '',
+          description: row.description || '',
           bandId: row.bandId,
           bandName: row.bandName,
           songs: (() => {
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
       await client.execute(
         `UPDATE setlists SET 
            name = COALESCE(?, name),
-           desc = COALESCE(?, desc),
+           description = COALESCE(?, description),
            bandId = COALESCE(?, bandId),
            songs = COALESCE(?, songs),
            setlistSongMeta = COALESCE(?, setlistSongMeta),
@@ -119,7 +119,7 @@ export default async function handler(req, res) {
          WHERE id = ?`,
         [
           body.name ?? null,
-          body.desc ?? null,
+          body.description ?? null,
           body.bandId !== undefined ? body.bandId : null,
           songsJson,
           setlistSongMetaJson,

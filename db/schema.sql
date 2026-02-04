@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS band_members (
 CREATE TABLE IF NOT EXISTS setlists (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  desc TEXT,
+  description TEXT,
   songs TEXT DEFAULT '[]',
   setlistSongMeta TEXT DEFAULT '{}',
   completedSongs TEXT DEFAULT '{}',
