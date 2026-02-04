@@ -33,8 +33,6 @@ const YouTubeViewer = React.forwardRef(({
   const mountedRef = useRef(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
   const scrubberValueRef = useRef(null);
-  // Expand/collapse state for video
-  const [videoExpanded, setVideoExpanded] = useState(true);
 
   // Expose play/pause, stop, seek, and currentTime to parent via ref
   React.useImperativeHandle(ref, () => ({
@@ -251,148 +249,113 @@ const YouTubeViewer = React.forwardRef(({
   );
 
   return (
-    <div style={{
-      background: 'var(--card-bg)',
-      borderRadius: '8px',
-      padding: '16px',
-      border: '1px solid var(--border-color)'
-    }}>
-      <button
-        type="button"
-        onClick={() => setVideoExpanded(e => !e)}
-        style={{
-          width: '100%',
-          padding: '10px 16px',
-          background: 'var(--secondary-bg)',
-          color: 'var(--text-primary)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '6px',
-          fontSize: '0.95em',
-          fontWeight: '600',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          marginBottom: videoExpanded ? '16px' : '0',
-          transition: 'all 0.2s ease'
-        }}
-        aria-label={videoExpanded ? 'Sembunyikan video' : 'Tampilkan video'}
-      >
-        <span>{videoExpanded ? '▼' : '▶'}</span>
-        <span>🎬 {videoExpanded ? 'Sembunyikan Video' : 'Tampilkan Video'}</span>
-      </button>
-      
-      {videoExpanded && (
-        <>
-          {minimalControls ? (
-            <div style={{ height: 0, overflow: 'hidden' }}>
-              <div id={containerIdRef.current}></div>
-            </div>
-          ) : (
-            <div style={{
-              position: 'relative',
-              paddingBottom: '56.25%',
-              height: 0,
-              overflow: 'hidden',
-              marginBottom: '16px',
-              borderRadius: '8px',
-              background: '#000'
-            }}>
-              <div id={containerIdRef.current} style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%'
-              }}></div>
-            </div>
-          )}
-          
-          {/* Scrubber */}
-          <div style={{ marginBottom: '12px' }}>
-            <input
-              type="range"
-              min={0}
-              max={Math.max(1, Math.floor(duration))}
-              step={1}
-              value={
-                minimalControls
-                  ? Math.floor(currentTime)
-                  : (isScrubbing && scrubberValueRef.current !== null ? scrubberValueRef.current : Math.floor(currentTime))
-              }
-              onChange={minimalControls ? (e) => handleSeek(e.target.value) : handleScrubberChange}
-              onInput={minimalControls ? (e) => handleSeek(e.target.value) : undefined}
-              onMouseUp={minimalControls ? undefined : handleScrubberCommit}
-              onTouchEnd={minimalControls ? undefined : handleScrubberCommit}
-              disabled={!player || !duration}
-              aria-label="Scrub waktu video"
-              style={{
-                width: '100%',
-                height: '6px',
-                borderRadius: '3px',
-                background: 'var(--secondary-bg)',
-                outline: 'none',
-                cursor: 'pointer'
-              }}
-            />
-            {!minimalControls && (
-              <div style={{
-                marginTop: '8px',
-                fontSize: '0.9em',
-                color: 'var(--text-muted)',
-                textAlign: 'center'
-              }}>
-                {fmt(currentTime)} / {fmt(duration)}
-              </div>
-            )}
-          </div>
-          
-          {/* Controls */}
-          <div style={{
-            display: 'flex',
-            gap: '8px',
-            justifyContent: 'center'
-          }}>
-            <button
-              type="button"
-              onClick={handlePlayPause}
-              style={{
-                padding: '10px 20px',
-                background: isPlaying ? 'var(--secondary-bg)' : 'var(--primary-color)',
-                color: isPlaying ? 'var(--text-primary)' : 'white',
-                border: '1px solid var(--border-color)',
-                borderRadius: '6px',
-                fontSize: '0.95em',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                flex: 1
-              }}
-            >
-              {isPlaying ? '⏸️ Pause' : '▶️ Play'}
-            </button>
-            <button
-              type="button"
-              onClick={handleStop}
-              style={{
-                padding: '10px 20px',
-                background: 'var(--secondary-bg)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '6px',
-                fontSize: '0.95em',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                flex: 1
-              }}
-            >
-              ⏹️ Stop
-            </button>
-          </div>
-        </>
+    <div>
+      {minimalControls ? (
+        <div style={{ height: 0, overflow: 'hidden' }}>
+          <div id={containerIdRef.current}></div>
+        </div>
+      ) : (
+        <div style={{
+          position: 'relative',
+          paddingBottom: '56.25%',
+          height: 0,
+          overflow: 'hidden',
+          marginBottom: '16px',
+          borderRadius: '8px',
+          background: '#000'
+        }}>
+          <div id={containerIdRef.current} style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%'
+          }}></div>
+        </div>
       )}
+      
+      {/* Scrubber */}
+      <div style={{ marginBottom: '12px' }}>
+        <input
+          type="range"
+          min={0}
+          max={Math.max(1, Math.floor(duration))}
+          step={1}
+          value={
+            minimalControls
+              ? Math.floor(currentTime)
+              : (isScrubbing && scrubberValueRef.current !== null ? scrubberValueRef.current : Math.floor(currentTime))
+          }
+          onChange={minimalControls ? (e) => handleSeek(e.target.value) : handleScrubberChange}
+          onInput={minimalControls ? (e) => handleSeek(e.target.value) : undefined}
+          onMouseUp={minimalControls ? undefined : handleScrubberCommit}
+          onTouchEnd={minimalControls ? undefined : handleScrubberCommit}
+          disabled={!player || !duration}
+          aria-label="Scrub waktu video"
+          style={{
+            width: '100%',
+            height: '6px',
+            borderRadius: '3px',
+            background: 'var(--secondary-bg)',
+            outline: 'none',
+            cursor: 'pointer'
+          }}
+        />
+        {!minimalControls && (
+          <div style={{
+            marginTop: '8px',
+            fontSize: '0.9em',
+            color: 'var(--text-muted)',
+            textAlign: 'center'
+          }}>
+            {fmt(currentTime)} / {fmt(duration)}
+          </div>
+        )}
+      </div>
+      
+      {/* Controls */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        justifyContent: 'center'
+      }}>
+        <button
+          type="button"
+          onClick={handlePlayPause}
+          style={{
+            padding: '10px 20px',
+            background: isPlaying ? 'var(--secondary-bg)' : 'var(--primary-color)',
+            color: isPlaying ? 'var(--text-primary)' : 'white',
+            border: '1px solid var(--border-color)',
+            borderRadius: '6px',
+            fontSize: '0.95em',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            flex: 1
+          }}
+        >
+          {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+        </button>
+        <button
+          type="button"
+          onClick={handleStop}
+          style={{
+            padding: '10px 20px',
+            background: 'var(--secondary-bg)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '6px',
+            fontSize: '0.95em',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            flex: 1
+          }}
+        >
+          ⏹️ Stop
+        </button>
+      </div>
     </div>
   );
 });

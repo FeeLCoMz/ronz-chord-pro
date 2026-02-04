@@ -3,7 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import YouTubeViewer from '../components/YouTubeViewer';
 import TimeMarkers from '../components/TimeMarkers';
 import TapTempo from '../components/TapTempo';
+import VirtualPiano from '../components/VirtualPiano';
 import AIAutofillModal from '../components/AIAutofillModal';
+import TransposeKeyControl from '../components/TransposeKeyControl';
+import ChordDisplay from '../components/ChordDisplay';
 import { getAuthHeader } from '../utils/auth';
 
 export default function SongAddEditPage({ onSongUpdated }) {
@@ -16,6 +19,7 @@ export default function SongAddEditPage({ onSongUpdated }) {
   const [artist, setArtist] = useState('');
   const [songKey, setSongKey] = useState('C');
   const [tempo, setTempo] = useState('');
+  const [timeSignature, setTimeSignature] = useState('4/4');
   const [genre, setGenre] = useState('');
   const [capo, setCapo] = useState('');
   const [lyrics, setLyrics] = useState('');
@@ -31,6 +35,9 @@ export default function SongAddEditPage({ onSongUpdated }) {
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [aiConfirmFields, setAiConfirmFields] = useState({});
+  const [mediaPanelExpanded, setMediaPanelExpanded] = useState(false);
+  const [showPiano, setShowPiano] = useState(false);
+  const [transpose, setTranspose] = useState(0);
   
   // YouTube ref
   const ytRef = useRef(null);
@@ -56,6 +63,7 @@ export default function SongAddEditPage({ onSongUpdated }) {
           setArtist(data.artist || '');
           setSongKey(data.key || 'C');
           setTempo(data.tempo || '');
+          setTimeSignature(data.time_signature || '4/4');
           setGenre(data.genre || '');
           setCapo(data.capo || '');
           setLyrics(data.lyrics || '');
@@ -169,6 +177,7 @@ export default function SongAddEditPage({ onSongUpdated }) {
       artist: artist.trim(),
       key: songKey,
       tempo: tempo ? parseInt(tempo) : null,
+      time_signature: timeSignature || '4/4',
       genre: genre.trim(),
       capo: capo ? parseInt(capo) : null,
       lyrics: lyrics.trim(),
@@ -274,31 +283,33 @@ export default function SongAddEditPage({ onSongUpdated }) {
           </h3>
           
           <div className="form-section">
-            <div>
-              <label className="form-label-required">
-                🎵 Judul Lagu <span className="required-asterisk">*</span>
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                placeholder="Masukkan judul lagu"
-                className="form-input-field"
-              />
-            </div>
+            <div className="form-grid-2col">
+              <div>
+                <label className="form-label-required">
+                  🎵 Judul Lagu <span className="required-asterisk">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  placeholder="Masukkan judul lagu"
+                  className="form-input-field"
+                />
+              </div>
 
-            <div>
-              <label className="form-label-required">
-                👤 Artist
-              </label>
-              <input
-                type="text"
-                value={artist}
-                onChange={(e) => setArtist(e.target.value)}
-                placeholder="Nama artist atau band"
-                className="form-input-field"
-              />
+              <div>
+                <label className="form-label-required">
+                  👤 Artist
+                </label>
+                <input
+                  type="text"
+                  value={artist}
+                  onChange={(e) => setArtist(e.target.value)}
+                  placeholder="Nama artist atau band"
+                  className="form-input-field"
+                />
+              </div>
             </div>
 
             <div className="form-grid-2col">
@@ -306,13 +317,25 @@ export default function SongAddEditPage({ onSongUpdated }) {
                 <label className="form-label-required">
                   🎹 Key
                 </label>
-                <input
-                  type="text"
-                  value={songKey}
-                  onChange={(e) => setSongKey(e.target.value)}
-                  placeholder="C, D, E, dll"
-                  className="form-input-field"
-                />
+                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={songKey}
+                    onChange={(e) => setSongKey(e.target.value)}
+                    placeholder="C, D, E, dll"
+                    className="form-input-field"
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPiano(true)}
+                    className="btn btn-secondary"
+                    style={{ whiteSpace: 'nowrap' }}
+                    title="Buka Piano Virtual"
+                  >
+                    🎹 Piano
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -336,7 +359,20 @@ export default function SongAddEditPage({ onSongUpdated }) {
 
               <div>
                 <label className="form-label-required">
-                  🎸 Genre
+                  � Time Signature
+                </label>
+                <input
+                  type="text"
+                  value={timeSignature}
+                  onChange={(e) => setTimeSignature(e.target.value)}
+                  placeholder="4/4, 3/4, 6/8, dll"
+                  className="form-input-field"
+                />
+              </div>
+
+              <div>
+                <label className="form-label-required">
+                  �🎸 Genre
                 </label>
                 <input
                   type="text"
@@ -378,48 +414,91 @@ export default function SongAddEditPage({ onSongUpdated }) {
           </div>
         </div>
 
-        {/* YouTube & Time Markers Section */}
-        <div className="song-section-card">
-          <h3 className="song-section-title">
-            🎬 Video & Time Markers
-          </h3>
-
-          <div>
-            <label className="form-label-required">
-              YouTube URL atau ID
-            </label>
-            <input
-              type="text"
-              value={youtubeId}
-              onChange={(e) => setYoutubeId(e.target.value)}
-              placeholder="https://youtube.com/watch?v=... atau dQw4w9WgXcQ"
-              className="form-input-field"
-            />
+        {/* YouTube & Time Markers Section - Collapsible */}
+        <div className="media-panel">
+          <div className="media-panel-header">
+            <div className="media-panel-header-content">
+              <div>
+                <h3 className="media-panel-title">
+                  <span className="media-panel-icon">📺</span>
+                  Video Referensi & Time Markers
+                </h3>
+                <p className="media-panel-subtitle">
+                  Tambahkan video dan marker untuk referensi
+                </p>
+              </div>
+              <button
+                type="button"
+                className="media-panel-toggle"
+                onClick={() => setMediaPanelExpanded(!mediaPanelExpanded)}
+                aria-label={mediaPanelExpanded ? 'Sembunyikan panel' : 'Tampilkan panel'}
+              >
+                {mediaPanelExpanded ? '▼' : '▶'}
+              </button>
+            </div>
           </div>
 
-          {youtubeId && (
-            <div className="form-section">
-              <YouTubeViewer
-                videoId={extractYouTubeId(youtubeId)}
-                ref={ytRef}
-                onTimeUpdate={(t, d) => {
-                  setYtCurrentTime(t);
-                  if (typeof d === 'number') setYtDuration(d);
-                }}
-              />
-              
-              <TimeMarkers
-                timeMarkers={timeMarkers}
-                onUpdate={setTimeMarkers}
-                onSeek={(time) => {
-                  if (ytRef.current && ytRef.current.handleSeek) {
-                    ytRef.current.handleSeek(time);
-                  }
-                }}
-                currentTime={ytCurrentTime}
-                duration={ytDuration}
-                readonly={false}
-              />
+          {mediaPanelExpanded && (
+            <div className="media-panel-content">
+              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <label className="form-label-required">
+                  YouTube URL atau ID
+                </label>
+                <input
+                  type="text"
+                  value={youtubeId}
+                  onChange={(e) => setYoutubeId(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=... atau dQw4w9WgXcQ"
+                  className="form-input-field"
+                />
+              </div>
+
+              {youtubeId && (
+                <div className="media-panel-grid">
+                  {/* YouTube Video Section - Left */}
+                  <div className="media-section media-video-section">
+                    <div className="media-section-header">
+                      <span className="media-section-icon">🎥</span>
+                      <span className="media-section-label">YouTube Video</span>
+                    </div>
+                    <div className="media-section-body">
+                      <YouTubeViewer
+                        videoId={extractYouTubeId(youtubeId)}
+                        ref={ytRef}
+                        onTimeUpdate={(t, d) => {
+                          setYtCurrentTime(t);
+                          if (typeof d === 'number') setYtDuration(d);
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Time Markers Section - Right */}
+                  <div className="media-section media-markers-section">
+                    <div className="media-section-header">
+                      <span className="media-section-icon">⏱️</span>
+                      <span className="media-section-label">Time Markers</span>
+                      {timeMarkers.length > 0 && (
+                        <span className="media-section-badge">{timeMarkers.length}</span>
+                      )}
+                    </div>
+                    <div className="media-section-body">
+                      <TimeMarkers
+                        timeMarkers={timeMarkers}
+                        onUpdate={setTimeMarkers}
+                        onSeek={(time) => {
+                          if (ytRef.current && ytRef.current.handleSeek) {
+                            ytRef.current.handleSeek(time);
+                          }
+                        }}
+                        currentTime={ytCurrentTime}
+                        duration={ytDuration}
+                        readonly={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -469,6 +548,13 @@ export default function SongAddEditPage({ onSongUpdated }) {
           </button>
         </div>
       </form>
+
+      {/* Virtual Piano Popup */}
+      <VirtualPiano 
+        isOpen={showPiano}
+        onClose={() => setShowPiano(false)}
+        onKeySelect={(key) => setSongKey(key)}
+      />
 
       {/* AI Autofill Modal */}
       {showAiModal && aiResult && (

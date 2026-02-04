@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ExpandButton from './ExpandButton';
 
 export default function TimeMarkers({
   timeMarkers = [],
@@ -96,50 +97,21 @@ export default function TimeMarkers({
       border: '1px solid var(--border-color)'
     }}>
       {/* Header */}
-      <button
-        type="button"
-        onClick={() => setIsExpanded(!isExpanded)}
-        style={{
-          width: '100%',
-          padding: '10px 12px',
-          background: 'var(--secondary-bg)',
-          color: 'var(--text-primary)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '6px',
-          fontSize: '1em',
-          fontWeight: '600',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: isExpanded ? '16px' : '0'
-        }}
-      >
-        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>{isExpanded ? '▼' : '▶'}</span>
-          <span>⏲️ Time Markers</span>
-          {sortedMarkers.length > 0 && (
-            <span style={{
-              background: 'var(--primary-color)',
-              color: 'white',
-              padding: '2px 8px',
-              borderRadius: '12px',
-              fontSize: '0.85em',
-              fontWeight: '700'
-            }}>
-              {sortedMarkers.length}
-            </span>
-          )}
-        </span>
-        {duration > 0 && (
+      <ExpandButton
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
+        icon="⏲️"
+        label="Time Markers"
+        badge={sortedMarkers.length > 0 ? sortedMarkers.length : null}
+        rightContent={duration > 0 ? (
           <span style={{
             fontSize: '0.9em',
             color: 'var(--text-muted)'
           }}>
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
-        )}
-      </button>
+        ) : null}
+      />
 
       {/* Expanded Content */}
       {isExpanded && (
