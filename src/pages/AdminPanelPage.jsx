@@ -5,7 +5,7 @@ import * as apiClient from '../apiClient';
 import { usePermission } from '../hooks/usePermission';
 import { PERMISSIONS } from '../utils/permissionUtils';
 import SongControls from '../components/SongControls';
-import '../styles/AdminPanel.css';
+
 
 export default function AdminPanelPage() {
   const { bandId } = useParams();
