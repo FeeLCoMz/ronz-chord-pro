@@ -90,12 +90,7 @@ export default function TimeMarkers({
   const sortedMarkers = [...timeMarkers].sort((a, b) => a.time - b.time);
 
   return (
-    <div style={{
-      background: 'var(--card-bg)',
-      borderRadius: '8px',
-      padding: '16px',
-      border: '1px solid var(--border-color)'
-    }}>
+    <div className="time-markers">
       {/* Header */}
       <ExpandButton
         isExpanded={isExpanded}
@@ -104,10 +99,7 @@ export default function TimeMarkers({
         label="Time Markers"
         badge={sortedMarkers.length > 0 ? sortedMarkers.length : null}
         rightContent={duration > 0 ? (
-          <span style={{
-            fontSize: '0.9em',
-            color: 'var(--text-muted)'
-          }}>
+          <span className="time-markers-time">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         ) : null}
@@ -115,10 +107,10 @@ export default function TimeMarkers({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="time-markers-content">
           {/* Marker List */}
           {sortedMarkers.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="time-markers-list">
               {sortedMarkers.map((marker, idx) => {
                 const markerId = marker.id || marker.time;
                 const isEditing = editingId === markerId;
@@ -127,76 +119,34 @@ export default function TimeMarkers({
                   return (
                     <div
                       key={markerId}
-                      style={{
-                        padding: '12px',
-                        background: 'var(--secondary-bg)',
-                        borderRadius: '6px',
-                        border: '2px solid var(--primary-color)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '10px'
-                      }}
+                      className="time-marker-item time-marker-item-editing"
                     >
                       <input
                         type="text"
                         value={editTime}
                         onChange={(e) => setEditTime(e.target.value)}
                         placeholder="mm:ss"
-                        style={{
-                          padding: '8px 12px',
-                          background: 'var(--input-bg)',
-                          color: 'var(--text-primary)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '4px',
-                          fontSize: '0.95em'
-                        }}
+                        className="time-marker-input"
                       />
                       <input
                         type="text"
                         value={editLabel}
                         onChange={(e) => setEditLabel(e.target.value)}
                         placeholder="Label"
-                        style={{
-                          padding: '8px 12px',
-                          background: 'var(--input-bg)',
-                          color: 'var(--text-primary)',
-                          border: '1px solid var(--border-color)',
-                          borderRadius: '4px',
-                          fontSize: '0.95em'
-                        }}
+                        className="time-marker-input"
                       />
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                      <div className="time-marker-edit-actions">
                         <button
                           type="button"
                           onClick={handleSaveEdit}
-                          style={{
-                            flex: 1,
-                            padding: '8px',
-                            background: 'var(--primary-color)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            fontSize: '0.9em',
-                            fontWeight: '600',
-                            cursor: 'pointer'
-                          }}
+                          className="time-marker-save-btn"
                         >
                           ✓ Simpan
                         </button>
                         <button
                           type="button"
                           onClick={handleCancelEdit}
-                          style={{
-                            flex: 1,
-                            padding: '8px',
-                            background: 'var(--secondary-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '4px',
-                            fontSize: '0.9em',
-                            fontWeight: '600',
-                            cursor: 'pointer'
-                          }}
+                          className="time-marker-cancel-btn"
                         >
                           ✕ Batal
                         </button>
@@ -208,69 +158,31 @@ export default function TimeMarkers({
                 return (
                   <div
                     key={markerId}
-                    style={{
-                      padding: '12px',
-                      background: 'var(--secondary-bg)',
-                      borderRadius: '6px',
-                      border: '1px solid var(--border-color)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px'
-                    }}
+                    className="time-marker-item"
                   >
                     <button
                       type="button"
                       onClick={() => handlePlay(marker.time)}
-                      style={{
-                        padding: '8px 12px',
-                        background: 'var(--primary-color)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontSize: '0.9em',
-                        fontWeight: '600',
-                        cursor: 'pointer',
-                        minWidth: '60px'
-                      }}
+                      className="time-marker-play-btn"
                     >
                       ▶ {formatTime(marker.time)}
                     </button>
-                    <div style={{
-                      flex: 1,
-                      color: 'var(--text-primary)',
-                      fontSize: '0.95em'
-                    }}>
+                    <div className="time-marker-label">
                       {marker.label || `Marker ${idx + 1}`}
                     </div>
                     {!readonly && (
-                      <div style={{ display: 'flex', gap: '6px' }}>
+                      <div className="time-marker-actions">
                         <button
                           type="button"
                           onClick={() => handleEdit(marker)}
-                          style={{
-                            padding: '6px 10px',
-                            background: 'var(--secondary-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: '4px',
-                            fontSize: '0.85em',
-                            cursor: 'pointer'
-                          }}
+                          className="time-marker-edit-btn"
                         >
                           ✏️
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDelete(marker)}
-                          style={{
-                            padding: '6px 10px',
-                            background: 'var(--danger-color, #ef4444)',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            fontSize: '0.85em',
-                            cursor: 'pointer'
-                          }}
+                          className="time-marker-delete-btn"
                         >
                           🗑️
                         </button>
@@ -281,34 +193,15 @@ export default function TimeMarkers({
               })}
             </div>
           ) : (
-            <div style={{
-              padding: '20px',
-              textAlign: 'center',
-              color: 'var(--text-muted)',
-              fontSize: '0.9em',
-              fontStyle: 'italic'
-            }}>
+            <div className="time-marker-empty">
               Belum ada timestamp
             </div>
           )}
 
           {/* Add New Marker */}
           {!readonly && (
-            <div style={{
-              padding: '12px',
-              background: 'var(--secondary-bg)',
-              borderRadius: '6px',
-              border: '1px dashed var(--border-color)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px'
-            }}>
-              <div style={{
-                fontSize: '0.9em',
-                fontWeight: '600',
-                color: 'var(--text-primary)',
-                marginBottom: '4px'
-              }}>
+            <div className="time-marker-add">
+              <div className="time-marker-add-title">
                 ➕ Tambah Timestamp Baru
               </div>
               <input
@@ -316,42 +209,20 @@ export default function TimeMarkers({
                 value={newTime}
                 onChange={(e) => setNewTime(e.target.value)}
                 placeholder="mm:ss (contoh: 1:30)"
-                style={{
-                  padding: '8px 12px',
-                  background: 'var(--input-bg)',
-                  color: 'var(--text-primary)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '4px',
-                  fontSize: '0.95em'
-                }}
+                className="time-marker-input"
               />
               <input
                 type="text"
                 value={newLabel}
                 onChange={(e) => setNewLabel(e.target.value)}
                 placeholder="Label (opsional)"
-                style={{
-                  padding: '8px 12px',
-                  background: 'var(--input-bg)',
-                  color: 'var(--text-primary)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '4px',
-                  fontSize: '0.95em'
-                }}
+                className="time-marker-input"
               />
-              <button                type="button"                onClick={handleAddNew}
+              <button
+                type="button"
+                onClick={handleAddNew}
                 disabled={!newTime}
-                style={{
-                  padding: '10px',
-                  background: newTime ? 'var(--primary-color)' : 'var(--secondary-bg)',
-                  color: newTime ? 'white' : 'var(--text-muted)',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '0.95em',
-                  fontWeight: '600',
-                  cursor: newTime ? 'pointer' : 'not-allowed',
-                  opacity: newTime ? 1 : 0.6
-                }}
+                className="time-marker-add-btn"
               >
                 ➕ Tambah Timestamp
               </button>

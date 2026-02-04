@@ -199,14 +199,7 @@ const YouTubeViewer = React.forwardRef(({
 
   if (!videoId) {
     return (
-      <div style={{
-        background: 'var(--card-bg)',
-        borderRadius: '8px',
-        padding: '20px',
-        border: '1px solid var(--border-color)',
-        textAlign: 'center',
-        color: 'var(--text-muted)'
-      }}>
+      <div className="youtube-viewer-empty">
         ID Video YouTube tidak valid
       </div>
     );
@@ -232,6 +225,7 @@ const YouTubeViewer = React.forwardRef(({
           onTouchEnd={minimalControls ? undefined : handleScrubberCommit}
           disabled={!player || !duration}
           aria-label="Scrub waktu video"
+          className="scrubber-input"
         />
         {!minimalControls && (
           <span className="scrubber-time">{fmt(currentTime)} / {fmt(duration)}</span>
@@ -249,33 +243,19 @@ const YouTubeViewer = React.forwardRef(({
   );
 
   return (
-    <div>
+    <div className="youtube-viewer">
       {minimalControls ? (
-        <div style={{ height: 0, overflow: 'hidden' }}>
+        <div className="youtube-viewer-hidden">
           <div id={containerIdRef.current}></div>
         </div>
       ) : (
-        <div style={{
-          position: 'relative',
-          paddingBottom: '56.25%',
-          height: 0,
-          overflow: 'hidden',
-          marginBottom: '16px',
-          borderRadius: '8px',
-          background: '#000'
-        }}>
-          <div id={containerIdRef.current} style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%'
-          }}></div>
+        <div className="youtube-viewer-container">
+          <div id={containerIdRef.current} className="youtube-iframe"></div>
         </div>
       )}
       
       {/* Scrubber */}
-      <div style={{ marginBottom: '12px' }}>
+      <div className="youtube-scrubber-section">
         <input
           type="range"
           min={0}
@@ -292,66 +272,28 @@ const YouTubeViewer = React.forwardRef(({
           onTouchEnd={minimalControls ? undefined : handleScrubberCommit}
           disabled={!player || !duration}
           aria-label="Scrub waktu video"
-          style={{
-            width: '100%',
-            height: '6px',
-            borderRadius: '3px',
-            background: 'var(--secondary-bg)',
-            outline: 'none',
-            cursor: 'pointer'
-          }}
+          className="scrubber-input"
         />
         {!minimalControls && (
-          <div style={{
-            marginTop: '8px',
-            fontSize: '0.9em',
-            color: 'var(--text-muted)',
-            textAlign: 'center'
-          }}>
+          <div className="scrubber-time-display">
             {fmt(currentTime)} / {fmt(duration)}
           </div>
         )}
       </div>
       
       {/* Controls */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        justifyContent: 'center'
-      }}>
+      <div className="youtube-controls">
         <button
           type="button"
           onClick={handlePlayPause}
-          style={{
-            padding: '10px 20px',
-            background: isPlaying ? 'var(--secondary-bg)' : 'var(--primary-color)',
-            color: isPlaying ? 'var(--text-primary)' : 'white',
-            border: '1px solid var(--border-color)',
-            borderRadius: '6px',
-            fontSize: '0.95em',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            flex: 1
-          }}
+          className={`youtube-btn-play ${isPlaying ? 'playing' : ''}`}
         >
           {isPlaying ? '⏸️ Pause' : '▶️ Play'}
         </button>
         <button
           type="button"
           onClick={handleStop}
-          style={{
-            padding: '10px 20px',
-            background: 'var(--secondary-bg)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border-color)',
-            borderRadius: '6px',
-            fontSize: '0.95em',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            flex: 1
-          }}
+          className="youtube-btn-stop"
         >
           ⏹️ Stop
         </button>

@@ -60,6 +60,7 @@ export default function SongLyricsPage({ song: songProp }) {
   // Metronome state for quick access
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
   const audioContextRef = useRef(null);
+  const youtubeRef = useRef(null);
 
   // Initialize AudioContext lazily (only when needed)
   const getAudioContext = () => {
@@ -559,7 +560,7 @@ export default function SongLyricsPage({ song: songProp }) {
               </div>
               <div className="media-section-body">
                 {youtubeId ? (
-                  <YouTubeViewer videoId={youtubeId} />
+                  <YouTubeViewer ref={youtubeRef} videoId={youtubeId} />
                 ) : (
                   <div className="media-empty-state">
                     <span className="media-empty-icon">📹</span>
@@ -585,6 +586,11 @@ export default function SongLyricsPage({ song: songProp }) {
                     timeMarkers={timeMarkers}
                     readonly={false}
                     onUpdate={handleTimeMarkerUpdate}
+                    onSeek={(time) => {
+                      if (youtubeRef.current && youtubeRef.current.handleSeek) {
+                        youtubeRef.current.handleSeek(time);
+                      }
+                    }}
                   />
                 ) : (
                   <div className="media-empty-state">
