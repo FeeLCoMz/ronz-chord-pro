@@ -31,7 +31,7 @@ import authResetHandler from './auth/reset-password.js';
 import auth2FASetupHandler from './auth/2fa-setup.js';
 import auth2FAVerifyHandler from './auth/2fa-verify.js';
 import bandInvIdHandler from './bands/invitations/[id].js';
-import resourcesHandler from './resources.js';
+
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -198,11 +198,15 @@ app.delete('/api/invitations/:id', verifyToken, (req, res, next) => {
   Promise.resolve(bandInvIdHandler(req, res)).catch(next);
 });
 
+
+// Practice and gigs endpoints now handled by their own handlers
+import practiceHandler from './practice/index.js';
+import gigsHandler from './gigs/index.js';
 app.use('/api/practice', verifyToken, (req, res, next) => {
-  Promise.resolve(resourcesHandler(req, res)).catch(next);
+  Promise.resolve(practiceHandler(req, res)).catch(next);
 });
 app.use('/api/gigs', verifyToken, (req, res, next) => {
-  Promise.resolve(resourcesHandler(req, res)).catch(next);
+  Promise.resolve(gigsHandler(req, res)).catch(next);
 });
 
 // Status endpoint
