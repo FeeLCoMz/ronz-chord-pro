@@ -417,8 +417,17 @@ export default function SongAddEditPage({ onSongUpdated }) {
         {/* YouTube & Time Markers Section - Collapsible */}
         <div className="media-panel">
           <div className="media-panel-header">
-            <div className="media-panel-header-content">
-              <div>
+            <div className="media-panel-header-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <button
+                type="button"
+                className="media-panel-toggle"
+                onClick={() => setMediaPanelExpanded(!mediaPanelExpanded)}
+                aria-label={mediaPanelExpanded ? 'Sembunyikan panel' : 'Tampilkan panel'}
+                style={{ marginRight: 16 }}
+              >
+                {mediaPanelExpanded ? '▼' : '▶'}
+              </button>
+              <div style={{ flex: 1 }}>
                 <h3 className="media-panel-title">
                   <span className="media-panel-icon">📺</span>
                   Video Referensi & Time Markers
@@ -427,14 +436,6 @@ export default function SongAddEditPage({ onSongUpdated }) {
                   Tambahkan video dan marker untuk referensi
                 </p>
               </div>
-              <button
-                type="button"
-                className="media-panel-toggle"
-                onClick={() => setMediaPanelExpanded(!mediaPanelExpanded)}
-                aria-label={mediaPanelExpanded ? 'Sembunyikan panel' : 'Tampilkan panel'}
-              >
-                {mediaPanelExpanded ? '▼' : '▶'}
-              </button>
             </div>
           </div>
 

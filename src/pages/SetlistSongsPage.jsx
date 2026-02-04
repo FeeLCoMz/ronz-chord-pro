@@ -67,24 +67,40 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
     return map;
   }, [songs]);
 
-  // Get songs dalam setlist sesuai localOrder + apply metadata override
+  // Get songs dalam setlist sesuai localOrder + apply metadata override (hanya jika sortBy === 'custom')
   const setlistSongMeta = Array.isArray(setlist?.setlistSongMeta) ? setlist.setlistSongMeta : [];
-  const setlistSongs = (localOrder || [])
-    .map((id, idx) => {
+  let setlistSongs;
+  if (sortBy === 'custom') {
+    setlistSongs = (localOrder || []).map((id, idx) => {
       const song = songs.find(item => item.id === id);
-      if (!song) return null;
       const meta = setlistSongMeta[idx];
-      if (meta && meta.id === id) {
+      if (song) {
+        if (meta && meta.id === id) {
+          return {
+            ...song,
+            key: meta.key || song.key,
+            tempo: meta.tempo || song.tempo,
+            genre: meta.genre || song.genre
+          };
+        }
+        return song;
+      } else {
+        // Lagu sudah dihapus dari database
         return {
-          ...song,
-          key: meta.key || song.key,
-          tempo: meta.tempo || song.tempo,
-          genre: meta.genre || song.genre
+          id,
+          title: '[Lagu dihapus]',
+          artist: '',
+          key: '',
+          tempo: '',
+          genre: '',
+          deleted: true
         };
       }
-      return song;
-    })
-    .filter(Boolean);
+    });
+  } else {
+    // Jika bukan custom, urutkan berdasarkan hasil filter + sort
+    setlistSongs = songs.filter(song => (localOrder || []).includes(song.id));
+  }
 
   // Extract unique values untuk filter
   const uniqueArtists = useMemo(() => {
@@ -435,7 +451,8 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       ) : (
         <div className="song-list-container">
           {filteredSongs.map((song, idx) => {
-            const originalIdx = setlistSongs.indexOf(song);
+            // Untuk arrow, gunakan index di localOrder (urutan custom sebenarnya)
+            const customIdx = localOrder.indexOf(song.id);
             const baseSong = baseSongMap.get(song.id);
             const keyChanged = baseSong && song.key && baseSong.key && song.key !== baseSong.key;
             const tempoChanged = baseSong && song.tempo && baseSong.tempo && song.tempo !== baseSong.tempo;
@@ -454,7 +471,8 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
               >
                 {/* Song Info */}
                 <div className="song-info">
-                  <h3 className="song-title">
+                  <div className="song-number" style={{ fontWeight: 600, marginRight: 12, minWidth: 24, display: 'inline-block' }}>{idx + 1}.</div>
+                  <h3 className="song-title" style={{ display: 'inline-block' }}>
                     {song.title}
                   </h3>
                   <div className="song-meta">
@@ -486,18 +504,18 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
-                    onClick={() => originalIdx > 0 && handleReorder(originalIdx, originalIdx - 1)}
+                    onClick={() => sortBy === 'custom' && customIdx > 0 && handleReorder(customIdx, customIdx - 1)}
                     className="btn-base arrow-btn"
-                    disabled={originalIdx === 0}
-                    title="Naik satu posisi"
+                    disabled={sortBy !== 'custom' || customIdx === 0}
+                    title="Naik satu posisi (hanya mode custom)"
                   >
                     ↑
                   </button>
                   <button
-                    onClick={() => originalIdx < setlistSongs.length - 1 && handleReorder(originalIdx, originalIdx + 1)}
+                    onClick={() => sortBy === 'custom' && customIdx < localOrder.length - 1 && handleReorder(customIdx, customIdx + 1)}
                     className="btn-base arrow-btn"
-                    disabled={originalIdx === setlistSongs.length - 1}
-                    title="Turun satu posisi"
+                    disabled={sortBy !== 'custom' || customIdx === localOrder.length - 1}
+                    title="Turun satu posisi (hanya mode custom)"
                   >
                     ↓
                   </button>
@@ -636,7 +654,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
               ))}
             </ul>
             {addSongError && <div className="error-text" style={{ marginBottom: 8 }}>{addSongError}</div>}
-            <button className="back-btn" style={{ marginTop: 8 }} onClick={() => setShowAddSong(false)}>Batal</button>
+            <button className="btn-base" style={{ marginTop: 8 }} onClick={() => setShowAddSong(false)}>Batal</button>
           </div>
         </div>
       )}
