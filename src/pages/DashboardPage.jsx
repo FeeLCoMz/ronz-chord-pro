@@ -195,33 +195,25 @@ export default function DashboardPage() {
         </div>
       </div>
 
+
       {/* Main Content Grid */}
       <div className="dashboard-content-grid">
-        {/* Upcoming Events */}
+        {/* Calendar Integration */}
         <div className="dashboard-card">
-          <h2>📅 Jadwal Mendatang</h2>
-          {upcomingEvents.length === 0 ? (
-            <div className="dashboard-empty">
-              Tidak ada jadwal untuk 7 hari ke depan
-            </div>
-          ) : (
-            <div className="dashboard-event-list">
-              {upcomingEvents.map((event, idx) => (
-                <div
-                  key={idx}
-                  className="event-item"
-                  onClick={() => navigate(event.type === 'practice' ? '/practice' : '/gigs')}
-                >
-                  <div className="event-icon">{event.icon}</div>
-                  <div className="event-content">
-                    <div className="event-title">{event.title}</div>
-                    <div className="event-date">{formatDate(event.date)}</div>
-                  </div>
-                  <div className="event-arrow">→</div>
-                </div>
-              ))}
-            </div>
-          )}
+          <h2>📅 Kalender Gigs & Latihan</h2>
+          <CalendarView
+            events={[
+              ...upcomingEvents.map(ev => ({
+                ...ev,
+                bandName: ev.bandName || '',
+                details: ev.title
+              }))
+            ]}
+            onEventClick={ev => {
+              if (ev.type === 'practice') navigate('/practice');
+              else if (ev.type === 'gig') navigate('/gigs');
+            }}
+          />
         </div>
 
         {/* Recent Activity */}
