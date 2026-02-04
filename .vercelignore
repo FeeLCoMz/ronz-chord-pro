@@ -1,3 +1,8 @@
+# Ignore optional auth endpoints for Vercel free tier
+api/auth/2fa-setup.js
+api/auth/2fa-verify.js
+api/auth/forgot-password.js
+api/auth/reset-password.js
 # Ignore heavy or utility API endpoints for Vercel free tier
 api/ai.js
 api/_turso.js
