@@ -23,6 +23,9 @@ node_modules/
 *.log
 .DS_Store
 
+# Ignore backend test files
+api/__tests__/
+
 
 # Ignore documentation and markdown
 *.md
