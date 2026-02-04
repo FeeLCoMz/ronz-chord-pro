@@ -54,8 +54,32 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
   const [confirmDeleteSongId, setConfirmDeleteSongId] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Get songs dalam setlist sesuai localOrder
-  const setlistSongs = (localOrder || []).map(id => songs.find(song => song.id === id)).filter(Boolean);
+  const baseSongMap = useMemo(() => {
+    const map = new Map();
+    songs.forEach(song => {
+      map.set(song.id, song);
+    });
+    return map;
+  }, [songs]);
+
+  // Get songs dalam setlist sesuai localOrder + apply metadata override
+  const setlistSongMeta = Array.isArray(setlist?.setlistSongMeta) ? setlist.setlistSongMeta : [];
+  const setlistSongs = (localOrder || [])
+    .map((id, idx) => {
+      const song = songs.find(item => item.id === id);
+      if (!song) return null;
+      const meta = setlistSongMeta[idx];
+      if (meta && meta.id === id) {
+        return {
+          ...song,
+          key: meta.key || song.key,
+          tempo: meta.tempo || song.tempo,
+          genre: meta.genre || song.genre
+        };
+      }
+      return song;
+    })
+    .filter(Boolean);
 
   // Extract unique values untuk filter
   const uniqueArtists = useMemo(() => {
@@ -135,8 +159,12 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
 
   // Generate share text
   const shareUrl = `${window.location.origin}/setlists/${setlist.id}`;
-  const shareText = `🎶 Setlist: ${setlist.name}\n\n` +
-    setlistSongs.map((song, idx) => `${idx + 1}. ${song.title}${song.artist ? ' - ' + song.artist : ''}`).join('\n') +
+  const bandText = setlist.bandName ? `🎸 Band: ${setlist.bandName}\n` : '';
+  const shareText = `🎶 Setlist: ${setlist.name}\n${bandText}\n` +
+    setlistSongs.map((song, idx) => {
+      const songKey = song.key ? ` [${song.key}]` : '';
+      return `${idx + 1}. ${song.title}${song.artist ? ' - ' + song.artist : ''}${songKey}`;
+    }).join('\n') +
     `\n\nLihat detail & chord: ${shareUrl}`;
 
   function handleCopyShare() {
@@ -201,11 +229,17 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
   // Handler edit metadata lagu di setlist
   function openEditSong(songId) {
     setEditSongId(songId);
-    const song = setlistSongs.find(s => s.id === songId);
-    if (song) {
-      setEditSongKey(song.key || '');
-      setEditSongTempo(song.tempo || '');
-      setEditSongStyle(song.genre || '');
+    const songIdx = localOrder.indexOf(songId);
+    const baseSong = songs.find(s => s.id === songId);
+    const meta = setlistSongMeta[songIdx];
+    if (meta && meta.id === songId) {
+      setEditSongKey(meta.key || baseSong?.key || '');
+      setEditSongTempo(meta.tempo || baseSong?.tempo || '');
+      setEditSongStyle(meta.genre || baseSong?.genre || '');
+    } else if (baseSong) {
+      setEditSongKey(baseSong.key || '');
+      setEditSongTempo(baseSong.tempo || '');
+      setEditSongStyle(baseSong.genre || '');
     }
   }
 
@@ -217,7 +251,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       id: editSongId,
       key: editSongKey,
       tempo: editSongTempo,
-      style: editSongStyle
+      genre: editSongStyle
     };
     if (setSetlists) {
       setSetlists(prev => prev.map(s => s.id === setlist.id ? { ...s, setlistSongMeta: newSetlistSongMeta } : s));
@@ -280,7 +314,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       </div>
 
       {/* Filter dan Search Bar */}
-      <div className="filter-container">
+      <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* Search Input */}
         <input
           type="text"
@@ -291,7 +325,13 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
         />
 
         {/* Filter Row */}
-        <div className="filter-row">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '12px'
+          }}
+        >
           <select
             value={filterArtist}
             onChange={(e) => setFilterArtist(e.target.value)}
@@ -362,11 +402,21 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
         <div className="song-list-container">
           {filteredSongs.map((song, idx) => {
             const originalIdx = setlistSongs.indexOf(song);
+            const baseSong = baseSongMap.get(song.id);
+            const keyChanged = baseSong && song.key && baseSong.key && song.key !== baseSong.key;
+            const tempoChanged = baseSong && song.tempo && baseSong.tempo && song.tempo !== baseSong.tempo;
+            const genreChanged = baseSong && song.genre && baseSong.genre && song.genre !== baseSong.genre;
             return (
               <div
                 key={song.id}
                 className="song-item"
-                onClick={() => navigate(`/songs/view/${song.id}`)}
+                onClick={() => navigate(`/songs/view/${song.id}`, {
+                  state: {
+                    setlistId: setlist.id,
+                    setlist,
+                    setlistSong: song
+                  }
+                })}
               >
                 {/* Song Info */}
                 <div className="song-info">
@@ -375,9 +425,24 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                   </h3>
                   <div className="song-meta">
                     {song.artist && <span>👤 {song.artist}</span>}
-                    {song.key && <span>🎹 {song.key}</span>}
-                    {song.tempo && <span>⏱️ {song.tempo} BPM</span>}
-                    {song.genre && <span>🎸 {song.genre}</span>}
+                    {song.key && (
+                      <span>
+                        🎹 {song.key}
+                        {keyChanged && baseSong?.key ? ` (${baseSong.key})` : ''}
+                      </span>
+                    )}
+                    {song.tempo && (
+                      <span>
+                        ⏱️ {song.tempo} BPM
+                        {tempoChanged && baseSong?.tempo ? ` (${baseSong.tempo} BPM)` : ''}
+                      </span>
+                    )}
+                    {song.genre && (
+                      <span>
+                        🎸 {song.genre}
+                        {genreChanged && baseSong?.genre ? ` (${baseSong.genre})` : ''}
+                      </span>
+                    )}
                   </div>
                 </div>
 

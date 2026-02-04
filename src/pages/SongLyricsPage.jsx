@@ -361,6 +361,14 @@ export default function SongLyricsPage({ song: songProp }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditingLyrics, editedLyrics, song?.id]);
 
+  const handleBack = () => {
+    if (setlistId) {
+      navigate(`/setlists/${setlistId}`);
+    } else {
+      navigate('/songs');
+    }
+  };
+
   // Show loading state
   if (loading) {
     return (
@@ -382,7 +390,7 @@ export default function SongLyricsPage({ song: songProp }) {
           <h2 className="not-found-title">Error</h2>
           <p className="not-found-message">{error}</p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="btn-submit"
           >
             ← Kembali
@@ -402,7 +410,7 @@ export default function SongLyricsPage({ song: songProp }) {
             Lagu yang Anda cari tidak tersedia
           </p>
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="btn-submit"
           >
             ← Kembali
@@ -411,14 +419,6 @@ export default function SongLyricsPage({ song: songProp }) {
       </div>
     );
   }
-
-  const handleBack = () => {
-    if (setlistId) {
-      navigate(`/setlists/${setlistId}`);
-    } else {
-      navigate('/songs');
-    }
-  };
 
   const handleEdit = () => {
     navigate(`/songs/edit/${song.id}`);

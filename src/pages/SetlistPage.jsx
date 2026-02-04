@@ -33,8 +33,8 @@ export default function SetlistPage({
   // Filter & Sort States
   const [search, setSearch] = React.useState('');
   const [filterBand, setFilterBand] = React.useState('all');
-  const [sortBy, setSortBy] = React.useState('name');
-  const [sortOrder, setSortOrder] = React.useState('asc');
+  const [sortBy, setSortBy] = React.useState('created');
+  const [sortOrder, setSortOrder] = React.useState('desc');
   
   // Update page meta tags on mount
   React.useEffect(() => {
@@ -132,8 +132,8 @@ export default function SetlistPage({
   const handleClearFilters = () => {
     setSearch('');
     setFilterBand('all');
-    setSortBy('name');
-    setSortOrder('asc');
+    setSortBy('created');
+    setSortOrder('desc');
   };
 
   const hasActiveFilters = search || filterBand !== 'all';
