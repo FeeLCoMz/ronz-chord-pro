@@ -273,6 +273,7 @@ export default function SetlistPage({
                 <div className="setlist-meta">
                   {setlist.description && <span>{setlist.description}</span>}
                   {setlist.bandName && <span>🎸 {setlist.bandName}</span>}
+                  {setlist.userName && <span>👤 {setlist.userName}</span>}
                   <span>🎵 {setlist.songs?.length || 0} lagu</span>
                 </div>
               </div>
@@ -283,22 +284,31 @@ export default function SetlistPage({
                 onClick={(e) => e.stopPropagation()}
               >
                 {(() => {
-                  // Only allow edit/delete if user is creator or has global permission
+                  // Allow edit/delete jika:
+                  // - Setlist tanpa band: user adalah pembuat (userId)
+                  // - Setlist band: cek permission band
                   let canEdit = false;
                   let canDelete = false;
                   if (setlist.userId) {
-                    canEdit = canPerformAction(
-                      user,
-                      setlist.bandId || null,
-                      { role: user?.role || 'member', bandId: setlist.bandId || null },
-                      PERMISSIONS.SETLIST_EDIT
-                    ) || setlist.userId === currentUserId;
-                    canDelete = canPerformAction(
-                      user,
-                      setlist.bandId || null,
-                      { role: user?.role || 'member', bandId: setlist.bandId || null },
-                      PERMISSIONS.SETLIST_DELETE
-                    ) && setlist.userId === currentUserId;
+                    if (!setlist.bandId) {
+                      // Setlist pribadi
+                      canEdit = setlist.userId === currentUserId;
+                      canDelete = setlist.userId === currentUserId;
+                    } else {
+                      // Setlist band
+                      canEdit = canPerformAction(
+                        user,
+                        setlist.bandId,
+                        { role: user?.role || 'member', bandId: setlist.bandId },
+                        PERMISSIONS.SETLIST_EDIT
+                      ) || setlist.userId === currentUserId;
+                      canDelete = canPerformAction(
+                        user,
+                        setlist.bandId,
+                        { role: user?.role || 'member', bandId: setlist.bandId },
+                        PERMISSIONS.SETLIST_DELETE
+                      ) && (setlist.userId === currentUserId || user?.role === 'owner' || user?.role === 'admin');
+                    }
                   } else {
                     // Legacy: allow edit if no userId (old data)
                     canEdit = true;
@@ -360,7 +370,7 @@ export default function SetlistPage({
               setCreateSetlistError('');
               setEditLoading(true);
               try {
-                await addSetList({ name, description, bandId });
+                await addSetList({ name, description, bandId, userId: currentUserId });
                 setShowCreateSetlist(false);
                 setCreateSetlistName('');
                 setCreateSetlistError('');

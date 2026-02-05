@@ -71,9 +71,10 @@ export default async function handler(req, res) {
       // Rules: user's own setlists OR setlists from bands they're a member of
       const rows = await client.execute(
         `SELECT s.id, s.name, s.description, s.bandId, s.songs, s.setlistSongMeta, s.completedSongs, s.createdAt, s.updatedAt,
-                b.name as bandName
+                b.name as bandName, u.username as userName, s.userId
          FROM setlists s
          LEFT JOIN bands b ON s.bandId = b.id
+         LEFT JOIN users u ON s.userId = u.id
          WHERE s.bandId IS NULL 
             OR (s.bandId IS NOT NULL AND EXISTS (
               SELECT 1 FROM band_members WHERE bandId = s.bandId AND userId = ?
@@ -87,6 +88,8 @@ export default async function handler(req, res) {
         description: row.description || '',
         bandId: row.bandId,
         bandName: row.bandName,
+        userId: row.userId,
+        userName: row.userName || '',
         songs: (() => {
           try {
             return row.songs ? JSON.parse(row.songs) : [];
@@ -156,8 +159,8 @@ export default async function handler(req, res) {
         const completedSongsJson = JSON.stringify(typeof body.completedSongs === 'object' && body.completedSongs !== null ? body.completedSongs : {});
 
         await client.execute(
-          `INSERT INTO setlists (id, name, description, bandId, songs, setlistSongMeta, completedSongs, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO setlists (id, name, description, bandId, songs, setlistSongMeta, completedSongs, createdAt, updatedAt, userId)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             id,
             name,
@@ -168,6 +171,7 @@ export default async function handler(req, res) {
             completedSongsJson,
             body.createdAt || now,
             now,
+            userId,
           ]
         );
         res.status(201).json({ id });
@@ -187,7 +191,8 @@ export default async function handler(req, res) {
                songs = ?, 
                setlistSongMeta = ?, 
                completedSongs = ?, 
-               updatedAt = ?
+               updatedAt = ?,
+               userId = ?
              WHERE id = ?`,
             [
               name,
@@ -197,6 +202,7 @@ export default async function handler(req, res) {
               setlistSongMetaJson,
               completedSongsJson,
               now,
+              userId,
               id,
             ]
           );
