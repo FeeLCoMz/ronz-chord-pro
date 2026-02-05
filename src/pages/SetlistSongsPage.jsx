@@ -266,7 +266,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
         body: JSON.stringify({ ...setlist, songs: newOrder }),
       });
       if (!res.ok) throw new Error('Gagal menambah lagu ke setlist');
-      setShowAddSong(false);
       setAddSongSearch('');
     } catch (e) {
       setAddSongError(e.message || 'Gagal menambah lagu');
@@ -362,7 +361,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           <p>{setlistSongs.length} lagu di setlist ini</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button className="btn-base back-btn" onClick={() => navigate('/setlists')}>&larr; Kembali</button>
           <button className="btn-base tab-btn add-song-btn" onClick={() => setShowAddSong(true)} title="Tambah Lagu ke Setlist">
             <PlusIcon size={22} /> Tambah Lagu
           </button>
@@ -659,7 +657,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                   style={addingSongId === song.id ? { opacity: 0.5 } : undefined}
                   onClick={() => handleAddSongToSetlist(song.id)}
                 >
-                  <span style={{ fontWeight: 700, color: 'var(--primary-accent-dark, #3730a3)' }}>{song.title}</span> <span style={{ color: 'var(--text-muted, #888)', marginLeft: 8 }}>{song.artist}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--text-primary, #3730a3)' }}>{song.title}</span> <span style={{ color: 'var(--text-muted, #888)', marginLeft: 8 }}>{song.artist}</span>
                   {addingSongId === song.id && <span style={{ marginLeft: 8 }}>⏳</span>}
                 </li>
               ))}
