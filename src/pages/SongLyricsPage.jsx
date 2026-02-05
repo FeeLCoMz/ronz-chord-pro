@@ -572,24 +572,22 @@ export default function SongLyricsPage({ song: songProp }) {
                 )}
               </div>
               <div className="media-section-body">
-                {timeMarkers.length > 0 ? (
-                  <TimeMarkers
-                    timeMarkers={timeMarkers}
-                    readonly={false}
-                    onUpdate={handleTimeMarkerUpdate}
-                    onSeek={(time) => {
-                      if (youtubeRef.current && youtubeRef.current.handleSeek) {
-                        youtubeRef.current.handleSeek(time);
-                      }
-                    }}
-                  />
-                ) : (
-                  <div className="media-empty-state">
-                    <span className="media-empty-icon">🎯</span>
-                    <p className="media-empty-text">Tidak ada time markers</p>
-                    <p className="media-empty-hint">Tambahkan marker di edit song</p>
-                  </div>
-                )}
+                <TimeMarkers
+                  timeMarkers={timeMarkers}
+                  readonly={false}
+                  onUpdate={handleTimeMarkerUpdate}
+                  onSeek={(time) => {
+                    if (youtubeRef.current && youtubeRef.current.handleSeek) {
+                      youtubeRef.current.handleSeek(time);
+                    }
+                  }}
+                  getCurrentYouTubeTime={() => {
+                    if (youtubeRef.current && typeof youtubeRef.current.currentTime === 'number') {
+                      return youtubeRef.current.currentTime;
+                    }
+                    return 0;
+                  }}
+                />
               </div>
             </div>
           </div>

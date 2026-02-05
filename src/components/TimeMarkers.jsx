@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ExpandButton from './ExpandButton';
 
 export default function TimeMarkers({
@@ -7,7 +7,8 @@ export default function TimeMarkers({
   currentTime = 0,
   duration = 0,
   readonly = false,
-  onUpdate
+  onUpdate,
+  getCurrentYouTubeTime // function: returns current time in seconds from YouTube player
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -15,6 +16,28 @@ export default function TimeMarkers({
   const [editLabel, setEditLabel] = useState('');
   const [newTime, setNewTime] = useState('');
   const [newLabel, setNewLabel] = useState('');
+
+  // Auto-fill newTime with YouTube time when add form is shown
+  useEffect(() => {
+    if (!readonly && isExpanded && typeof getCurrentYouTubeTime === 'function') {
+      const ytTime = getCurrentYouTubeTime();
+      if (typeof ytTime === 'number' && !isNaN(ytTime)) {
+        setNewTime(formatTime(ytTime));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isExpanded, readonly]);
+
+  // Auto-fill editTime with YouTube time when edit form is opened
+  useEffect(() => {
+    if (editingId && typeof getCurrentYouTubeTime === 'function') {
+      const ytTime = getCurrentYouTubeTime();
+      if (typeof ytTime === 'number' && !isNaN(ytTime)) {
+        setEditTime(formatTime(ytTime));
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingId]);
 
   const formatTime = (seconds) => {
     const sec = Math.max(0, Math.floor(seconds || 0));
@@ -41,6 +64,26 @@ export default function TimeMarkers({
     setEditingId(marker.id || marker.time);
     setEditTime(formatTime(marker.time));
     setEditLabel(marker.label || '');
+  };
+
+  // Fill time input with current YouTube time (for add)
+  const handleFillNewTimeFromYouTube = () => {
+    if (typeof getCurrentYouTubeTime === 'function') {
+      const ytTime = getCurrentYouTubeTime();
+      if (typeof ytTime === 'number' && !isNaN(ytTime)) {
+        setNewTime(formatTime(ytTime));
+      }
+    }
+  };
+
+  // Fill time input with current YouTube time (for edit)
+  const handleFillEditTimeFromYouTube = () => {
+    if (typeof getCurrentYouTubeTime === 'function') {
+      const ytTime = getCurrentYouTubeTime();
+      if (typeof ytTime === 'number' && !isNaN(ytTime)) {
+        setEditTime(formatTime(ytTime));
+      }
+    }
   };
 
   const handleSaveEdit = () => {
@@ -108,6 +151,49 @@ export default function TimeMarkers({
       {/* Expanded Content */}
       {isExpanded && (
         <div className="time-markers-content">
+          {/* Add New Marker (moved above list) */}
+          {!readonly && (
+            <div className="time-marker-add" style={{ marginBottom: '16px' }}>
+              <div className="time-marker-add-title">
+                ➕ Tambah Timestamp Baru
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={newTime}
+                  onChange={(e) => setNewTime(e.target.value)}
+                  placeholder="mm:ss (contoh: 1:30)"
+                  className="time-marker-input"
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  title="Ambil waktu dari YouTube"
+                  onClick={handleFillNewTimeFromYouTube}
+                  className="time-marker-fill-btn"
+                  style={{ padding: '0 8px' }}
+                >
+                  ⏱️ Ambil dari YouTube
+                </button>
+              </div>
+              <input
+                type="text"
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                placeholder="Label (opsional)"
+                className="time-marker-input"
+              />
+              <button
+                type="button"
+                onClick={handleAddNew}
+                disabled={!newTime}
+                className="time-marker-add-btn"
+              >
+                ➕ Tambah Timestamp
+              </button>
+            </div>
+          )}
+
           {/* Marker List */}
           {sortedMarkers.length > 0 ? (
             <div className="time-markers-list">
@@ -121,13 +207,25 @@ export default function TimeMarkers({
                       key={markerId}
                       className="time-marker-item time-marker-item-editing"
                     >
-                      <input
-                        type="text"
-                        value={editTime}
-                        onChange={(e) => setEditTime(e.target.value)}
-                        placeholder="mm:ss"
-                        className="time-marker-input"
-                      />
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <input
+                          type="text"
+                          value={editTime}
+                          onChange={(e) => setEditTime(e.target.value)}
+                          placeholder="mm:ss"
+                          className="time-marker-input"
+                          style={{ flex: 1 }}
+                        />
+                        <button
+                          type="button"
+                          title="Ambil waktu dari YouTube"
+                          onClick={handleFillEditTimeFromYouTube}
+                          className="time-marker-fill-btn"
+                          style={{ padding: '0 8px' }}
+                        >
+                          ⏱️ Ambil dari YouTube
+                        </button>
+                      </div>
                       <input
                         type="text"
                         value={editLabel}
@@ -195,37 +293,6 @@ export default function TimeMarkers({
           ) : (
             <div className="time-marker-empty">
               Belum ada timestamp
-            </div>
-          )}
-
-          {/* Add New Marker */}
-          {!readonly && (
-            <div className="time-marker-add">
-              <div className="time-marker-add-title">
-                ➕ Tambah Timestamp Baru
-              </div>
-              <input
-                type="text"
-                value={newTime}
-                onChange={(e) => setNewTime(e.target.value)}
-                placeholder="mm:ss (contoh: 1:30)"
-                className="time-marker-input"
-              />
-              <input
-                type="text"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="Label (opsional)"
-                className="time-marker-input"
-              />
-              <button
-                type="button"
-                onClick={handleAddNew}
-                disabled={!newTime}
-                className="time-marker-add-btn"
-              >
-                ➕ Tambah Timestamp
-              </button>
             </div>
           )}
         </div>
