@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import '../styles/karaoke.css';
 import { useParams } from 'react-router-dom';
 import { getAuthHeader } from '../utils/auth.js';
+import { parseChordLine, parseSection } from '../utils/chordUtils.js';
 
 // KaraokeLyricsPage: Penampil lirik fullscreen untuk penyanyi/karaoke
 export default function KaraokeLyricsPage() {
@@ -59,6 +60,8 @@ export default function KaraokeLyricsPage() {
 
   // Split lyrics into lines
   const lyricLines = song && song.lyrics ? song.lyrics.split(/\r?\n/) : [];
+  // Sembunyikan baris chord (hanya tampilkan lirik dan struktur)
+  const lyricOnlyLines = lyricLines.filter(line => !parseChordLine(line));
 
   // Auto-scroll effect
   useEffect(() => {
@@ -112,16 +115,31 @@ export default function KaraokeLyricsPage() {
       </div>
       <div className="karaoke-lyrics-container">
         <div className="karaoke-lyrics-text">
-          {lyricLines.map((line, idx) => (
-            <div
-              key={idx}
-              id={`karaoke-line-${idx}`}
-              className={idx === activeLine ? 'karaoke-line active' : 'karaoke-line'}
-              style={{ padding: '8px 0', fontWeight: idx === activeLine ? 'bold' : 'normal', color: idx === activeLine ? '#ffeb3b' : undefined, fontSize: '2rem', transition: 'color 0.2s, font-weight 0.2s' }}
-            >
-              {line}
-            </div>
-          ))}
+          {lyricOnlyLines.map((line, idx) => {
+            const section = parseSection(line);
+            const isSection = section && section.type === 'structure';
+            return (
+              <div
+                key={idx}
+                id={`karaoke-line-${idx}`}
+                className={
+                  (idx === activeLine ? 'karaoke-line active ' : 'karaoke-line ') +
+                  (isSection ? 'karaoke-section' : '')
+                }
+                style={{
+                  padding: isSection ? '12px 0' : '8px 0',
+                  fontWeight: idx === activeLine ? 'bold' : isSection ? 'bold' : 'normal',
+                  color: idx === activeLine ? '#ffeb3b' : isSection ? '#3b82f6' : undefined,
+                  fontSize: isSection ? '2.1rem' : '2rem',
+                  letterSpacing: isSection ? '0.04em' : undefined,
+                  textTransform: isSection ? 'uppercase' : undefined,
+                  transition: 'color 0.2s, font-weight 0.2s',
+                }}
+              >
+                {line}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

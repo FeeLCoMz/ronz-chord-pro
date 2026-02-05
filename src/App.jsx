@@ -1,3 +1,5 @@
+import KaraokeLyricsListPage from './pages/KaraokeLyricsListPage.jsx';
+import KaraokeSongSearch from './components/KaraokeSongSearch.jsx';
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, useNavigate, useParams, useLocation, Navigate } from 'react-router-dom';
 
@@ -267,8 +269,19 @@ function AppContent() {
             element={<SongLyricsRoute songs={songs} activeSetlist={activeSetlist} />}
           />
           <Route
+            path="/karaoke"
+            element={<KaraokeLyricsListPage songs={songs} />}
+          />
+          <Route
             path="/karaoke/:id"
-            element={<KaraokeLyricsPage />}
+            element={
+              <>
+                <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0 0 0' }}>
+                  <KaraokeSongSearch songs={songs} />
+                </div>
+                <KaraokeLyricsPage />
+              </>
+            }
           />
           <Route
             path="/setlists/:id"

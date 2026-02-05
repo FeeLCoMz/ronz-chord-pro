@@ -270,14 +270,6 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                 className="song-actions"
                 onClick={(e) => e.stopPropagation()}
               >
-                <button
-                  className="btn-base"
-                  style={{ padding: '6px 12px', fontSize: '0.85em', background: '#3b82f6', color: '#fff', marginRight: 8 }}
-                  title="Tampilkan Lirik Karaoke"
-                  onClick={() => navigate(`/karaoke/${song.id}`)}
-                >
-                  🎤 Lirik
-                </button>
                 {(() => {
                   // Permission logic: allow edit/delete if user is creator OR has global permission
                   let canEdit = false;
