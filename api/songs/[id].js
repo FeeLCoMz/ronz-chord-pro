@@ -40,37 +40,16 @@ export default async function handler(req, res) {
       res.status(500).json({ error: 'Database connection error', details: clientErr.message });
       return;
     }
-    await client.execute(
-      `CREATE TABLE IF NOT EXISTS songs (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        artist TEXT,
-        youtubeId TEXT,
-        lyrics TEXT,
-        key TEXT,
-        tempo TEXT,
-        genre TEXT,
-        capo TEXT,
-        instruments TEXT,
-        time_markers TEXT,
-        userId TEXT,
-        createdAt TEXT DEFAULT (datetime('now')),
-        updatedAt TEXT
-      )`
-    );
-    const columnsResult = await client.execute(`PRAGMA table_info(songs)`);
-    const columns = (columnsResult.rows || []).map(row => row.name);
-    if (!columns.includes('userId')) {
-      await client.execute(`ALTER TABLE songs ADD COLUMN userId TEXT`);
-    }
+    // Tabel dan kolom sudah diatur lewat migrasi skema
     if (req.method === 'GET') {
       try {
         const result = await client.execute(
           `SELECT s.id, s.title, s.artist, s.youtubeId, s.lyrics, s.key, s.tempo, s.genre, s.capo, 
                   s.instruments, s.time_markers, s.userId, s.bandId, s.createdAt, s.updatedAt,
-                  b.name as bandName
+                  b.name as bandName, u.username as contributor
            FROM songs s
            LEFT JOIN bands b ON s.bandId = b.id
+           LEFT JOIN users u ON s.userId = u.id
            WHERE s.id = ? LIMIT 1`,
           [idStr]
         );
@@ -79,17 +58,8 @@ export default async function handler(req, res) {
           res.status(404).json({ error: 'Song not found' });
           return;
         }
-        let username = null;
-        if (row.userId) {
-          // Query username dari tabel users
-          const userRes = await client.execute('SELECT username FROM users WHERE id = ?', [row.userId]);
-          if (userRes.rows && userRes.rows.length > 0) {
-            username = userRes.rows[0].username;
-          }
-        }
         res.status(200).json({
           ...row,
-          contributor: username,
           time_markers: row.time_markers ? JSON.parse(row.time_markers) : [],
           instruments: row.instruments ? JSON.parse(row.instruments) : [],
         });
@@ -158,7 +128,6 @@ export default async function handler(req, res) {
         capo = COALESCE(?, capo),
         instruments = COALESCE(?, instruments),
         time_markers = COALESCE(?, time_markers),
-        userId = COALESCE(userId, ?),
         bandId = ?,
         updatedAt = ?`;
       // Pastikan tempo disimpan sebagai string integer tanpa koma
@@ -184,7 +153,6 @@ export default async function handler(req, res) {
         capoStr,
         (Array.isArray(body.instruments) ? JSON.stringify(body.instruments) : (body.instruments ?? null)),
         (Array.isArray(body.time_markers) ? JSON.stringify(body.time_markers) : (body.time_markers ?? null)),
-        userId,
         body.bandId ?? null,
         now
       ];

@@ -28,6 +28,7 @@ const AdminPanelPage = lazy(() => import('./pages/AdminPanelPage.jsx'));
 const PracticeSessionPage = lazy(() => import('./pages/PracticeSessionPage.jsx'));
 const GigPage = lazy(() => import('./pages/GigPage.jsx'));
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage.jsx'));
+const KaraokeLyricsPage = lazy(() => import('./pages/KaraokeLyricsPage.jsx'));
 
 // Loading fallback component
 function PageLoader() {
@@ -264,6 +265,10 @@ function AppContent() {
           <Route
             path="/songs/view/:id"
             element={<SongLyricsRoute songs={songs} activeSetlist={activeSetlist} />}
+          />
+          <Route
+            path="/karaoke/:id"
+            element={<KaraokeLyricsPage />}
           />
           <Route
             path="/setlists/:id"

@@ -1,0 +1,66 @@
+.karaoke-lyrics-page {
+  background: var(--primary-bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 32px 0;
+  transition: background 0.3s;
+}
+
+.karaoke-lyrics-page.fullscreen {
+  background: #111;
+  color: #fff;
+  min-height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.karaoke-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.karaoke-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.karaoke-artist {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.karaoke-lyrics-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  background: transparent;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.karaoke-lyrics-text {
+  font-size: 2rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  text-align: center;
+  background: none;
+  color: inherit;
+  border: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: visible;
+}

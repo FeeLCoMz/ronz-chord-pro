@@ -1,3 +1,13 @@
+/* Contributor (Owner) Display */
+.song-lyrics-owner {
+  font-size: 0.95em;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.song-lyrics-owner-name {
+  font-weight: 600;
+}
 /* ========================================
    PERFORMERHUB - CLEAN CSS REFACTOR
    Organized structure with reusable components

@@ -22,8 +22,8 @@ export default function SongLyricsPage({ song: songProp }) {
   const setlistData = location.state?.setlist || {};
   const setlistId = location.state?.setlistId;
   
-  // Use fetched song if available, otherwise fallback to prop or state
-  const song = fetchedSong || songProp || location.state?.song;
+  // Always use fetchedSong if available, otherwise fallback to empty object
+  const song = fetchedSong || {};
   const artist = setlistSongData.artist || song?.artist || '';
   const key = setlistSongData.key || song?.key || '';
   const tempo = setlistSongData.tempo || song?.tempo || '';
@@ -162,44 +162,28 @@ export default function SongLyricsPage({ song: songProp }) {
     return () => clearInterval(scheduler);
   }, [isMetronomeActive, tempo]);
 
-  // Fetch song data from API when ID changes (to ensure fresh data after edits)
+  // Always fetch song data from API when ID changes
   useEffect(() => {
     if (!id) return;
-    
-    // Determine if we should fetch fresh data
-    // - Fetch when coming from edit (fromEdit flag)
-    // - Fetch when no songProp provided (direct URL access)
-    // - Don't fetch if coming from setlist context (has setlistId in state)
-    const fromSetlist = location.state?.setlistId;
-    const fromEdit = location.state?.fromEdit;
-    const shouldFetch = fromEdit || (!songProp && !fromSetlist);
-    
-    if (shouldFetch) {
-      // Clear previous fetched data to avoid showing stale data
-      setFetchedSong(null);
-      setLoading(true);
-      setError(null);
-      
-      fetch(`/api/songs/${id}`, {
-        headers: getAuthHeader()
+    setFetchedSong(null);
+    setLoading(true);
+    setError(null);
+    fetch(`/api/songs/${id}`, {
+      headers: getAuthHeader()
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Gagal memuat lagu');
+        return res.json();
       })
-        .then(res => {
-          if (!res.ok) throw new Error('Gagal memuat lagu');
-          return res.json();
-        })
-        .then(data => {
-          setFetchedSong(data);
-          setLoading(false);
-        })
-        .catch(err => {
-          setError(err.message);
-          setLoading(false);
-        });
-    } else if (songProp) {
-      // Use songProp if available and not coming from edit
-      setFetchedSong(songProp);
-    }
-  }, [id, location.pathname, location.state?.fromEdit]); // Re-fetch when ID, path, or edit flag changes
+      .then(data => {
+        setFetchedSong(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [id]);
 
 
   // Auto-calculate transpose if setlist has different key
@@ -505,8 +489,8 @@ export default function SongLyricsPage({ song: songProp }) {
             </p>
           )}
           {song.contributor && (
-            <p className="song-lyrics-owner" style={{ fontSize: '0.95em', color: 'var(--text-secondary)', margin: 0 }}>
-              Kontributor lagu: <span style={{ fontWeight: 600 }}>{song.contributor}</span>
+            <p className="song-lyrics-owner">
+              Kontributor: <span className="song-lyrics-owner-name">{song.contributor}</span>
             </p>
           )}
         </div>

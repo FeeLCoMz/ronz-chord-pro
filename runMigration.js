@@ -3,13 +3,21 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
-// Load .env.local first (highest priority), then .env
-dotenv.config({ path: '.env.local' });
+// =============================
+// Load environment variables
+// =============================
+dotenv.config({ path: '.env.local' }); // Highest priority
 dotenv.config({ path: '.env' });
 
-// Get credentials from environment
-const url = process.env.rz_TURSO_DATABASE_URL ?? process.env.RZ_TURSO_DATABASE_URL ?? process.env.TURSO_DATABASE_URL;
-const authToken = process.env.rz_TURSO_AUTH_TOKEN ?? process.env.RZ_TURSO_AUTH_TOKEN ?? process.env.TURSO_AUTH_TOKEN;
+// =============================
+// Get DB credentials
+// =============================
+const url = process.env.rz_TURSO_DATABASE_URL
+  ?? process.env.RZ_TURSO_DATABASE_URL
+  ?? process.env.TURSO_DATABASE_URL;
+const authToken = process.env.rz_TURSO_AUTH_TOKEN
+  ?? process.env.RZ_TURSO_AUTH_TOKEN
+  ?? process.env.TURSO_AUTH_TOKEN;
 
 if (!url || !authToken) {
   console.error('❌ Missing database credentials');
@@ -23,37 +31,43 @@ if (!url || !authToken) {
 
 const client = createClient({ url, authToken });
 
+/**
+ * Run a SQL migration file against the database
+ * @param {string} migrationFile - Filename in db/ folder
+ */
 async function runMigration(migrationFile) {
   try {
-    console.log(`🔄 Running migration: ${migrationFile}...\n`);
-    
-    // Read the migration file
+    console.log(`\n🔄 Running migration: ${migrationFile}\n`);
+
+    // Read migration SQL file
     const migrationPath = path.join(process.cwd(), 'db', migrationFile);
     const migrationSQL = fs.readFileSync(migrationPath, 'utf-8');
-    
-    // Split by semicolons and filter comments more carefully
+
+    // Split into statements, remove comments
     const statements = migrationSQL
       .split(';')
-      .map(s => {
-        // Remove comments
-        const lines = s.split('\n')
-          .filter(line => !line.trim().startsWith('--'))
-          .join('\n');
-        return lines.trim();
-      })
-      .filter(s => s.length > 0);
-    
+      .map(stmt => stmt
+        .split('\n')
+        .filter(line => !line.trim().startsWith('--'))
+        .join('\n')
+        .trim()
+      )
+      .filter(stmt => stmt.length > 0);
+
     console.log(`📝 Found ${statements.length} SQL statements to execute\n`);
-    
+
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i];
-      console.log(`[${i+1}/${statements.length}] Executing: ${statement.substring(0, 60)}...`);
+      console.log(`[${i + 1}/${statements.length}] Executing: ${statement.substring(0, 60)}...`);
       try {
         await client.execute(statement);
         console.log('✅ Success\n');
       } catch (error) {
-        // Some statements might fail if the column doesn't exist, that's okay
-        if (error.message.includes('no such column') || error.message.includes('already exists')) {
+        // Ignore common non-fatal errors
+        if (
+          error.message.includes('no such column') ||
+          error.message.includes('already exists')
+        ) {
           console.log(`⚠️  Skipped (${error.message.substring(0, 40)}...)\n`);
         } else {
           console.error(`❌ Error: ${error.message}`);
@@ -61,28 +75,46 @@ async function runMigration(migrationFile) {
         }
       }
     }
-    
+
     console.log('✅ Migration completed successfully!');
-    
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
     process.exit(1);
   }
 }
 
+/**
+ * Main entry: run migration and verify table structure
+ */
 async function main() {
-  // Get migration file from command line argument or run default
-  const migrationFile = process.argv[2] || 'migrations_rename_timestamps_to_time_markers.sql';
-  
+  // Get migration file from command line argument
+  const migrationFile = process.argv[2];
+  if (!migrationFile) {
+    console.error('❌ Please specify a migration file, e.g. node runMigration.js migrations_example.sql');
+    process.exit(1);
+  }
+
   await runMigration(migrationFile);
-  
-  // Verify the table structure
-  console.log('\n📊 Verifying table structure...');
-  const tableInfo = await client.execute('PRAGMA table_info(songs);');
-  console.log('\nSongs table columns:');
-  tableInfo.rows.forEach(row => {
-    console.log(`  - ${row.name}: ${row.type}`);
-  });
+
+  // Verify all table structures
+  console.log('\n📊 Verifying all table structures...');
+  const tablesResult = await client.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';");
+  const tableNames = tablesResult.rows.map(row => row.name);
+  if (tableNames.length === 0) {
+    console.log('No tables found in the database.');
+    return;
+  }
+  for (const tableName of tableNames) {
+    console.log(`\nTable: ${tableName}`);
+    const tableInfo = await client.execute(`PRAGMA table_info(${tableName});`);
+    if (tableInfo.rows.length === 0) {
+      console.log('  (No columns found)');
+    } else {
+      tableInfo.rows.forEach(row => {
+        console.log(`  - ${row.name}: ${row.type}`);
+      });
+    }
+  }
 }
 
 main();
