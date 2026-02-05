@@ -1,3 +1,29 @@
+api/bands/invitations.js
+# Limit API endpoints to ≤12 (Vercel Free Tier)
+api/ai.js
+api/gigs/
+api/practice/
+api/auth/2fa-setup.js
+api/auth/2fa-verify.js
+api/auth/forgot-password.js
+api/auth/reset-password.js
+# Ignore unused/disabled API endpoints (app-specific)
+api/server.js
+api/_auth.js
+api/_turso.js
+api/__tests__/
+api/middleware/
+api/bands/invitations/
+api/gigs/
+api/practice/
+api/auth/2fa-setup.js
+api/auth/2fa-verify.js
+api/auth/forgot-password.js
+api/auth/reset-password.js
+# Ignore legacy or unused API endpoints
+api/legacy/
+api/old_*.js
+api/dev_*.js
 
 # === Cleaned .vercelignore ===
 db/
