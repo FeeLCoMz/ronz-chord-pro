@@ -1,44 +1,33 @@
+
+# === Cleaned .vercelignore ===
 db/
-*.md
-*.txt
-*.test.js
-*.spec.js
+src/__tests__/
+api/__tests__/
+api/middleware/
+api/_auth.js
+api/_turso.js
+api/server.js
+api/bands/invitations/
+api/auth/2fa-setup.js
+api/auth/2fa-verify.js
+api/auth/forgot-password.js
+api/auth/reset-password.js
+api/gigs/
+api/practice/
+node_modules/
 .env*
 runMigration.js
 jest.config.*
 jest.setup.js
 vitest.config.js
 vite.config.js
-node_modules/
-# Ignore non-endpoint API files/folders (Vercel Free Tier optimization)
-api/__tests__/
-api/middleware/
-api/_auth.js
-api/_turso.js
-api/server.js
-# Ignore optional auth endpoints for Vercel free tier
-api/auth/2fa-setup.js
-api/auth/2fa-verify.js
-api/auth/forgot-password.js
-api/auth/reset-password.js
-# Ignore heavy or utility API endpoints for Vercel free tier
-api/middleware/
-api/bands/invitations/
-# Ignore API gigs and practice for Vercel free tier
-api/gigs/
-api/practice/
-# Development files
-node_modules/
-.env.local
-.env.development
-*.log
-.DS_Store
-# Ignore backend test files
-api/__tests__/
-# Ignore documentation and markdown
+*.test.js
+*.spec.js
 *.md
 *.MD
 *.txt
+*.log
+.DS_Store
 CSS_REFACTORING_*
 PHASE_*
 QUICKSTART.md
@@ -47,16 +36,5 @@ IMPLEMENTATION_*
 PERMISSIONS_*
 USER_MANAGEMENT.md
 VERCEL_DEPLOYMENT.md
-# Ignore database migrations and schema
-db/
-# Ignore test files and test folders
-src/__tests__/
-# Ignore local dev script
-runMigration.js
-# Ignore local dev server command (for clarity, not a file)
-# npm run dev:api
-
-# Ignore public files not needed (if any)
-# public/ (uncomment if you want to exclude all public assets except manifest.json)
 # !public/manifest.json
 
