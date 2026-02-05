@@ -4,9 +4,12 @@ import * as apiClient from '../apiClient.js';
 import EditIcon from '../components/EditIcon.jsx';
 import DeleteIcon from '../components/DeleteIcon.jsx';
 import { usePermission } from '../hooks/usePermission.js';
-import { PERMISSIONS } from '../utils/permissionUtils.js';
+import { PERMISSIONS, canPerformAction } from '../utils/permissionUtils.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 export default function BandDetailPage() {
+  const { user } = useAuth();
+  const currentUserId = user?.userId || user?.id;
   const { id } = useParams();
   const navigate = useNavigate();
   const [band, setBand] = useState(null);
@@ -112,19 +115,47 @@ export default function BandDetailPage() {
         {(() => {
           const userBandInfo = { role: band.userRole || (band.isOwner ? 'owner' : 'member') };
           const { can } = usePermission(id, userBandInfo);
+          // Permission logic: allow edit/delete if user is owner/admin band atau punya permission global
+          let canEdit = false;
+          let canDelete = false;
+          let canManageRoles = false;
+          if (band.userId) {
+            canEdit = canPerformAction(
+              user,
+              id,
+              { role: user?.role || userBandInfo.role || 'member', bandId: id },
+              PERMISSIONS.BAND_EDIT
+            ) || band.userId === currentUserId || band.isOwner;
+            canDelete = canPerformAction(
+              user,
+              id,
+              { role: user?.role || userBandInfo.role || 'member', bandId: id },
+              PERMISSIONS.BAND_DELETE
+            ) && (band.userId === currentUserId || band.isOwner);
+            canManageRoles = canPerformAction(
+              user,
+              id,
+              { role: user?.role || userBandInfo.role || 'member', bandId: id },
+              PERMISSIONS.ADMIN_MANAGE_ROLES
+            ) || band.isOwner;
+          } else {
+            // Legacy: allow edit if no userId (old data)
+            canEdit = true;
+            canManageRoles = true;
+          }
           return (
             <div className="band-actions">
-              {can(PERMISSIONS.ADMIN_MANAGE_ROLES) && (
+              {canManageRoles && (
                 <button className="icon-btn-small" onClick={() => navigate(`/bands/admin/${id}`)} title="Kelola Member & Roles">
                   ⚙️
                 </button>
               )}
-              {can(PERMISSIONS.BAND_EDIT) && (
+              {canEdit && (
                 <button className="icon-btn-small" onClick={() => setShowEditModal(true)} title="Edit Band">
                   <EditIcon size={18} />
                 </button>
               )}
-              {can(PERMISSIONS.BAND_DELETE) && (
+              {canDelete && (
                 <button className="icon-btn-small delete-btn" onClick={handleDelete} title="Hapus Band">
                   <DeleteIcon size={18} />
                 </button>

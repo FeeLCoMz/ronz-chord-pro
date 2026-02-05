@@ -1,4 +1,19 @@
+
 # Copilot Instructions — PerformerHub
+## Permission Enforcement Policy (CRITICAL)
+
+**ALWAYS check and enforce the permission system whenever adding, editing, or suggesting any CRUD (Create, Read, Update, Delete) button, action, or feature that requires user authorization.**
+
+- For every new or modified UI element or API endpoint that allows data creation, editing, or deletion, you MUST:
+  - Identify the relevant permission(s) and role(s) required for the action.
+  - Use the appropriate permission check (e.g., `usePermission`, `canPerformAction`, `can()`, etc.) before rendering the button or enabling the action.
+  - Ensure that unauthorized users cannot see or trigger the action, both in the UI and in the backend if relevant.
+  - Add a code comment referencing the permission check if the logic is non-obvious.
+
+**NEVER add a CRUD button, modal, or sensitive action without explicit permission logic.**
+
+This applies to all pages, components, and API routes. If in doubt, ask for clarification or refer to `permissionUtils.js` and `usePermission.js`.
+
 
 ## Project Overview
 **PerformerHub** is a React (Vite) app for managing songs, setlists, bands, gigs, and practice sessions.
@@ -8,6 +23,8 @@
 - **Entry:** `src/App.jsx`
 
 ## Commands
+
+**PENTING:** Setelah memodifikasi file di folder `api/`, Anda harus merestart server lokal (`npm run dev:api` atau server Vercel/Express) agar perubahan API diterapkan.
 ```bash
 npm install              # Install dependencies
 npm run dev              # Dev server (port 5173, proxies /api to 3000)

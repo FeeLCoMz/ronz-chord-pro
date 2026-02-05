@@ -47,9 +47,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    // Find user
+
+    // Find user (fetch role as well)
     const result = await client.execute(
-      'SELECT id, email, username, passwordHash FROM users WHERE email = ?',
+      'SELECT id, email, username, passwordHash, role FROM users WHERE email = ?',
       [email]
     );
 
@@ -65,9 +66,9 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Generate token
+    // Generate token with role
     const token = jwt.sign(
-      { userId: user.id, email: user.email, username: user.username },
+      { userId: user.id, email: user.email, username: user.username, role: user.role },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -76,7 +77,7 @@ export default async function handler(req, res) {
       success: true,
       message: 'Login successful',
       token,
-      user: { id: user.id, email: user.email, username: user.username }
+      user: { id: user.id, email: user.email, username: user.username, role: user.role }
     });
 
   } catch (error) {

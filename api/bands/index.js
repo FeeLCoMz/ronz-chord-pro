@@ -1,5 +1,6 @@
 import { getTursoClient } from '../_turso.js';
 import { verifyToken } from '../_auth.js';
+import { PERMISSIONS, hasPermission } from '../../src/utils/permissionUtils.js';
 import bandIdHandler from './[id].js';
 
 async function readJson(req) {
@@ -98,8 +99,7 @@ export default async function handler(req, res) {
     // POST - Create new band
     if (req.method === 'POST') {
       // Permission constants
-      const { BAND_CREATE } = require('../../src/utils/permissionUtils.js').PERMISSIONS;
-      const { hasPermission } = require('../../src/utils/permissionUtils.js');
+      const { BAND_CREATE } = PERMISSIONS;
       const userRole = req.user?.role;
       if (!hasPermission(userRole, BAND_CREATE)) {
         return res.status(403).json({ error: 'You do not have permission to create bands' });

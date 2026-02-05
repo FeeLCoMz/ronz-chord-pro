@@ -1,5 +1,6 @@
 import { getTursoClient } from '../_turso.js';
 import { verifyToken } from '../_auth.js';
+import { PERMISSIONS, hasPermission } from '../../src/utils/permissionUtils.js';
 
 async function readJson(req) {
   if (req.body) return req.body;
@@ -135,8 +136,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'DELETE') {
       // Permission constants
-      const { SETLIST_DELETE } = require('../../src/utils/permissionUtils.js').PERMISSIONS;
-      const { hasPermission } = require('../../src/utils/permissionUtils.js');
+      const { SETLIST_DELETE } = PERMISSIONS;
       const userRole = req.user?.role;
       if (!hasPermission(userRole, SETLIST_DELETE)) {
         res.status(403).json({ error: 'You do not have permission to delete setlists' });

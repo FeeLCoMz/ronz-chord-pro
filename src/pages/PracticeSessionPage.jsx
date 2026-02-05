@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { canPerformAction, PERMISSIONS } from '../utils/permissionUtils.js';
 import { fetchBands, fetchPracticeSessions, createPracticeSession, updatePracticeSession, deletePracticeSession, fetchSongs } from '../apiClient.js';
 import PlusIcon from '../components/PlusIcon.jsx';
 import EditIcon from '../components/EditIcon.jsx';
@@ -7,6 +9,8 @@ import { ListSkeleton } from '../components/LoadingSkeleton.jsx';
 import { updatePageMeta, pageMetadata } from '../utils/metaTagsUtil.js';
 
 export default function PracticeSessionPage() {
+  const { user } = useAuth();
+  const currentUserId = user?.userId || user?.id;
   const [sessions, setSessions] = useState([]);
   const [bands, setBands] = useState([]);
   const [songs, setSongs] = useState([]);
@@ -142,20 +146,27 @@ export default function PracticeSessionPage() {
           <h1>🎯 Sesi Latihan</h1>
           <p>Kelola latihan band mu</p>
         </div>
-        <button className="btn-base" onClick={() => {
-          setShowForm(true);
-          setEditSession(null);
-          setFormData({
-            bandId: selectedBandId || '',
-            date: new Date().toISOString().split('T')[0],
-            duration: '',
-            songs: [],
-            notes: ''
-          });
-          setFormError('');
-        }}>
-          <PlusIcon size={18} /> Buat Sesi
-        </button>
+        {canPerformAction(
+          user,
+          selectedBandId || null,
+          { role: user?.role || 'member', bandId: selectedBandId || null },
+          PERMISSIONS.SETLIST_CREATE // Gunakan permission setlist:create untuk latihan, atau buat khusus jika ada
+        ) && (
+          <button className="btn-base" onClick={() => {
+            setShowForm(true);
+            setEditSession(null);
+            setFormData({
+              bandId: selectedBandId || '',
+              date: new Date().toISOString().split('T')[0],
+              duration: '',
+              songs: [],
+              notes: ''
+            });
+            setFormError('');
+          }}>
+            <PlusIcon size={18} /> Buat Sesi
+          </button>
+        )}
       </div>
 
       {/* Form Modal */}
@@ -355,20 +366,34 @@ export default function PracticeSessionPage() {
               </div>
 
               <div style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
-                <button
-                  className="icon-btn-small"
-                  onClick={() => handleEdit(session)}
-                  title="Edit"
-                >
-                  <EditIcon size={16} />
-                </button>
-                <button
-                  className="icon-btn-small delete-btn"
-                  onClick={() => setDeleteSession(session)}
-                  title="Hapus"
-                >
-                  <DeleteIcon size={16} />
-                </button>
+                {canPerformAction(
+                  user,
+                  session.bandId || null,
+                  { role: user?.role || 'member', bandId: session.bandId || null },
+                  PERMISSIONS.SETLIST_EDIT // Gunakan permission setlist:edit untuk latihan, atau buat khusus jika ada
+                ) && (
+                  <button
+                    className="icon-btn-small"
+                    onClick={() => handleEdit(session)}
+                    title="Edit"
+                  >
+                    <EditIcon size={16} />
+                  </button>
+                )}
+                {canPerformAction(
+                  user,
+                  session.bandId || null,
+                  { role: user?.role || 'member', bandId: session.bandId || null },
+                  PERMISSIONS.SETLIST_DELETE // Gunakan permission setlist:delete untuk latihan, atau buat khusus jika ada
+                ) && (
+                  <button
+                    className="icon-btn-small delete-btn"
+                    onClick={() => setDeleteSession(session)}
+                    title="Hapus"
+                  >
+                    <DeleteIcon size={16} />
+                  </button>
+                )}
               </div>
             </div>
           ))}

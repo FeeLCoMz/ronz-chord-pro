@@ -1,5 +1,6 @@
 import { getTursoClient } from '../_turso.js';
 import { verifyToken } from '../_auth.js';
+import { PERMISSIONS, hasPermission } from '../../src/utils/permissionUtils.js';
 
 async function readJson(req) {
   if (req.body) return req.body;
@@ -78,8 +79,17 @@ export default async function handler(req, res) {
           res.status(404).json({ error: 'Song not found' });
           return;
         }
+        let username = null;
+        if (row.userId) {
+          // Query username dari tabel users
+          const userRes = await client.execute('SELECT username FROM users WHERE id = ?', [row.userId]);
+          if (userRes.rows && userRes.rows.length > 0) {
+            username = userRes.rows[0].username;
+          }
+        }
         res.status(200).json({
           ...row,
+          contributor: username,
           time_markers: row.time_markers ? JSON.parse(row.time_markers) : [],
           instruments: row.instruments ? JSON.parse(row.instruments) : [],
         });
@@ -122,8 +132,7 @@ export default async function handler(req, res) {
         isBandMember = memberCheck.rows && memberCheck.rows.length > 0;
       }
       // Permission constants
-      const { SONG_EDIT } = require('../../src/utils/permissionUtils.js').PERMISSIONS;
-      const { hasPermission } = require('../../src/utils/permissionUtils.js');
+      const { SONG_EDIT } = PERMISSIONS;
       // Only allow edit if user has SONG_EDIT permission for their role
       if (!hasPermission(userRole, SONG_EDIT)) {
         res.status(403).json({ error: 'You do not have permission to edit songs' });

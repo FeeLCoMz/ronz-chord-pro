@@ -474,7 +474,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                 onClick={() => navigate(`/songs/view/${song.id}`, {
                   state: {
                     setlistId: setlist.id,
-                    setlist,
+                    setlist: { ...setlist, songs: setlistSongs }, // pastikan urutan lagu terkirim
                     setlistSong: song
                   }
                 })}

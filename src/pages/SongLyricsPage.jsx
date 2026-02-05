@@ -504,6 +504,11 @@ export default function SongLyricsPage({ song: songProp }) {
               {artist}
             </p>
           )}
+          {song.contributor && (
+            <p className="song-lyrics-owner" style={{ fontSize: '0.95em', color: 'var(--text-secondary)', margin: 0 }}>
+              Kontributor lagu: <span style={{ fontWeight: 600 }}>{song.contributor}</span>
+            </p>
+          )}
         </div>
         <div className="song-lyrics-header-actions">
           <button
@@ -909,12 +914,39 @@ export default function SongLyricsPage({ song: songProp }) {
       </div>
 
       {/* Setlist Navigation (if in setlist context) */}
-      {setlistId && setlistData.songs && (
-        <SetlistSongNavigator
-          setlistId={setlistId}
-          currentSongId={song.id}
-          songs={setlistData.songs}
-        />
+      {setlistId && setlistData.songs && Array.isArray(setlistData.songs) && (
+        (() => {
+          const songsArr = setlistData.songs;
+          const idx = songsArr.findIndex(s => (s.id || s._id) === song.id);
+          const totalSongs = songsArr.length;
+          const songNumber = idx >= 0 ? idx + 1 : null;
+          const navPrev = idx > 0 ? songsArr[idx - 1] : null;
+          const navNext = idx < totalSongs - 1 && idx >= 0 ? songsArr[idx + 1] : null;
+          const handlePrev = () => {
+            if (navPrev) {
+              navigate(`/songs/view/${navPrev.id || navPrev._id}`, {
+                state: { setlistId, setlist: setlistData, setlistSong: navPrev }
+              });
+            }
+          };
+          const handleNext = () => {
+            if (navNext) {
+              navigate(`/songs/view/${navNext.id || navNext._id}`, {
+                state: { setlistId, setlist: setlistData, setlistSong: navNext }
+              });
+            }
+          };
+          return (
+            <SetlistSongNavigator
+              navPrev={!!navPrev}
+              navNext={!!navNext}
+              songNumber={songNumber}
+              totalSongs={totalSongs}
+              onPrev={handlePrev}
+              onNext={handleNext}
+            />
+          );
+        })()
       )}
     </div>
   );

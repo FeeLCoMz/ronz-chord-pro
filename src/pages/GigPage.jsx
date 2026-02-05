@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { usePermission } from '../hooks/usePermission.js';
 import { fetchBands, fetchGigs, fetchSetLists, createGig, updateGig, deleteGig } from '../apiClient.js';
 import PlusIcon from '../components/PlusIcon.jsx';
 import EditIcon from '../components/EditIcon.jsx';
@@ -6,6 +8,22 @@ import DeleteIcon from '../components/DeleteIcon.jsx';
 import { ListSkeleton } from '../components/LoadingSkeleton.jsx';
 
 export default function GigPage() {
+  const { user } = useAuth();
+    // Helper: get userBandInfo for a bandId
+    const getUserBandInfo = (bandId) => {
+      if (!user) return null;
+      // Try to find band membership info if available
+      const band = bands.find(b => b.id === bandId);
+      if (band && band.userRole) {
+        return { role: band.userRole, bandId };
+      }
+      // Fallback: if user is owner (legacy)
+      if (band && band.isOwner) {
+        return { role: 'owner', bandId };
+      }
+      // Default: member
+      return { role: user?.role || 'member', bandId };
+    };
   const [gigs, setGigs] = useState([]);
   const [bands, setBands] = useState([]);
   const [setlists, setSetlists] = useState([]);
@@ -142,22 +160,54 @@ export default function GigPage() {
           <h1>🎤 Jadwal Konser</h1>
           <p>Kelola pertunjukan band mu</p>
         </div>
-        <button className="btn-base" onClick={() => {
-          setShowForm(true);
-          setEditGig(null);
-          setFormData({
-            bandId: selectedBandId || '',
-            date: new Date().toISOString().split('T')[0],
-            venue: '',
-            city: '',
-            fee: '',
-            setlistId: '',
-            notes: ''
-          });
-          setFormError('');
-        }}>
-          <PlusIcon size={18} /> Buat Konser
-        </button>
+        {/* Permission: Only show if user can create gig for selected band */}
+        {(() => {
+          const userBandInfo = getUserBandInfo(selectedBandId || '');
+          const { can } = usePermission(selectedBandId || '', userBandInfo);
+          // If no band selected, allow if user is authenticated (personal gig)
+          if (!selectedBandId && user) {
+            return (
+              <button className="btn-base" onClick={() => {
+                setShowForm(true);
+                setEditGig(null);
+                setFormData({
+                  bandId: selectedBandId || '',
+                  date: new Date().toISOString().split('T')[0],
+                  venue: '',
+                  city: '',
+                  fee: '',
+                  setlistId: '',
+                  notes: ''
+                });
+                setFormError('');
+              }}>
+                <PlusIcon size={18} /> Buat Konser
+              </button>
+            );
+          }
+          // If band selected, check permission
+          if (userBandInfo && can('edit_setlist')) {
+            return (
+              <button className="btn-base" onClick={() => {
+                setShowForm(true);
+                setEditGig(null);
+                setFormData({
+                  bandId: selectedBandId || '',
+                  date: new Date().toISOString().split('T')[0],
+                  venue: '',
+                  city: '',
+                  fee: '',
+                  setlistId: '',
+                  notes: ''
+                });
+                setFormError('');
+              }}>
+                <PlusIcon size={18} /> Buat Konser
+              </button>
+            );
+          }
+          return null;
+        })()}
       </div>
 
       {/* Form Modal */}
@@ -377,28 +427,48 @@ export default function GigPage() {
                 className="setlist-actions"
                 onClick={(e) => e.stopPropagation()}
               >
-                <button
-                  onClick={() => handleEdit(gig)}
-                  className="btn-base"
-                  style={{ padding: '6px 12px', fontSize: '0.85em' }}
-                  title="Edit"
-                >
-                  <EditIcon size={16} />
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm(gig)}
-                  className="btn-base"
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '0.85em',
-                    background: '#dc2626',
-                    borderColor: '#b91c1c',
-                    color: '#fff'
-                  }}
-                  title="Hapus"
-                >
-                  <DeleteIcon size={16} />
-                </button>
+                {(() => {
+                  // Permission: Only show edit/delete if user can edit/delete this gig
+                  const userBandInfo = getUserBandInfo(gig.bandId || '');
+                  const { can } = usePermission(gig.bandId || '', userBandInfo);
+                  // Allow edit/delete if:
+                  // - user is gig creator (legacy/personal gig)
+                  // - or has edit_setlist permission for the band
+                  const isCreator = gig.userId && user && gig.userId === (user.userId || user.id);
+                  const canEdit = isCreator || (userBandInfo && can('edit_setlist'));
+                  const canDelete = isCreator || (userBandInfo && can('edit_setlist'));
+                  if (!canEdit && !canDelete) return null;
+                  return (
+                    <>
+                      {canEdit && (
+                        <button
+                          onClick={() => handleEdit(gig)}
+                          className="btn-base"
+                          style={{ padding: '6px 12px', fontSize: '0.85em' }}
+                          title="Edit"
+                        >
+                          <EditIcon size={16} />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          onClick={() => setDeleteConfirm(gig)}
+                          className="btn-base"
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '0.85em',
+                            background: '#dc2626',
+                            borderColor: '#b91c1c',
+                            color: '#fff'
+                          }}
+                          title="Hapus"
+                        >
+                          <DeleteIcon size={16} />
+                        </button>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
           ))}

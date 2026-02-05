@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import { canPerformAction, PERMISSIONS } from '../utils/permissionUtils.js';
 import PlusIcon from '../components/PlusIcon.jsx';
 import EditIcon from '../components/EditIcon.jsx';
 import DeleteIcon from '../components/DeleteIcon.jsx';
@@ -270,11 +271,28 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                 onClick={(e) => e.stopPropagation()}
               >
                 {(() => {
-                  const canEdit = !song.userId || song.userId === currentUserId;
-                  const canDelete = song.userId && song.userId === currentUserId;
-
+                  // Permission logic: allow edit/delete if user is creator OR has global permission
+                  let canEdit = false;
+                  let canDelete = false;
+                  // If song has userId, check permission
+                  if (song.userId) {
+                    canEdit = canPerformAction(
+                      user,
+                      song.bandId || null,
+                      { role: user?.role || 'member', bandId: song.bandId || null },
+                      PERMISSIONS.SONG_EDIT
+                    ) || song.userId === currentUserId;
+                    canDelete = canPerformAction(
+                      user,
+                      song.bandId || null,
+                      { role: user?.role || 'member', bandId: song.bandId || null },
+                      PERMISSIONS.SONG_DELETE
+                    ) && song.userId === currentUserId;
+                  } else {
+                    // Legacy: allow edit if no userId (old data)
+                    canEdit = true;
+                  }
                   if (!canEdit && !canDelete) return null;
-
                   return (
                     <>
                       {canEdit && (

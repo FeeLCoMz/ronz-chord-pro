@@ -9,7 +9,8 @@ import { ListSkeleton } from '../components/LoadingSkeleton.jsx';
 import { fetchBands, addSetList, updateSetList, deleteSetList, fetchSetLists } from '../apiClient.js';
 import { updatePageMeta, pageMetadata } from '../utils/metaTagsUtil.js';
 import { usePermission } from '../hooks/usePermission.js';
-import { PERMISSIONS } from '../utils/permissionUtils.js';
+import { PERMISSIONS, canPerformAction } from '../utils/permissionUtils.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 export default function SetlistPage({
   setlists,
@@ -28,6 +29,8 @@ export default function SetlistPage({
   // Example: Assume userBandInfo is available from props or context (replace as needed)
   const userBandInfo = bands && bands.length > 0 ? bands[0] : { role: 'member' };
   const { can } = usePermission(null, userBandInfo);
+  const { user } = useAuth();
+  const currentUserId = user?.userId || user?.id;
   const [editSetlist, setEditSetlist] = React.useState(null);
   const [editLoading, setEditLoading] = React.useState(false);
   const [editError, setEditError] = React.useState('');
@@ -280,32 +283,56 @@ export default function SetlistPage({
                 className="setlist-actions"
                 onClick={(e) => e.stopPropagation()}
               >
-                {can(PERMISSIONS.SETLIST_EDIT) && (
-                  <button
-                    onClick={() => setEditSetlist(setlist)}
-                    className="btn-base"
-                    style={{ padding: '6px 12px', fontSize: '0.85em' }}
-                    title="Edit"
-                  >
-                    <EditIcon size={16} />
-                  </button>
-                )}
-                {can(PERMISSIONS.SETLIST_DELETE) && (
-                  <button
-                    onClick={() => setDeleteSetlist(setlist)}
-                    className="btn-base"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '0.85em',
-                      background: '#dc2626',
-                      borderColor: '#b91c1c',
-                      color: '#fff'
-                    }}
-                    title="Hapus"
-                  >
-                    <DeleteIcon size={16} />
-                  </button>
-                )}
+                {(() => {
+                  // Only allow edit/delete if user is creator or has global permission
+                  let canEdit = false;
+                  let canDelete = false;
+                  if (setlist.userId) {
+                    canEdit = canPerformAction(
+                      user,
+                      setlist.bandId || null,
+                      { role: user?.role || 'member', bandId: setlist.bandId || null },
+                      PERMISSIONS.SETLIST_EDIT
+                    ) || setlist.userId === currentUserId;
+                    canDelete = canPerformAction(
+                      user,
+                      setlist.bandId || null,
+                      { role: user?.role || 'member', bandId: setlist.bandId || null },
+                      PERMISSIONS.SETLIST_DELETE
+                    ) && setlist.userId === currentUserId;
+                  } else {
+                    // Legacy: allow edit if no userId (old data)
+                    canEdit = true;
+                  }
+                  return <>
+                    {canEdit && (
+                      <button
+                        onClick={() => setEditSetlist(setlist)}
+                        className="btn-base"
+                        style={{ padding: '6px 12px', fontSize: '0.85em' }}
+                        title="Edit"
+                      >
+                        <EditIcon size={16} />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => setDeleteSetlist(setlist)}
+                        className="btn-base"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '0.85em',
+                          background: '#dc2626',
+                          borderColor: '#b91c1c',
+                          color: '#fff'
+                        }}
+                        title="Hapus"
+                      >
+                        <DeleteIcon size={16} />
+                      </button>
+                    )}
+                  </>;
+                })()}
               </div>
             </div>
           ))}

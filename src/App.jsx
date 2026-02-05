@@ -51,13 +51,18 @@ function App() {
 
 function AppContent() {
     // Notifikasi toast global
+    const { isAuthenticated, isLoading } = useAuth();
     const [toastMessage, setToastMessage] = useState('');
     // Untuk deteksi undangan baru
     const [invitationCount, setInvitationCount] = useState(0);
     const prevInvitationCount = useRef(0);
 
-    // Polling undangan band (30 detik)
+    // Polling undangan band (30 detik) hanya jika sudah login
     useEffect(() => {
+      if (!isAuthenticated) {
+        setInvitationCount(0);
+        return;
+      }
       let interval;
       async function fetchInvitationCount() {
         try {
@@ -75,8 +80,7 @@ function AppContent() {
       fetchInvitationCount();
       interval = setInterval(fetchInvitationCount, 30000);
       return () => clearInterval(interval);
-    }, []);
-  const { isAuthenticated, isLoading } = useAuth();
+    }, [isAuthenticated]);
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);

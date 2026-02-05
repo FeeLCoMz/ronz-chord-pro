@@ -1,26 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { AuthContext } from '../contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import * as apiClient from '../apiClient.js';
 import { updatePageMeta } from '../utils/metaTagsUtil.js';
 
 export default function PendingInvitationsPage() {
+  const { isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   const [invitations, setInvitations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [processingId, setProcessingId] = useState(null);
 
+
   useEffect(() => {
     updatePageMeta({
       title: 'Pending Invitations | PerformerHub',
       description: 'View and manage band invitations'
     });
-    fetchPendingInvitations();
-  }, []);
+    if (isAuthenticated) {
+      fetchPendingInvitations();
+    }
+  }, [isAuthenticated]);
 
   const fetchPendingInvitations = async () => {
     try {
       setLoading(true);
+      if (!isAuthenticated) {
+        setInvitations([]);
+        setError(null);
+        return;
+      }
       const data = await apiClient.getPendingInvitations();
       setInvitations(Array.isArray(data) ? data : []);
       setError(null);

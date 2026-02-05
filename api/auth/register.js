@@ -71,15 +71,18 @@ export default async function handler(req, res) {
     const passwordHash = await bcrypt.hash(password, 10);
     const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Insert user
+    // Default role for new users
+    const role = 'member';
+
+    // Insert user with role
     await client.execute(
-      'INSERT INTO users (id, email, username, passwordHash) VALUES (?, ?, ?, ?)',
-      [userId, email, username, passwordHash]
+      'INSERT INTO users (id, email, username, passwordHash, role) VALUES (?, ?, ?, ?, ?)',
+      [userId, email, username, passwordHash, role]
     );
 
-    // Generate token
+    // Generate token with role
     const token = jwt.sign(
-      { userId, email, username },
+      { userId, email, username, role },
       JWT_SECRET,
       { expiresIn: '7d' }
     );

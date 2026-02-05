@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { usePermission } from '../hooks/usePermission.js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import * as apiClient from '../apiClient.js';
@@ -10,6 +11,18 @@ import { ListSkeleton } from '../components/LoadingSkeleton.jsx';
 export default function BandManagementPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+    // Helper: get userBandInfo for a bandId
+    const getUserBandInfo = (bandId) => {
+      if (!user) return null;
+      const band = bands.find(b => b.id === bandId);
+      if (band && band.userRole) {
+        return { role: band.userRole, bandId };
+      }
+      if (band && band.isOwner) {
+        return { role: 'owner', bandId };
+      }
+      return { role: user?.role || 'member', bandId };
+    };
   const [bands, setBands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -160,9 +173,12 @@ export default function BandManagementPage() {
           <h1>🎸 Band Management</h1>
           <p>{filteredBands.length} dari {bands.length} band</p>
         </div>
-        <button className="btn-base" onClick={() => setShowCreateForm(true)}>
-          <PlusIcon size={18} /> Buat Band
-        </button>
+        {/* Permission: Only show if user can create a band */}
+        {user && (
+          <button className="btn-base" onClick={() => setShowCreateForm(true)}>
+            <PlusIcon size={18} /> Buat Band
+          </button>
+        )}
       </div>
 
       {error && <div className="error-message" style={{ marginBottom: '20px' }}>{error}</div>}
@@ -264,22 +280,30 @@ export default function BandManagementPage() {
                 className="setlist-actions"
                 onClick={(e) => e.stopPropagation()}
               >
-                {band.isOwner && (
-                  <button
-                    onClick={() => handleDeleteBand(band.id)}
-                    className="btn-base"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '0.85em',
-                      background: '#dc2626',
-                      borderColor: '#b91c1c',
-                      color: '#fff'
-                    }}
-                    title="Hapus"
-                  >
-                    <DeleteIcon size={16} />
-                  </button>
-                )}
+                {(() => {
+                  // Permission: Only show delete if user is owner or admin
+                  const userBandInfo = getUserBandInfo(band.id);
+                  const { can } = usePermission(band.id, userBandInfo);
+                  if (userBandInfo && can('edit_band')) {
+                    return (
+                      <button
+                        onClick={() => handleDeleteBand(band.id)}
+                        className="btn-base"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '0.85em',
+                          background: '#dc2626',
+                          borderColor: '#b91c1c',
+                          color: '#fff'
+                        }}
+                        title="Hapus"
+                      >
+                        <DeleteIcon size={16} />
+                      </button>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             </div>
           ))}
