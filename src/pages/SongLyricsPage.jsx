@@ -68,7 +68,7 @@ export default function SongLyricsPage({ song: songProp }) {
   const [shareMessage, setShareMessage] = useState("");
 
   // Media panel collapse state
-  const [mediaPanelExpanded, setMediaPanelExpanded] = useState(false);
+  const [mediaPanelExpanded, setMediaPanelExpanded] = useState(true);
 
   // Metronome state for quick access
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);

@@ -272,8 +272,7 @@ body {
    ======================================== */
 .app-container {
   display: flex;
-  flex-direction: column;
-  margin-left: 260px;
+  flex-direction: column;  
   background: var(--primary-bg);
 }
 
@@ -311,6 +310,7 @@ body {
   flex: 1;
   padding: var(--spacing-xl);
   background: var(--primary-bg);
+  margin-left: 260px;
 }
 
 /* ========================================
