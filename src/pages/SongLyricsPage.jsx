@@ -200,14 +200,32 @@ export default function SongLyricsPage({ song: songProp }) {
 
   // Auto-calculate transpose if setlist has different key
   useEffect(() => {
+    // Helper to parse key into root and type (major/minor)
+    function parseKey(keyStr) {
+      if (!keyStr) return { root: '', type: 'major' };
+      const match = keyStr.match(/^([A-G][b#]?)(m|m$| minor)?$/i);
+      if (!match) return { root: keyStr, type: 'major' };
+      const root = match[1].toUpperCase();
+      const type = match[2] && match[2].toLowerCase().includes('m') ? 'minor' : 'major';
+      return { root, type };
+    }
+
     if (setlistSongData.key && song?.key && setlistSongData.key !== song.key) {
       const keyMap = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-      const originalIdx = keyMap.indexOf(song.key);
-      const targetIdx = keyMap.indexOf(setlistSongData.key);
-      if (originalIdx >= 0 && targetIdx >= 0) {
-        let steps = targetIdx - originalIdx;
-        if (steps < 0) steps += 12;
-        setTranspose(steps);
+      const orig = parseKey(song.key);
+      const targ = parseKey(setlistSongData.key);
+      // Only transpose if both keys are the same type (major-major or minor-minor)
+      if (orig.type === targ.type) {
+        const originalIdx = keyMap.indexOf(orig.root);
+        const targetIdx = keyMap.indexOf(targ.root);
+        if (originalIdx >= 0 && targetIdx >= 0) {
+          let steps = targetIdx - originalIdx;
+          if (steps < 0) steps += 12;
+          setTranspose(steps);
+        }
+      } else {
+        // If types differ (e.g. C -> Am), do not auto-transpose
+        setTranspose(0);
       }
     }
   }, [setlistSongData.key, song?.key]);
@@ -598,7 +616,7 @@ export default function SongLyricsPage({ song: songProp }) {
             <div className="song-info-item song-info-priority song-info-key">
               <span className="song-info-label">🎹 Key</span>
               <TransposeKeyControl
-                originalKey={key}
+                originalKey={song?.key || key}
                 transpose={transpose}
                 onTransposeChange={setTranspose}
               />
