@@ -66,15 +66,15 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
     return map;
   }, [songs]);
 
-  // Get songs dalam setlist sesuai localOrder + apply metadata override (hanya jika sortBy === 'custom')
-  const setlistSongMeta = Array.isArray(setlist?.setlistSongMeta) ? setlist.setlistSongMeta : [];
+  // Get songs dalam setlist sesuai localOrder + apply metadata override (mapping)
+  const setlistSongMeta = typeof setlist?.setlistSongMeta === 'object' && !Array.isArray(setlist.setlistSongMeta) ? setlist.setlistSongMeta : {};
   let setlistSongs;
   if (sortBy === 'custom') {
-    setlistSongs = (localOrder || []).map((id, idx) => {
+    setlistSongs = (localOrder || []).map((id) => {
       const song = songs.find(item => item.id === id);
-      const meta = setlistSongMeta[idx];
+      const meta = setlistSongMeta[id];
       if (song) {
-        if (meta && meta.id === id) {
+        if (meta) {
           return {
             ...song,
             key: meta.key || song.key,
@@ -97,7 +97,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       }
     });
   } else {
-    // Jika bukan custom, urutkan berdasarkan hasil filter + sort
     setlistSongs = songs.filter(song => (localOrder || []).includes(song.id));
   }
 
@@ -277,10 +276,9 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
   // Handler edit metadata lagu di setlist
   function openEditSong(songId) {
     setEditSongId(songId);
-    const songIdx = localOrder.indexOf(songId);
     const baseSong = songs.find(s => s.id === songId);
-    const meta = setlistSongMeta[songIdx];
-    if (meta && meta.id === songId) {
+    const meta = setlistSongMeta[songId];
+    if (meta) {
       setEditSongKey(meta.key || baseSong?.key || '');
       setEditSongTempo(meta.tempo || baseSong?.tempo || '');
       setEditSongStyle(meta.genre || baseSong?.genre || '');
@@ -293,10 +291,10 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
 
   async function handleEditSongSave() {
     if (!editSongId) return;
-    const songIdx = localOrder.indexOf(editSongId);
-    const newSetlistSongMeta = Array.isArray(setlist.setlistSongMeta) ? [...setlist.setlistSongMeta] : [];
-    newSetlistSongMeta[songIdx] = {
-      id: editSongId,
+    const newSetlistSongMeta = typeof setlist.setlistSongMeta === 'object' && !Array.isArray(setlist.setlistSongMeta)
+      ? { ...setlist.setlistSongMeta }
+      : {};
+    newSetlistSongMeta[editSongId] = {
       key: editSongKey,
       tempo: editSongTempo,
       genre: editSongStyle

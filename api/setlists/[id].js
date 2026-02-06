@@ -103,6 +103,21 @@ export default async function handler(req, res) {
 
     if (req.method === 'PUT' || req.method === 'PATCH') {
       const body = await readJson(req);
+        // Validate setlistSongMeta is a mapping from songId to metadata
+        if (body.setlistSongMeta && typeof body.setlistSongMeta === 'object') {
+          const meta = body.setlistSongMeta;
+          const invalid = Object.keys(meta).some(key => {
+            // songId should be string or number, value should be object
+            return (typeof key !== 'string' && typeof key !== 'number') || typeof meta[key] !== 'object';
+          });
+          if (invalid) {
+            res.status(400).json({ error: 'setlistSongMeta must be a mapping from songId to metadata object.' });
+            return;
+          }
+        } else if (body.setlistSongMeta) {
+          res.status(400).json({ error: 'setlistSongMeta must be an object mapping songId to metadata.' });
+          return;
+        }
       const now = new Date().toISOString();
       const songsJson = body.songs ? JSON.stringify(body.songs) : null;
       const setlistSongMetaJson = body.setlistSongMeta ? JSON.stringify(body.setlistSongMeta) : null;
