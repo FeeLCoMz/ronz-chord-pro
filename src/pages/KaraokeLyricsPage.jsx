@@ -63,6 +63,15 @@ export default function KaraokeLyricsPage() {
   // Sembunyikan baris chord (hanya tampilkan lirik dan struktur)
   const lyricOnlyLines = lyricLines.filter(line => !parseChordLine(line));
 
+  // Bagi ke dua kolom jika lirik panjang (misal > 18 baris)
+  let col1 = lyricOnlyLines, col2 = [];
+  const SPLIT_THRESHOLD = 18;
+  if (lyricOnlyLines.length > SPLIT_THRESHOLD) {
+    const mid = Math.ceil(lyricOnlyLines.length / 2);
+    col1 = lyricOnlyLines.slice(0, mid);
+    col2 = lyricOnlyLines.slice(mid);
+  }
+
   // Auto-scroll effect
   useEffect(() => {
     if (!autoScroll || lyricLines.length === 0) return;
@@ -101,32 +110,69 @@ export default function KaraokeLyricsPage() {
         </button>
       </div>
       <div className="karaoke-lyrics-container">
-        <div className="karaoke-lyrics-text">
-          {lyricOnlyLines.map((line, idx) => {
-            const section = parseSection(line);
-            const isSection = section && section.type === 'structure';
-            return (
-              <div
-                key={idx}
-                id={`karaoke-line-${idx}`}
-                className={
-                  (idx === activeLine ? 'karaoke-line active ' : 'karaoke-line ') +
-                  (isSection ? 'karaoke-section' : '')
-                }
-                style={{
-                  padding: isSection ? '12px 0' : '8px 0',
-                  fontWeight: idx === activeLine ? 'bold' : isSection ? 'bold' : 'normal',
-                  color: idx === activeLine ? '#ffeb3b' : isSection ? '#3b82f6' : undefined,
-                  fontSize: isSection ? '2.1rem' : '2rem',
-                  letterSpacing: isSection ? '0.04em' : undefined,
-                  textTransform: isSection ? 'uppercase' : undefined,
-                  transition: 'color 0.2s, font-weight 0.2s',
-                }}
-              >
-                {line}
+        <div className={lyricOnlyLines.length > SPLIT_THRESHOLD ? 'karaoke-lyrics-text two-col' : 'karaoke-lyrics-text'}>
+          {lyricOnlyLines.length > SPLIT_THRESHOLD ? (
+            <>
+              <div className="karaoke-lyrics-col">
+                {col1.map((line, idx) => {
+                  const section = parseSection(line);
+                  const isSection = section && section.type === 'structure';
+                  return (
+                    <div
+                      key={idx}
+                      id={`karaoke-line-${idx}`}
+                      className={
+                        'karaoke-line' +
+                        (idx === activeLine ? ' active' : '') +
+                        (isSection ? ' karaoke-section' : '')
+                      }
+                    >
+                      {line}
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
+              <div className="karaoke-lyrics-col">
+                {col2.map((line, idx) => {
+                  const section = parseSection(line);
+                  const isSection = section && section.type === 'structure';
+                  // Offset idx for id and activeLine
+                  const realIdx = idx + col1.length;
+                  return (
+                    <div
+                      key={realIdx}
+                      id={`karaoke-line-${realIdx}`}
+                      className={
+                        'karaoke-line' +
+                        (realIdx === activeLine ? ' active' : '') +
+                        (isSection ? ' karaoke-section' : '')
+                      }
+                    >
+                      {line}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            lyricOnlyLines.map((line, idx) => {
+              const section = parseSection(line);
+              const isSection = section && section.type === 'structure';
+              return (
+                <div
+                  key={idx}
+                  id={`karaoke-line-${idx}`}
+                  className={
+                    'karaoke-line' +
+                    (idx === activeLine ? ' active' : '') +
+                    (isSection ? ' karaoke-section' : '')
+                  }
+                >
+                  {line}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
