@@ -1,3 +1,4 @@
+import ChordToken from './ChordToken.jsx';
 import React from 'react';
 import NumberToken from './NumberToken.jsx';
 import { transposeChord, parseChordLine, parseSection, parseNumberLine } from '../utils/chordUtils.js';
