@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { transposeChord, parseChordLine, parseSection, parseNumberLine } from '../utils/chordUtils.js';
 
 function parseLines(lines, transpose) {
