@@ -75,12 +75,9 @@ export default function ChordDisplay({ song, transpose = 0, highlightChords = fa
           case 'lyrics':
             return (
               <div key={i} className="cd-lyrics">
-                {lineObj.tokens.map((t, j) => {
-                  if (t.isSpace) return <span key={j}>{t.token}</span>;
-                  if (t.isChord) return <ChordToken key={j} chord={t.token} highlight={highlightChords} />;
-                  if (t.isNumber) return <NumberToken key={j} number={t.token} />;
-                  return <span key={j}>{t.token}</span>;
-                })}
+                {lineObj.tokens.map((t, j) => (
+                  <span key={j}>{t.token}</span>
+                ))}
               </div>
             );
           default:
