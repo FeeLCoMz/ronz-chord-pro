@@ -1216,6 +1216,7 @@ body.dark-mode .lyrics-editor-textarea {
 
   .main-content {
     padding: var(--spacing-lg);
+    margin-left: 0px;
   }
 }
 
