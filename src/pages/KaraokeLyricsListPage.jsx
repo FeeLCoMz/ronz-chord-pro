@@ -37,7 +37,8 @@ function AddLyricsModal({ open, onClose, onAdd }) {
 
 export default function KaraokeLyricsListPage({ songs }) {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState('');
+  const [filterGenre, setFilterGenre] = useState('all');
   const [showAdd, setShowAdd] = useState(false);
   const [localSongs, setLocalSongs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,10 +54,15 @@ export default function KaraokeLyricsListPage({ songs }) {
     return () => { mounted = false; };
   }, []);
 
-  const filtered = localSongs.filter(song =>
-    song.title?.toLowerCase().includes(query.toLowerCase()) ||
-    song.artist?.toLowerCase().includes(query.toLowerCase())
-  );
+  // Genre options
+  const genres = Array.from(new Set(localSongs.map(song => song.genre).filter(Boolean))).sort();
+
+  // Filtered songs
+  const filtered = localSongs.filter(song => {
+    const matchesSearch = song.title?.toLowerCase().includes(search.toLowerCase()) || song.artist?.toLowerCase().includes(search.toLowerCase());
+    const matchesGenre = filterGenre === 'all' || song.genre === filterGenre;
+    return matchesSearch && matchesGenre;
+  });
 
   const handleAddSong = async ({ title, artist, lyrics }) => {
     try {
@@ -75,27 +81,34 @@ export default function KaraokeLyricsListPage({ songs }) {
       <AddLyricsModal open={showAdd} onClose={() => setShowAdd(false)} onAdd={handleAddSong} />
       <div className="page-header">
         <h1>🎤 Lirik Lagu</h1>
-        {loading ? (
-          <p>Memuat lagu...</p>
-        ) : error ? (
-          <p style={{ color: 'red' }}>{error}</p>
-        ) : (
-          <p>{filtered.length} dari {localSongs.length} lagu</p>
-        )}
-        <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Cari judul atau artis..."
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            className="search-input-main"
-            disabled={loading}
-          />
-          <button className="btn btn-primary" onClick={() => setShowAdd(true)} disabled={loading}>
-            + Tambah Lirik Lagu
-          </button>
-        </div>
+        <p>{filtered.length} dari {localSongs.length} lagu</p>
+        <button className="btn-base" onClick={() => setShowAdd(true)}>
+          + Tambah Lirik Lagu
+        </button>
       </div>
+
+      {/* Filter & Search Bar */}
+      <div className="filter-container" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
+        <input
+          type="text"
+          placeholder="🔍 Cari judul atau artis..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="search-input-main"
+        />
+        <select
+          value={filterGenre}
+          onChange={e => setFilterGenre(e.target.value)}
+          className="filter-select"
+        >
+          <option value="all">Semua Genre</option>
+          {genres.map(genre => (
+            <option key={genre} value={genre}>{genre}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Lyrics List */}
       <div className="song-list-container">
         {loading ? (
           <div className="empty-state">Memuat...</div>
