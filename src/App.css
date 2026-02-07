@@ -1,3 +1,20 @@
+/* ========================================
+   NUMBER TOKEN COMPONENT
+   ======================================== */
+.number-token {
+  color: var(--primary-accent);
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: var(--font-size-base);
+  display: inline-block;
+  transition: background var(--transition-fast);
+}
+body.dark-mode .number-token {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+}
 /* Contributor (Owner) Display */
 .song-lyrics-owner {
   font-size: 0.95em;

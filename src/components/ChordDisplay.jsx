@@ -1,9 +1,37 @@
-import React from 'react';
-import { transposeChord as transposeChordUtil, parseChordLine, parseSection, parseNumberLine } from '../utils/chordUtils.js';
-import ChordToken from './ChordToken.jsx';
-import NumberToken from './NumberToken.jsx';
-
 const transposeChord = transposeChordUtil;
+
+function parseLines(lines, transpose) {
+  return lines.map(line => {
+    const trimmed = line.trim();
+    if (trimmed === '') return { type: 'empty' };
+    const section = parseSection(line);
+    if (section) return { type: section.type, label: section.label };
+    if (parseChordLine(line)) {
+      // Transpose all chord tokens in line
+      const tokens = line.split(/(\s+)/).map(token => {
+        if (/^\s+$/.test(token)) return { token, isSpace: true };
+        return { token: transpose ? transposeChord(token, transpose) : token, isChord: true };
+      });
+      return { type: 'chord', tokens };
+    }
+    if (parseNumberLine(line)) {
+      const tokens = line.split(/(\s+)/).map(token => {
+        if (/^\s+$/.test(token)) return { token, isSpace: true };
+        return { token, isNumber: true };
+      });
+      return { type: 'number', tokens };
+    }
+    // Lyrics line, tokenize for chord/number inline
+    const tokens = line.split(/(\s+)/).map(token => {
+      const t = token.trim();
+      if (/^\s+$/.test(token)) return { token, isSpace: true };
+      if (parseChordLine(t)) return { token: transpose ? transposeChord(t, transpose) : t, isChord: true };
+      if (parseNumberLine(t)) return { token, isNumber: true };
+      return { token };
+    });
+    return { type: 'lyrics', tokens };
+  });
+}
 
 export default function ChordDisplay({ song, transpose = 0, highlightChords = false, zoom = 1 }) {
   if (!song?.lyrics) {
@@ -15,90 +43,49 @@ export default function ChordDisplay({ song, transpose = 0, highlightChords = fa
   }
 
   const lines = song.lyrics.split(/\r?\n/);
-
-  function renderLyricsLine(line, key) {
-    const tokens = line.split(/(\s+)/).filter(Boolean);
-    return (
-      <div key={key} className="cd-lyrics">
-        {tokens.map((token, idx) => {
-          const trimmed = token.trim();
-          if (parseChordLine(trimmed)) {
-            let chord = transpose ? transposeChord(trimmed, transpose) : trimmed;
-            return <ChordToken key={idx} chord={chord} highlight={highlightChords} />;
-          }
-          if (parseNumberLine(trimmed)) {
-            return <NumberToken key={idx} number={token} />;
-          }
-          return <span key={idx}>{token}</span>;
-        })}
-      </div>
-    );
-  }
+  const parsedLines = parseLines(lines, transpose);
 
   return (
     <div className="cd" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}>
-      {lines.map((line, i) => {
-        // Empty line
-        if (line.trim() === '') {
-          return (
-            <div key={i} className="cd-empty-line">
-              &nbsp;
-            </div>
-          );
-        }
-
-        // Section markers
-        const section = parseSection(line);
-        if (section) {
-          if (section.type === 'structure') {
+      {parsedLines.map((lineObj, i) => {
+        switch (lineObj.type) {
+          case 'empty':
+            return <div key={i} className="cd-empty-line">&nbsp;</div>;
+          case 'structure':
+            return <div key={i} className="cd-section-struct">{lineObj.label}</div>;
+          case 'instrument':
+            return <div key={i} className="cd-section-inst">{lineObj.label}</div>;
+          case 'chord':
             return (
-              <div key={i} className="cd-section-struct">
-                {section.label}
+              <div key={i} className="cd-chord">
+                {lineObj.tokens.map((t, j) =>
+                  t.isSpace ? <span key={j}>{t.token}</span> :
+                  highlightChords ? <ChordToken key={j} chord={t.token} highlight={true} /> : <span key={j} className="cd-token">{t.token}</span>
+                )}
               </div>
             );
-          }
-          if (section.type === 'instrument') {
+          case 'number':
             return (
-              <div key={i} className="cd-section-inst">
-                {section.label}
+              <div key={i} className="cd-number">
+                {lineObj.tokens.map((t, j) =>
+                  t.isSpace ? <span key={j}>{t.token}</span> : <NumberToken key={j} number={t.token} />
+                )}
               </div>
             );
-          }
+          case 'lyrics':
+            return (
+              <div key={i} className="cd-lyrics">
+                {lineObj.tokens.map((t, j) => {
+                  if (t.isSpace) return <span key={j}>{t.token}</span>;
+                  if (t.isChord) return <ChordToken key={j} chord={t.token} highlight={highlightChords} />;
+                  if (t.isNumber) return <NumberToken key={j} number={t.token} />;
+                  return <span key={j}>{t.token}</span>;
+                })}
+              </div>
+            );
+          default:
+            return <div key={i}>{lineObj.tokens.map((t, j) => <span key={j}>{t.token}</span>)}</div>;
         }
-
-        // Chord line
-        if (parseChordLine(line)) {
-          return (
-            <div key={i} className="cd-chord">
-              {line.split(/(\s+)/).map((token, j) => {
-                if (/^\s+$/.test(token)) return <span key={j}>{token}</span>;
-                let chord = transpose ? transposeChord(token, transpose) : token;
-                return highlightChords ? (
-                  <ChordToken key={j} chord={chord} highlight={true} />
-                ) : (
-                  <span key={j} className="cd-token">
-                    {chord}
-                  </span>
-                );
-              })}
-            </div>
-          );
-        }
-
-        // Number notation line
-        if (parseNumberLine(line)) {
-          return (
-            <div key={i} className="cd-number">
-              {line.split(/(\s+)/).map((token, j) => {
-                if (/^\s+$/.test(token)) return <span key={j}>{token}</span>;
-                return <NumberToken key={j} number={token} />;
-              })}
-            </div>
-          );
-        }
-
-        // Regular lyrics line
-        return renderLyricsLine(line, i);
       })}
     </div>
   );
