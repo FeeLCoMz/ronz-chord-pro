@@ -1,4 +1,5 @@
-const transposeChord = transposeChordUtil;
+
+import { transposeChord, parseChordLine, parseSection, parseNumberLine } from '../utils/chordUtils.js';
 
 function parseLines(lines, transpose) {
   return lines.map(line => {
