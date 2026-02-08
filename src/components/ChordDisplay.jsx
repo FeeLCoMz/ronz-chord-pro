@@ -1,4 +1,3 @@
-import ChordToken from './ChordToken.jsx';
 import React from 'react';
 import NumberToken from './NumberToken.jsx';
 import { transposeChord, parseChordLine, parseSection, parseNumberLine } from '../utils/chordUtils.js';
@@ -36,7 +35,7 @@ function parseLines(lines, transpose) {
   });
 }
 
-export default function ChordDisplay({ song, transpose = 0, highlightChords = false, zoom = 1 }) {
+export default function ChordDisplay({ song, transpose = 0, zoom = 1 }) {
   if (!song?.lyrics) {
     return (
       <div className="cd-empty">
@@ -63,7 +62,7 @@ export default function ChordDisplay({ song, transpose = 0, highlightChords = fa
               <div key={i} className="cd-chord">
                 {lineObj.tokens.map((t, j) =>
                   t.isSpace ? <span key={j}>{t.token}</span> :
-                  highlightChords ? <ChordToken key={j} chord={t.token} highlight={true} /> : <span key={j} className="cd-token">{t.token}</span>
+                  <span key={j} className="cd-token">{t.token}</span>
                 )}
               </div>
             );

@@ -49,7 +49,7 @@ export default function SongLyricsPage({ song: songProp }) {
   // Transpose state
   const [transpose, setTranspose] = useState(0);
   const [zoom, setZoom] = useState(1);
-  const highlightChords = false;
+  // ...existing code...
 
   // In-place editing state
   const [isEditingLyrics, setIsEditingLyrics] = useState(false);
@@ -917,7 +917,7 @@ export default function SongLyricsPage({ song: songProp }) {
             <ChordDisplay
               song={song}
               transpose={transpose}
-              highlightChords={highlightChords}
+              // ...existing code...
               zoom={zoom}
             />
           </div>
