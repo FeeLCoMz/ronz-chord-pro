@@ -54,8 +54,10 @@ export default function ChordDisplay({ song, transpose = 0, zoom = 1 }) {
           case 'empty':
             return <div key={i} className="cd-empty-line">&nbsp;</div>;
           case 'structure':
+            // Struktur lagu: tampilkan label dengan kapitalisasi asli
             return <div key={i} className="cd-section-struct">{lineObj.label}</div>;
           case 'instrument':
+            // Instrumen: tampilkan label dengan kapitalisasi asli
             return <div key={i} className="cd-section-inst">{lineObj.label}</div>;
           case 'chord':
             return (
