@@ -1,7 +1,6 @@
 import { getTursoClient } from '../_turso.js';
 import { verifyToken } from '../_auth.js';
 import { randomUUID } from 'crypto';
-import setlistIdHandler from './[id].js';
 
 async function readJson(req) {
   if (req.body) return req.body;
@@ -26,12 +25,124 @@ export default async function handler(req, res) {
     // Check if this is a request for a specific setlist ID
     const path = req.path || req.url.split('?')[0];
     const relativePath = path.replace(/^\/api\/setlists\/?/, '').replace(/^\//, '');
-    
-    if (relativePath && (req.method === 'GET' || req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE')) {
-      // Delegate to [id].js handler
-      req.params = { ...req.params, id: relativePath };
-      req.query = { ...req.query, id: relativePath };
-      return setlistIdHandler(req, res);
+    const isIdRoute = relativePath && relativePath !== '';
+    const id = isIdRoute ? relativePath : null;
+
+    if (isIdRoute && (req.method === 'GET' || req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE')) {
+      // --- Begin logic from [id].js ---
+      const idStr = id ? String(id).trim() : '';
+      if (!idStr) {
+        res.status(400).json({ error: 'Missing setlist id' });
+        return;
+      }
+      let client;
+      const userId = req.user?.userId;
+      try {
+        client = getTursoClient();
+      } catch (clientErr) {
+        console.error(`[setlists/[id]] Failed to get Turso client:`, clientErr.message);
+        res.status(500).json({ error: 'Database connection error', details: clientErr.message });
+        return;
+      }
+      if (req.method === 'GET') {
+        try {
+          const result = await client.execute(
+            `SELECT s.id, s.name, s.description, s.bandId, s.songs, s.setlistSongMeta, s.completedSongs, s.createdAt, s.updatedAt,\n                  b.name as bandName\n           FROM setlists s\n           LEFT JOIN bands b ON s.bandId = b.id\n           WHERE s.id = ? \n           AND (s.bandId IS NULL OR EXISTS (\n             SELECT 1 FROM band_members WHERE bandId = s.bandId AND userId = ?\n           ))\n           LIMIT 1`,
+            [idStr, userId]
+          );
+          const row = result.rows?.[0] || null;
+          if (!row) {
+            res.status(404).json({ error: 'Setlist not found' });
+            return;
+          }
+          res.status(200).json({
+            id: row.id,
+            name: row.name,
+            description: row.description || '',
+            bandId: row.bandId,
+            bandName: row.bandName,
+            songs: (() => {
+              try { return row.songs ? JSON.parse(row.songs) : []; } catch (e) { return []; }
+            })(),
+            songKeys: (() => {
+              try { return row.setlistSongMeta ? JSON.parse(row.setlistSongMeta) : {}; } catch (e) { return {}; }
+            })(),
+            completedSongs: (() => {
+              try { return row.completedSongs ? JSON.parse(row.completedSongs) : {}; } catch (e) { return {}; }
+            })(),
+            createdAt: row.createdAt,
+            updatedAt: row.updatedAt
+          });
+          return;
+        } catch (queryErr) {
+          throw queryErr;
+        }
+      }
+      if (req.method === 'PUT' || req.method === 'PATCH') {
+        const body = await readJson(req);
+        // Validate setlistSongMeta is a mapping from songId to metadata
+        if (body.setlistSongMeta && typeof body.setlistSongMeta === 'object') {
+          const meta = body.setlistSongMeta;
+          const invalid = Object.keys(meta).some(key => {
+            // songId should be string or number, value should be object
+            return (typeof key !== 'string' && typeof key !== 'number') || typeof meta[key] !== 'object';
+          });
+          if (invalid) {
+            res.status(400).json({ error: 'setlistSongMeta must be a mapping from songId to metadata object.' });
+            return;
+          }
+        } else if (body.setlistSongMeta) {
+          res.status(400).json({ error: 'setlistSongMeta must be an object mapping songId to metadata.' });
+          return;
+        }
+        const now = new Date().toISOString();
+        const songsJson = body.songs ? JSON.stringify(body.songs) : null;
+        const setlistSongMetaJson = body.setlistSongMeta ? JSON.stringify(body.setlistSongMeta) : null;
+        const completedSongsJson = body.completedSongs ? JSON.stringify(body.completedSongs) : null;
+
+        await client.execute(
+          `UPDATE setlists SET \n           name = COALESCE(?, name),\n           description = COALESCE(?, description),\n           bandId = COALESCE(?, bandId),\n           songs = COALESCE(?, songs),\n           setlistSongMeta = COALESCE(?, setlistSongMeta),\n           completedSongs = COALESCE(?, completedSongs),\n           updatedAt = ?\n         WHERE id = ?`,
+          [
+            body.name ?? null,
+            body.description ?? null,
+            body.bandId !== undefined ? body.bandId : null,
+            songsJson,
+            setlistSongMetaJson,
+            completedSongsJson,
+            now,
+            idStr,
+          ]
+        );
+
+        res.status(200).json({ id });
+        return;
+      }
+      if (req.method === 'DELETE') {
+        // Permission constants
+        const { SETLIST_DELETE } = require('../../src/utils/permissionUtils.js').PERMISSIONS;
+        const { hasPermission } = require('../../src/utils/permissionUtils.js');
+        const userRole = req.user?.role;
+        if (!hasPermission(userRole, SETLIST_DELETE)) {
+          res.status(403).json({ error: 'You do not have permission to delete setlists' });
+          return;
+        }
+        // Check if user is band member or owner for this setlist
+        const checkResult = await client.execute(
+          `SELECT s.id FROM setlists s\n         WHERE s.id = ? \n         AND (s.bandId IS NULL OR EXISTS (\n           SELECT 1 FROM band_members WHERE bandId = s.bandId AND userId = ?\n         ))\n         LIMIT 1`,
+          [idStr, userId]
+        );
+        if (!checkResult.rows || checkResult.rows.length === 0) {
+          res.status(403).json({ error: 'Access denied' });
+          return;
+        }
+        await client.execute(`DELETE FROM setlists WHERE id = ?`, [idStr]);
+        res.status(204).end();
+        return;
+      }
+      res.setHeader('Allow', 'GET, PUT, PATCH, DELETE');
+      res.status(405).json({ error: 'Method not allowed' });
+      return;
+      // --- End logic from [id].js ---
     }
 
     const client = getTursoClient();
