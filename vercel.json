@@ -11,24 +11,16 @@
       "dest": "/api/auth.js"
     },
     {
-      "src": "/api/gigs/([^/]+)$",
-      "dest": "/api/gigs/index.js?id=$1"
-    },
-    {
-      "src": "/api/songs/([^/]+)$",
-      "dest": "/api/songs/[id].js?id=$1"
-    },
-    {
       "src": "/api/bands/invitations/([^/]+)$",
       "dest": "/api/invitations.js?id=$1"
     },
     {
-      "src": "/api/setlists/([^/]+)$",
-      "dest": "/api/setlists/index.js?id=$1"
-    },
-    {
       "src": "/api/bands/([^/]+)$",
       "dest": "/api/bands/[id].js?id=$1"
+    },
+    {
+      "src": "/api/songs/([^/]+)$",
+      "dest": "/api/songs/[id].js?id=$1"
     },
     {
       "src": "/api/(.*)",
