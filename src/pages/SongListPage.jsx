@@ -153,10 +153,25 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
     );
   }
 
-  // Helper: count how many setlists use a song
+
+  // Optimized: Build a map of songId -> count of setlists using it
+  const songSetlistCountMap = useMemo(() => {
+    const map = {};
+    if (Array.isArray(setlists)) {
+      setlists.forEach(sl => {
+        if (Array.isArray(sl.songs)) {
+          sl.songs.forEach(songId => {
+            map[songId] = (map[songId] || 0) + 1;
+          });
+        }
+      });
+    }
+    return map;
+  }, [setlists]);
+
+  // Helper: get count from map
   function getSetlistCount(songId) {
-    if (!Array.isArray(setlists)) return 0;
-    return setlists.filter(sl => Array.isArray(sl.songs) && sl.songs.includes(songId)).length;
+    return songSetlistCountMap[songId] || 0;
   }
 
   return (
