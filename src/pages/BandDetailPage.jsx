@@ -148,14 +148,9 @@ export default function BandDetailPage() {
           }
           return (
             <div className="band-actions">
-              {canManageRoles && (
-                <button className="icon-btn-small" onClick={() => navigate(`/bands/admin/${id}`)} title="Kelola Member & Roles">
-                  ⚙️
-                </button>
-              )}
               {canEdit && (
-                <button className="icon-btn-small" onClick={() => setShowEditModal(true)} title="Edit Band">
-                  <EditIcon size={18} />
+                <button className="btn btn-primary" onClick={() => setShowEditModal(true)} title="Edit Band">
+                  <EditIcon size={18} /> Edit Band
                 </button>
               )}
               {canDelete && (
