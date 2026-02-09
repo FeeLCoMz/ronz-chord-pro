@@ -5,7 +5,6 @@
 # === API: Unused/disabled/over-quota endpoints ===
 api/ai.js
 api/gigs/
-api/practice/
 api/bands/invitations.js
 api/bands/invitations/
 api/auth/2fa-setup.js

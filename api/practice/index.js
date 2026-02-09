@@ -1,6 +1,5 @@
 import { getTursoClient } from '../_turso.js';
 import { randomUUID } from 'crypto';
-import practiceIdHandler from './[id].js';
 
 async function readJson(req) {
   if (req.body) return req.body;
@@ -16,13 +15,87 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
+
   // Check if this is a request for a specific practice session ID
   const path = req.path || req.url.split('?')[0];
   const relativePath = path.replace(/^\/api\/practice\/?/, '').replace(/^\//, '');
-  if (relativePath && (req.method === 'GET' || req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE')) {
-    req.params = { ...req.params, id: relativePath };
-    req.query = { ...req.query, id: relativePath };
-    return practiceIdHandler(req, res);
+  const isIdRoute = relativePath && relativePath !== '';
+  const id = isIdRoute ? relativePath : null;
+
+  if (isIdRoute && (req.method === 'GET' || req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE')) {
+    // --- Begin logic from [id].js ---
+    const idStr = id ? String(id).trim() : '';
+    if (!idStr) {
+      res.status(400).json({ error: 'Missing practice session id' });
+      return;
+    }
+    try {
+      const client = getTursoClient();
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      if (req.method === 'GET') {
+        const result = await client.execute(
+          `SELECT ps.id, ps.bandId, ps.date, ps.duration, ps.songs, ps.notes, ps.createdAt, ps.updatedAt,\n                b.name as bandName\n         FROM practice_sessions ps\n         LEFT JOIN bands b ON ps.bandId = b.id\n         WHERE ps.id = ? AND ps.bandId IN (\n           SELECT bandId FROM band_members WHERE userId = ?\n         ) LIMIT 1`,
+          [idStr, userId]
+        );
+        const row = result.rows?.[0] || null;
+        if (!row) {
+          res.status(404).json({ error: 'Practice session not found' });
+          return;
+        }
+        res.status(200).json({
+          id: row.id,
+          bandId: row.bandId,
+          bandName: row.bandName,
+          date: row.date,
+          duration: row.duration,
+          songs: (() => {
+            try { return row.songs ? JSON.parse(row.songs) : []; } catch (e) { return []; }
+          })(),
+          notes: row.notes || '',
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt
+        });
+        return;
+      }
+      if (req.method === 'PUT' || req.method === 'PATCH') {
+        const body = await readJson(req);
+        const { date, duration, songs, notes } = body;
+        const now = new Date().toISOString();
+        const songsJson = JSON.stringify(songs || []);
+        const result = await client.execute(
+          `UPDATE practice_sessions SET\n            date = COALESCE(?, date),\n            duration = COALESCE(?, duration),\n            songs = COALESCE(?, songs),\n            notes = COALESCE(?, notes),\n            updatedAt = ?\n           WHERE id = ? AND bandId IN (SELECT bandId FROM band_members WHERE userId = ?)`,
+          [date, duration, songsJson, notes, now, idStr, userId]
+        );
+        if (result.rowsAffected === 0) {
+          res.status(404).json({ error: 'Practice session not found or no permission' });
+          return;
+        }
+        res.status(200).json({ success: true });
+        return;
+      }
+      if (req.method === 'DELETE') {
+        const result = await client.execute(
+          `DELETE FROM practice_sessions WHERE id = ? AND bandId IN (SELECT bandId FROM band_members WHERE userId = ?)` ,
+          [idStr, userId]
+        );
+        if (result.rowsAffected === 0) {
+          res.status(404).json({ error: 'Practice session not found or no permission' });
+          return;
+        }
+        res.status(200).json({ success: true });
+        return;
+      }
+      res.setHeader('Allow', 'GET, PUT, PATCH, DELETE');
+      res.status(405).json({ error: 'Method not allowed' });
+    } catch (err) {
+      console.error('API /api/practice/[id] error:', err);
+      res.status(500).json({ error: 'Internal Server Error', message: err.message });
+    }
+    return;
+    // --- End logic from [id].js ---
   }
 
   try {
