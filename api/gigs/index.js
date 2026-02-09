@@ -1,5 +1,7 @@
+
 import { getTursoClient } from '../_turso.js';
 import { randomUUID } from 'crypto';
+import { verifyToken } from '../_auth.js';
 
 async function readJson(req) {
   if (req.body) return req.body;
@@ -15,6 +17,9 @@ async function readJson(req) {
 }
 
 export default async function handler(req, res) {
+  // Auth check
+  if (!verifyToken(req, res)) return;
+
   // Check if this is a request for a specific gig ID
   const path = req.path || req.url.split('?')[0];
   const relativePath = path.replace(/^\/api\/gigs\/?/, '').replace(/^\//, '');
