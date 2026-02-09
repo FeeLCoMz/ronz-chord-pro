@@ -46,8 +46,16 @@ export default async function handler(req, res) {
       }
       if (req.method === 'GET') {
         try {
+          // Get setlist info
           const result = await client.execute(
-            `SELECT s.id, s.name, s.description, s.bandId, s.songs, s.setlistSongMeta, s.completedSongs, s.createdAt, s.updatedAt,\n                  b.name as bandName\n           FROM setlists s\n           LEFT JOIN bands b ON s.bandId = b.id\n           WHERE s.id = ? \n           AND (s.bandId IS NULL OR EXISTS (\n             SELECT 1 FROM band_members WHERE bandId = s.bandId AND userId = ?\n           ))\n           LIMIT 1`,
+            `SELECT s.id, s.name, s.description, s.bandId, s.completedSongs, s.createdAt, s.updatedAt, b.name as bandName
+             FROM setlists s
+             LEFT JOIN bands b ON s.bandId = b.id
+             WHERE s.id = ?
+             AND (s.bandId IS NULL OR EXISTS (
+               SELECT 1 FROM band_members WHERE bandId = s.bandId AND userId = ?
+             ))
+             LIMIT 1`,
             [idStr, userId]
           );
           const row = result.rows?.[0] || null;
@@ -55,18 +63,29 @@ export default async function handler(req, res) {
             res.status(404).json({ error: 'Setlist not found' });
             return;
           }
+          // Get songs and meta from setlist_songs
+          const songRows = await client.execute(
+            `SELECT song_id, position, meta FROM setlist_songs WHERE setlist_id = ? ORDER BY position ASC`,
+            [idStr]
+          );
+          const songs = songRows.rows?.map(r => r.song_id) || [];
+          // meta: { songId: metaObj }
+          const songKeys = {};
+          (songRows.rows || []).forEach(r => {
+            try {
+              songKeys[r.song_id] = r.meta ? JSON.parse(r.meta) : {};
+            } catch {
+              songKeys[r.song_id] = {};
+            }
+          });
           res.status(200).json({
             id: row.id,
             name: row.name,
             description: row.description || '',
             bandId: row.bandId,
             bandName: row.bandName,
-            songs: (() => {
-              try { return row.songs ? JSON.parse(row.songs) : []; } catch (e) { return []; }
-            })(),
-            songKeys: (() => {
-              try { return row.setlistSongMeta ? JSON.parse(row.setlistSongMeta) : {}; } catch (e) { return {}; }
-            })(),
+            songs,
+            songKeys,
             completedSongs: (() => {
               try { return row.completedSongs ? JSON.parse(row.completedSongs) : {}; } catch (e) { return {}; }
             })(),
@@ -80,41 +99,39 @@ export default async function handler(req, res) {
       }
       if (req.method === 'PUT' || req.method === 'PATCH') {
         const body = await readJson(req);
-        // Validate setlistSongMeta is a mapping from songId to metadata
-        if (body.setlistSongMeta && typeof body.setlistSongMeta === 'object') {
-          const meta = body.setlistSongMeta;
-          const invalid = Object.keys(meta).some(key => {
-            // songId should be string or number, value should be object
-            return (typeof key !== 'string' && typeof key !== 'number') || typeof meta[key] !== 'object';
-          });
-          if (invalid) {
-            res.status(400).json({ error: 'setlistSongMeta must be a mapping from songId to metadata object.' });
-            return;
-          }
-        } else if (body.setlistSongMeta) {
-          res.status(400).json({ error: 'setlistSongMeta must be an object mapping songId to metadata.' });
-          return;
-        }
         const now = new Date().toISOString();
-        const songsJson = body.songs ? JSON.stringify(body.songs) : null;
-        const setlistSongMetaJson = body.setlistSongMeta ? JSON.stringify(body.setlistSongMeta) : null;
-        const completedSongsJson = body.completedSongs ? JSON.stringify(body.completedSongs) : null;
-
+        // Update setlist main fields
         await client.execute(
-          `UPDATE setlists SET \n           name = COALESCE(?, name),\n           description = COALESCE(?, description),\n           bandId = COALESCE(?, bandId),\n           songs = COALESCE(?, songs),\n           setlistSongMeta = COALESCE(?, setlistSongMeta),\n           completedSongs = COALESCE(?, completedSongs),\n           updatedAt = ?\n         WHERE id = ?`,
+          `UPDATE setlists SET 
+             name = COALESCE(?, name),
+             description = COALESCE(?, description),
+             bandId = COALESCE(?, bandId),
+             completedSongs = COALESCE(?, completedSongs),
+             updatedAt = ?
+           WHERE id = ?`,
           [
             body.name ?? null,
             body.description ?? null,
             body.bandId !== undefined ? body.bandId : null,
-            songsJson,
-            setlistSongMetaJson,
-            completedSongsJson,
+            body.completedSongs ? JSON.stringify(body.completedSongs) : null,
             now,
             idStr,
           ]
         );
-
-        res.status(200).json({ id });
+        // Update setlist_songs: remove all then insert new
+        if (Array.isArray(body.songs)) {
+          await client.execute(`DELETE FROM setlist_songs WHERE setlist_id = ?`, [idStr]);
+          for (let i = 0; i < body.songs.length; i++) {
+            const songId = body.songs[i];
+            const metaObj = (body.setlistSongMeta && body.setlistSongMeta[songId]) ? body.setlistSongMeta[songId] : {};
+            await client.execute(
+              `INSERT INTO setlist_songs (setlist_id, song_id, position, meta, createdAt, updatedAt)
+               VALUES (?, ?, ?, ?, ?, ?)`,
+              [idStr, songId, i, JSON.stringify(metaObj), now, now]
+            );
+          }
+        }
+        res.status(200).json({ id: idStr });
         return;
       }
       if (req.method === 'DELETE') {
@@ -181,7 +198,7 @@ export default async function handler(req, res) {
       // Get only setlists user has access to
       // Rules: user's own setlists OR setlists from bands they're a member of
       const rows = await client.execute(
-        `SELECT s.id, s.name, s.description, s.bandId, s.songs, s.setlistSongMeta, s.completedSongs, s.createdAt, s.updatedAt,
+        `SELECT s.id, s.name, s.description, s.bandId, s.completedSongs, s.createdAt, s.updatedAt,
                 b.name as bandName, u.username as userName, s.userId
          FROM setlists s
          LEFT JOIN bands b ON s.bandId = b.id
@@ -193,41 +210,43 @@ export default async function handler(req, res) {
          ORDER BY (s.updatedAt IS NULL) ASC, datetime(s.updatedAt) DESC, datetime(s.createdAt) DESC`,
         [userId]
       );
-      const setlists = (rows.rows ?? []).map(row => ({
-        id: row.id,
-        name: row.name,
-        description: row.description || '',
-        bandId: row.bandId,
-        bandName: row.bandName,
-        userId: row.userId,
-        userName: row.userName || '',
-        songs: (() => {
+      // For each setlist, fetch songs and meta from setlist_songs
+      const setlists = [];
+      for (const row of rows.rows ?? []) {
+        const songRows = await client.execute(
+          `SELECT song_id, position, meta FROM setlist_songs WHERE setlist_id = ? ORDER BY position ASC`,
+          [row.id]
+        );
+        const songs = songRows.rows?.map(r => r.song_id) || [];
+        const setlistSongMeta = {};
+        (songRows.rows || []).forEach(r => {
           try {
-            return row.songs ? JSON.parse(row.songs) : [];
-          } catch (e) {
-            console.warn(`Invalid JSON in setlist.songs for id=${row.id}:`, e.message);
-            return [];
+            setlistSongMeta[r.song_id] = r.meta ? JSON.parse(r.meta) : {};
+          } catch {
+            setlistSongMeta[r.song_id] = {};
           }
-        })(),
-        setlistSongMeta: (() => {
-          try {
-            return row.setlistSongMeta ? JSON.parse(row.setlistSongMeta) : {};
-          } catch (e) {
-            console.warn(`Invalid JSON in setlist.setlistSongMeta for id=${row.id}:`, e.message);
-            return {};
-          }
-        })(),
-        completedSongs: (() => {
-          try {
-            return row.completedSongs ? JSON.parse(row.completedSongs) : {};
-          } catch (e) {
-            console.warn(`Invalid JSON in setlist.completedSongs for id=${row.id}:`, e.message);
-            return {};
-          }
-        })(),
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt
-      }));
+        });
+        setlists.push({
+          id: row.id,
+          name: row.name,
+          description: row.description || '',
+          bandId: row.bandId,
+          bandName: row.bandName,
+          userId: row.userId,
+          userName: row.userName || '',
+          songs,
+          setlistSongMeta,
+          completedSongs: (() => {
+            try {
+              return row.completedSongs ? JSON.parse(row.completedSongs) : {};
+            } catch (e) {
+              return {};
+            }
+          })(),
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt
+        });
+      }
       res.status(200).json(setlists);
       return;
     }
@@ -265,42 +284,42 @@ export default async function handler(req, res) {
       const now = new Date().toISOString();
 
       try {
-        const songsJson = JSON.stringify(Array.isArray(body.songs) ? body.songs : []);
-        const setlistSongMetaJson = JSON.stringify(typeof body.setlistSongMeta === 'object' && body.setlistSongMeta !== null ? body.setlistSongMeta : {});
-        const completedSongsJson = JSON.stringify(typeof body.completedSongs === 'object' && body.completedSongs !== null ? body.completedSongs : {});
-
         await client.execute(
-          `INSERT INTO setlists (id, name, description, bandId, songs, setlistSongMeta, completedSongs, createdAt, updatedAt, userId)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO setlists (id, name, description, bandId, completedSongs, createdAt, updatedAt, userId)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             id,
             name,
             description,
             bandId,
-            songsJson,
-            setlistSongMetaJson,
             completedSongsJson,
             body.createdAt || now,
             now,
             userId,
           ]
         );
+        // Insert setlist_songs
+        if (Array.isArray(body.songs)) {
+          for (let i = 0; i < body.songs.length; i++) {
+            const songId = body.songs[i];
+            const metaObj = (body.setlistSongMeta && body.setlistSongMeta[songId]) ? body.setlistSongMeta[songId] : {};
+            await client.execute(
+              `INSERT INTO setlist_songs (setlist_id, song_id, position, meta, createdAt, updatedAt)
+               VALUES (?, ?, ?, ?, ?, ?)`,
+              [id, songId, i, JSON.stringify(metaObj), now, now]
+            );
+          }
+        }
         res.status(201).json({ id });
       } catch (insertErr) {
         // Check if it's a duplicate key error
         if (insertErr.message && insertErr.message.includes('UNIQUE')) {
           // Setlist already exists, update instead
-          const songsJson = JSON.stringify(Array.isArray(body.songs) ? body.songs : []);
-          const setlistSongMetaJson = JSON.stringify(typeof body.setlistSongMeta === 'object' && body.setlistSongMeta !== null ? body.setlistSongMeta : {});
-          const completedSongsJson = JSON.stringify(typeof body.completedSongs === 'object' && body.completedSongs !== null ? body.completedSongs : {});
-
           await client.execute(
             `UPDATE setlists SET 
                name = ?, 
                description = ?,
                bandId = ?,
-               songs = ?, 
-               setlistSongMeta = ?, 
                completedSongs = ?, 
                updatedAt = ?,
                userId = ?
@@ -309,14 +328,25 @@ export default async function handler(req, res) {
               name,
               description,
               bandId,
-              songsJson,
-              setlistSongMetaJson,
               completedSongsJson,
               now,
               userId,
               id,
             ]
           );
+          // Remove and re-insert setlist_songs
+          if (Array.isArray(body.songs)) {
+            await client.execute(`DELETE FROM setlist_songs WHERE setlist_id = ?`, [id]);
+            for (let i = 0; i < body.songs.length; i++) {
+              const songId = body.songs[i];
+              const metaObj = (body.setlistSongMeta && body.setlistSongMeta[songId]) ? body.setlistSongMeta[songId] : {};
+              await client.execute(
+                `INSERT INTO setlist_songs (setlist_id, song_id, position, meta, createdAt, updatedAt)
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                [id, songId, i, JSON.stringify(metaObj), now, now]
+              );
+            }
+          }
           res.status(200).json({ id });
         } else {
           throw insertErr;

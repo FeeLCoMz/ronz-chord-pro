@@ -7,6 +7,7 @@ import PlusIcon from '../components/PlusIcon.jsx';
 import EditIcon from '../components/EditIcon.jsx';
 import DeleteIcon from '../components/DeleteIcon.jsx';
 import { SongListSkeleton } from '../components/LoadingSkeleton.jsx';
+import { fetchSetLists } from '../apiClient.js';
 import { updatePageMeta, pageMetadata } from '../utils/metaTagsUtil.js';
 
 export default function SongListPage({ songs, loading, error, onSongClick }) {
@@ -14,6 +15,8 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
   const { user } = useAuth();
   const currentUserId = user?.userId || user?.id;
   const [search, setSearch] = useState('');
+  const [setlists, setSetlists] = useState([]);
+  const [setlistsLoading, setSetlistsLoading] = useState(true);
   const [filterArtist, setFilterArtist] = useState('all');
   const [filterKey, setFilterKey] = useState('all');
   const [filterGenre, setFilterGenre] = useState('all');
@@ -22,6 +25,14 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
 
   useEffect(() => {
     updatePageMeta(pageMetadata.songs);
+    // Fetch setlists for song usage count
+    let mounted = true;
+    setSetlistsLoading(true);
+    fetchSetLists()
+      .then(data => { if (mounted) setSetlists(data || []); })
+      .catch(() => { if (mounted) setSetlists([]); })
+      .finally(() => { if (mounted) setSetlistsLoading(false); });
+    return () => { mounted = false; };
   }, []);
 
   // Extract unique values for filters
@@ -140,6 +151,12 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
         <div className="error-text" style={{ padding: '20px' }}>{error}</div>
       </div>
     );
+  }
+
+  // Helper: count how many setlists use a song
+  function getSetlistCount(songId) {
+    if (!Array.isArray(setlists)) return 0;
+    return setlists.filter(sl => Array.isArray(sl.songs) && sl.songs.includes(songId)).length;
   }
 
   return (
@@ -267,6 +284,9 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                   {song.key && <span>🎹 {song.key}</span>}
                   {song.tempo && <span>⏱️ {song.tempo} BPM</span>}
                   {song.genre && <span>🎸 {song.genre}</span>}
+                  <span style={{ color: 'var(--primary-accent)', marginLeft: 8, fontSize: '0.95em' }}>
+                    {setlistsLoading ? '...' : `📋 ${getSetlistCount(song.id)} setlist`}
+                  </span>
                 </div>
               </div>
 
