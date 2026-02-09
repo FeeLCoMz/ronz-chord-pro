@@ -23,6 +23,10 @@
       "dest": "/api/songs/[id].js?id=$1"
     },
     {
+      "src": "/api/setlists/([^/]+)$",
+      "dest": "/api/setlists/index.js?id=$1"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
