@@ -40,6 +40,10 @@
       "dest": "/api/events/index.js"
     },
     {
+      "src": "/api/invitations/pending",
+      "dest": "/api/bands/index.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
