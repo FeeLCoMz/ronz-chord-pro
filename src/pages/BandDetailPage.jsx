@@ -17,6 +17,25 @@ export default function BandDetailPage() {
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteData, setInviteData] = useState({ email: '', role: 'member' });
+  const [inviting, setInviting] = useState(false);
+
+  // Handler for sending band invitation
+  async function handleSendInvite(e) {
+    e.preventDefault();
+    setInviting(true);
+    try {
+      await apiClient.sendBandInvitation(id, inviteData.email, inviteData.role);
+      setShowInviteModal(false);
+      setInviteData({ email: '', role: 'member' });
+      // Optionally reload band members if needed
+      await loadBand();
+    } catch (err) {
+      setError(err.message || 'Gagal mengirim undangan');
+    } finally {
+      setInviting(false);
+    }
+  }
   const [formData, setFormData] = useState({ name: '', description: '', genre: '' });
   const [setlists, setSetlists] = useState([]);
   const [practiceSessions, setPracticeSessions] = useState([]);
