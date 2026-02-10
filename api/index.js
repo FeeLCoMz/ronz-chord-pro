@@ -200,13 +200,9 @@ app.delete('/api/invitations/:id', verifyToken, (req, res, next) => {
 
 
 // Practice and gigs endpoints now handled by their own handlers
-import practiceHandler from './practice/index.js';
-import gigsHandler from './gigs/index.js';
-app.use('/api/practice', verifyToken, (req, res, next) => {
-  Promise.resolve(practiceHandler(req, res)).catch(next);
-});
-app.use('/api/gigs', verifyToken, (req, res, next) => {
-  Promise.resolve(gigsHandler(req, res)).catch(next);
+import eventsHandler from './events/index.js';
+app.use('/api/events/:type/:id?', verifyToken, (req, res, next) => {
+  Promise.resolve(eventsHandler(req, res)).catch(next);
 });
 
 // Status endpoint

@@ -308,7 +308,7 @@ export async function fetchPracticeSessions(bandId = null) {
   if (bandId) {
     url += `?bandId=${bandId}`;
   }
-  const res = await fetch(url, {
+  const res = await fetch(`${API_BASE}/events/practice`, {
     headers: getHeaders()
   });
   if (!res.ok) throw new Error('Failed to fetch practice sessions');
@@ -316,7 +316,7 @@ export async function fetchPracticeSessions(bandId = null) {
 }
 
 export async function fetchPracticeSessionById(id) {
-  const res = await fetch(`${API_BASE}/practice/${id}`, {
+  const res = await fetch(`${API_BASE}/events/practice/${id}`, {
     headers: getHeaders()
   });
   if (!res.ok) throw new Error('Failed to fetch practice session');
@@ -324,7 +324,7 @@ export async function fetchPracticeSessionById(id) {
 }
 
 export async function createPracticeSession(session) {
-  const res = await fetch(`${API_BASE}/practice`, {
+  const res = await fetch(`${API_BASE}/events/practice`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify(session)
@@ -338,7 +338,7 @@ export async function createPracticeSession(session) {
 }
 
 export async function updatePracticeSession(id, session) {
-  const res = await fetch(`${API_BASE}/practice/${id}`, {
+  const res = await fetch(`${API_BASE}/events/practice/${id}`, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify(session)
@@ -352,7 +352,7 @@ export async function updatePracticeSession(id, session) {
 }
 
 export async function deletePracticeSession(id) {
-  const res = await fetch(`${API_BASE}/practice/${id}`, {
+  const res = await fetch(`${API_BASE}/events/practice/${id}`, {
     method: 'DELETE',
     headers: getHeaders()
   });
@@ -370,7 +370,7 @@ export async function fetchGigs(bandId = null) {
   if (bandId) {
     url += `?bandId=${bandId}`;
   }
-  const res = await fetch(url, {
+  const res = await fetch(`${API_BASE}/events/gig`, {
     headers: getHeaders()
   });
   if (!res.ok) throw new Error('Failed to fetch gigs');
@@ -378,7 +378,7 @@ export async function fetchGigs(bandId = null) {
 }
 
 export async function fetchGigById(id) {
-  const res = await fetch(`${API_BASE}/gigs/${id}`, {
+  const res = await fetch(`${API_BASE}/events/gig/${id}`, {
     headers: getHeaders()
   });
   if (!res.ok) throw new Error('Failed to fetch gig');
@@ -386,7 +386,7 @@ export async function fetchGigById(id) {
 }
 
 export async function createGig(gig) {
-  const res = await fetch(`${API_BASE}/gigs`, {
+  const res = await fetch(`${API_BASE}/events/gig`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify(gig)
@@ -400,7 +400,7 @@ export async function createGig(gig) {
 }
 
 export async function updateGig(id, gig) {
-  const res = await fetch(`${API_BASE}/gigs/${id}`, {
+  const res = await fetch(`${API_BASE}/events/gig/${id}`, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify(gig)
@@ -414,7 +414,7 @@ export async function updateGig(id, gig) {
 }
 
 export async function deleteGig(id) {
-  const res = await fetch(`${API_BASE}/gigs/${id}`, {
+  const res = await fetch(`${API_BASE}/events/gig/${id}`, {
     method: 'DELETE',
     headers: getHeaders()
   });
