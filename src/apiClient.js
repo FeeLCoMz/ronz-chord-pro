@@ -304,11 +304,11 @@ export async function deleteBand(id) {
 
 // Practice Sessions API
 export async function fetchPracticeSessions(bandId = null) {
-  let url = `${API_BASE}/practice`;
+  let url = `${API_BASE}/events/practice`;
   if (bandId) {
-    url += `?bandId=${bandId}`;
+    url += `?bandId=${encodeURIComponent(bandId)}`;
   }
-  const res = await fetch(`${API_BASE}/events/practice`, {
+  const res = await fetch(url, {
     headers: getHeaders()
   });
   if (!res.ok) throw new Error('Failed to fetch practice sessions');
