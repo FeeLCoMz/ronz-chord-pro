@@ -26,17 +26,20 @@ export default function PendingInvitationsPage() {
   const fetchPendingInvitations = async () => {
     try {
       setLoading(true);
+      console.log('[PendingInvitationsPage] fetchPendingInvitations: start, isAuthenticated:', isAuthenticated);
       if (!isAuthenticated) {
         setInvitations([]);
         setError(null);
         return;
       }
       const data = await apiClient.getPendingInvitations();
+      console.debug('[PendingInvitationsPage] fetchPendingInvitations: data', data);
       setInvitations(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       setError(err.message);
       setInvitations([]);
+      console.error('[PendingInvitationsPage] fetchPendingInvitations: error', err);
     } finally {
       setLoading(false);
     }
@@ -45,6 +48,7 @@ export default function PendingInvitationsPage() {
   const handleAccept = async (invitationId) => {
     try {
       setProcessingId(invitationId);
+      console.log('[PendingInvitationsPage] handleAccept: start', invitationId);
       await apiClient.acceptInvitation(invitationId);
       setInvitations(invitations.filter(i => i.id !== invitationId));
       // Navigate to the band
@@ -52,8 +56,10 @@ export default function PendingInvitationsPage() {
       if (invitation) {
         navigate(`/bands/${invitation.bandId}`);
       }
+      console.log('[PendingInvitationsPage] handleAccept: success', invitationId);
     } catch (err) {
       setError(err.message);
+      console.error('[PendingInvitationsPage] handleAccept: error', err);
     } finally {
       setProcessingId(null);
     }
@@ -62,10 +68,13 @@ export default function PendingInvitationsPage() {
   const handleReject = async (invitationId) => {
     try {
       setProcessingId(invitationId);
+      console.log('[PendingInvitationsPage] handleReject: start', invitationId);
       await apiClient.rejectInvitation(invitationId);
       setInvitations(invitations.filter(i => i.id !== invitationId));
+      console.log('[PendingInvitationsPage] handleReject: success', invitationId);
     } catch (err) {
       setError(err.message);
+      console.error('[PendingInvitationsPage] handleReject: error', err);
     } finally {
       setProcessingId(null);
     }
