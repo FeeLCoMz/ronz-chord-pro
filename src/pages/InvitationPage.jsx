@@ -16,38 +16,50 @@ export default function InvitationPage() {
     fetchInvitation();
   }, [invitationId]);
 
+
   const fetchInvitation = async () => {
     try {
       setLoading(true);
+      console.debug('[InvitationPage] fetchInvitation: start', invitationId);
       const data = await apiClient.getInvitation(invitationId);
       setInvitation(data);
       setError(null);
+      console.debug('[InvitationPage] fetchInvitation: success', data);
     } catch (err) {
       setError(err.message);
+      console.error('[InvitationPage] fetchInvitation: error', err);
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleAccept = async () => {
     try {
       setProcessing(true);
+      console.debug('[InvitationPage] handleAccept: start', invitationId);
       await apiClient.acceptInvitation(invitationId);
+      console.debug('[InvitationPage] handleAccept: success');
       navigate('/bands', { replace: true });
     } catch (err) {
       setError(err.message);
       setProcessing(false);
+      console.error('[InvitationPage] handleAccept: error', err);
     }
   };
+
 
   const handleReject = async () => {
     try {
       setProcessing(true);
+      console.debug('[InvitationPage] handleReject: start', invitationId);
       await apiClient.rejectInvitation(invitationId);
+      console.debug('[InvitationPage] handleReject: success');
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.message);
       setProcessing(false);
+      console.error('[InvitationPage] handleReject: error', err);
     }
   };
 
