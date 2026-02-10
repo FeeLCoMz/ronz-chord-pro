@@ -461,11 +461,11 @@ export async function getInvitation(invitationId) {
   return await res.json();
 }
 
+
 export async function acceptInvitation(invitationId) {
-  const res = await fetch(`${API_BASE}/bands/invitations/${invitationId}`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ action: 'accept' })
+  const res = await fetch(`${API_BASE}/bands/invitations/${invitationId}/accept`, {
+    method: 'PATCH',
+    headers: getHeaders()
   });
   if (!res.ok) {
     let err;
@@ -475,11 +475,11 @@ export async function acceptInvitation(invitationId) {
   return await res.json();
 }
 
+
 export async function rejectInvitation(invitationId) {
-  const res = await fetch(`${API_BASE}/bands/invitations/${invitationId}`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ action: 'reject' })
+  const res = await fetch(`${API_BASE}/bands/invitations/${invitationId}/reject`, {
+    method: 'PATCH',
+    headers: getHeaders()
   });
   if (!res.ok) {
     let err;
