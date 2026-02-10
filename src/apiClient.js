@@ -366,11 +366,11 @@ export async function deletePracticeSession(id) {
 
 // Gigs API
 export async function fetchGigs(bandId = null) {
-  let url = `${API_BASE}/gigs`;
+  let url = `${API_BASE}/events/gig`;
   if (bandId) {
-    url += `?bandId=${bandId}`;
+    url += `?bandId=${encodeURIComponent(bandId)}`;
   }
-  const res = await fetch(`${API_BASE}/events/gig`, {
+  const res = await fetch(url, {
     headers: getHeaders()
   });
   if (!res.ok) throw new Error('Failed to fetch gigs');
