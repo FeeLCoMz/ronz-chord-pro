@@ -4,14 +4,13 @@
 
 # === API: Unused/disabled/over-quota endpoints ===
 api/index.js
-api/ai.js
+api/server.js
 api/bands/invitations.js
 api/bands/invitations/
 api/auth/2fa-setup.js
 api/auth/2fa-verify.js
 api/auth/forgot-password.js
 api/auth/reset-password.js
-api/server.js
 api/__tests__/
 api/middleware/
 api/legacy/
