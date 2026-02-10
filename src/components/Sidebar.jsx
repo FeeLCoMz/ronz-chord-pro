@@ -16,7 +16,7 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme, invitationCo
     { path: '/karaoke', label: 'Lirik', icon: '🎤' },
     { path: '/setlists', label: 'Setlist', icon: '📋' },
     { path: '/bands/manage', label: 'Band Saya', icon: '🎸' },
-    { path: '/invitations/pending', label: 'Undangan', icon: '📨', badge: invitationCount },
+    // Invitations menu removed
     { path: '/practice', label: 'Latihan', icon: '💪' },
     { path: '/gigs', label: 'Konser', icon: '🎤' }
   ];

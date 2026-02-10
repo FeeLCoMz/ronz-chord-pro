@@ -24,8 +24,6 @@ const SetlistPage = lazy(() => import('./pages/SetlistPage.jsx'));
 const SetlistSongsPage = lazy(() => import('./pages/SetlistSongsPage.jsx'));
 const BandDetailPage = lazy(() => import('./pages/BandDetailPage.jsx'));
 const BandManagementPage = lazy(() => import('./pages/BandManagementPage.jsx'));
-const InvitationPage = lazy(() => import('./pages/InvitationPage.jsx'));
-const PendingInvitationsPage = lazy(() => import('./pages/PendingInvitationsPage.jsx'));
 const PracticeSessionPage = lazy(() => import('./pages/PracticeSessionPage.jsx'));
 const GigPage = lazy(() => import('./pages/GigPage.jsx'));
 const AuditLogPage = lazy(() => import('./pages/AuditLogPage.jsx'));
@@ -320,8 +318,7 @@ function AppContent() {
           <Route path="/bands/manage" element={<BandManagementPage />} />
           <Route path="/bands" element={<Navigate to="/bands/manage" replace />} />
           <Route path="/bands/:id" element={<BandDetailPage />} />
-          <Route path="/invitations/pending" element={<PendingInvitationsPage />} />
-          <Route path="/invitations/:invitationId" element={<InvitationPage />} />
+          {/* InvitationPage and PendingInvitationsPage removed */}
           <Route path="/settings/2fa" element={<TwoFactorSetupPage />} />
           <Route path="/audit-logs" element={<AuditLogPage />} />
           <Route path="*" element={<NotFound />} />

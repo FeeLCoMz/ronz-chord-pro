@@ -16,26 +16,6 @@ export default function BandDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteData, setInviteData] = useState({ email: '', role: 'member' });
-  const [inviting, setInviting] = useState(false);
-
-  // Handler for sending band invitation
-  async function handleSendInvite(e) {
-    e.preventDefault();
-    setInviting(true);
-    try {
-      await apiClient.sendBandInvitation(id, inviteData.email, inviteData.role);
-      setShowInviteModal(false);
-      setInviteData({ email: '', role: 'member' });
-      // Optionally reload band members if needed
-      await loadBand();
-    } catch (err) {
-      setError(err.message || 'Gagal mengirim undangan');
-    } finally {
-      setInviting(false);
-    }
-  }
   const [formData, setFormData] = useState({ name: '', description: '', genre: '' });
   const [setlists, setSetlists] = useState([]);
   const [practiceSessions, setPracticeSessions] = useState([]);
@@ -146,15 +126,7 @@ export default function BandDetailPage() {
       <div className="dashboard-card" style={{ marginBottom: '24px' }}>
         <div className="card-header">
           <h2 className="card-title">👥 Anggota Band ({band.members?.length || 0})</h2>
-          {can(PERMISSIONS.MEMBER_INVITE) && (
-            <button 
-              className="btn-base"
-              onClick={() => setShowInviteModal(true)}
-              style={{ fontSize: '0.9em', padding: '8px 14px' }}
-            >
-              + Undang Member
-            </button>
-          )}
+          {/* Invite Member button removed */}
         </div>
         {!band.members || band.members.length === 0 ? (
           <div className="empty-state">
@@ -179,44 +151,7 @@ export default function BandDetailPage() {
         )}
       </div>
 
-      {/* Invite Modal */}
-      {showInviteModal && (
-        <div className="modal-overlay" onClick={() => setShowInviteModal(false)}>
-          <div className="modal-card" onClick={e => e.stopPropagation()}>
-            <h2>Undang Member</h2>
-            <form onSubmit={handleSendInvite}>
-              <input
-                type="email"
-                placeholder="Email user"
-                value={inviteData.email}
-                onChange={e => setInviteData({ ...inviteData, email: e.target.value })}
-                required
-                className="modal-input"
-              />
-              <select
-                value={inviteData.role}
-                onChange={e => setInviteData({ ...inviteData, role: e.target.value })}
-                className="modal-input"
-              >
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-              </select>
-              <div className="form-actions">
-                <button type="submit" disabled={inviting} className="btn-base">
-                  {inviting ? 'Mengirim...' : 'Kirim Undangan'}
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => setShowInviteModal(false)}
-                  className="btn-cancel"
-                >
-                  Batal
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Invite Modal removed */}
 
       {/* Edit Modal */}
       {showEditModal && (
