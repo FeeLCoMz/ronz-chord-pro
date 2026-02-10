@@ -164,7 +164,7 @@ export const getTransposeSteps = (fromKey, toKey) => {
 };
 
 // Fungsi untuk mendeteksi apakah sebuah baris adalah baris chord
-const isChordLine = (line) => {
+export const isChordLine = (line) => {
   if (!line.trim()) return false;
 
   // Check for compact chord format with .. separator (e.g., D..Gm..Bb)
