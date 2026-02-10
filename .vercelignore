@@ -3,6 +3,7 @@
 ########################################
 
 # === API: Unused/disabled/over-quota endpoints ===
+api/index.js
 api/ai.js
 api/bands/invitations.js
 api/bands/invitations/
