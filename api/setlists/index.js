@@ -331,9 +331,9 @@ export default async function handler(req, res) {
               id,
             ]
           );
-          // Remove and re-insert setlist_songs
+          // Remove all old setlist_songs before re-insert
+          await client.execute(`DELETE FROM setlist_songs WHERE setlist_id = ?`, [id]);
           if (Array.isArray(body.songs)) {
-            await client.execute(`DELETE FROM setlist_songs WHERE setlist_id = ?`, [id]);
             for (let i = 0; i < body.songs.length; i++) {
               const songId = body.songs[i];
               const metaObj = (body.setlistSongMeta && body.setlistSongMeta[songId]) ? body.setlistSongMeta[songId] : {};
