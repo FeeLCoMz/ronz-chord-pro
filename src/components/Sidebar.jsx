@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
+import { usePermission } from '../hooks/usePermission.js';
+import { PERMISSIONS } from '../utils/permissionUtils.js';
 import * as apiClient from '../apiClient.js';
 
 export default function Sidebar({ isOpen, onClose, theme, setTheme }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   // ...invitation logic removed...
+
+  // Ambil info band dan role user jika ada (untuk permission)
+  // Di sidebar global, kita asumsikan role global (user.role) untuk audit log
+  // dan user login saja untuk 2FA
+  const userBandInfo = user && user.role ? { role: user.role } : null;
+  const { can } = usePermission(null, userBandInfo);
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: '🏠' },
@@ -17,7 +25,10 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme }) {
     { path: '/bands/manage', label: 'Band Saya', icon: '🎸' },
     // Invitations menu removed
     { path: '/practice', label: 'Latihan', icon: '💪' },
-    { path: '/gigs', label: 'Konser', icon: '🎤' }
+    { path: '/gigs', label: 'Konser', icon: '🎤' },
+    // Menu Audit Log (khusus admin/owner)
+    ...(can && can(PERMISSIONS.ADMIN_VIEW_LOGS)
+      ? [{ path: '/audit-logs', label: 'Audit Log', icon: '🕵️' }] : []),
   ];
 
   const isActive = (path) => {
@@ -41,7 +52,6 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme }) {
     <>
       {/* Overlay untuk mobile */}
       {isOpen && <div className="sidebar-overlay" onClick={onClose} tabIndex={-1} aria-label="Tutup sidebar"></div>}
-      
       <aside className={`sidebar ${isOpen ? 'open' : ''}`} role="navigation" aria-label="Sidebar utama" tabIndex={0}>
         {/* Close button for mobile */}
         <button className="sidebar-close-btn" onClick={onClose} title="Tutup sidebar" aria-label="Tutup sidebar" tabIndex={0}>
@@ -83,6 +93,16 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme }) {
                 )}
               </button>
             ))}
+            {/* Menu Pengaturan 2FA, hanya tampil jika user login */}
+            {user && (
+              <button
+                className={`sidebar-nav-item ${isActive('/settings/2fa') ? 'active' : ''}`}
+                onClick={() => handleNavClick('/settings/2fa')}
+              >
+                <span className="sidebar-nav-icon">🔒</span>
+                <span className="sidebar-nav-label">Keamanan 2FA</span>
+              </button>
+            )}
           </div>
         </nav>
 
