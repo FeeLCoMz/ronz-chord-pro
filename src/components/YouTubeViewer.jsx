@@ -26,10 +26,15 @@ const YouTubeViewer = React.forwardRef(({
   const containerIdRef = useRef(`youtube-player-${Math.random().toString(36).slice(2,9)}`);
   const mountedRef = useRef(false);
 
-  // Expose currentTime to parent via ref
+  // Expose currentTime and handleSeek to parent via ref
   React.useImperativeHandle(ref, () => ({
-    currentTime
-  }), [currentTime]);
+    currentTime,
+    handleSeek: (time) => {
+      if (player && typeof player.seekTo === 'function') {
+        player.seekTo(time, true);
+      }
+    }
+  }), [currentTime, player]);
 
   useEffect(() => {
     mountedRef.current = true;
