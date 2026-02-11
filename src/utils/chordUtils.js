@@ -87,7 +87,9 @@ export function parseSection(line) {
     const instrumentKeywords = [
       'gitar', 'guitar', 'bass', 'ukulele', 'mandolin',
       'piano', 'keyboard', 'organ', 'synth',
-      'saxophone', 'saksofon', 'saxofon','trumpet', 'terompet', 'flute', 'suling', 'clarinet', 'klarinet',
+      // Brass section
+      'brass', 'horn section', 'horns', 'trombone', 'tuba', 'euphonium', 'cornet',
+      'saxophone', 'saksofon', 'saxofon', 'trumpet', 'terompet', 'flute', 'suling', 'clarinet', 'klarinet',
       'violin', 'biola', 'cello', 'kontrabas', 'strings',
       'vokal', 'vocal', 'vocalist', 'vokalist', 'choir', 'vokal grup',
       'drum', 'drums', 'perkusi', 'percussion', 'cajon', 'tamborin', 'marakas', 'rebana'
