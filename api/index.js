@@ -22,6 +22,7 @@ import http from 'http';
 import songsHandler from './songs/index.js';
 import setlistsHandler from './setlists/index.js';
 import bandsHandler from './bands/index.js';
+import bandMembersHandler from './bands/members.js';
 import aiHandler from './ai.js';
 import authRegisterHandler from './auth/register.js';
 import authLoginHandler from './auth/login.js';
@@ -30,8 +31,6 @@ import authForgotHandler from './auth/forgot-password.js';
 import authResetHandler from './auth/reset-password.js';
 import auth2FASetupHandler from './auth/2fa-setup.js';
 import auth2FAVerifyHandler from './auth/2fa-verify.js';
-
-
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -139,7 +138,10 @@ app.use('/api/setlists', verifyToken, (req, res, next) => {
   Promise.resolve(setlistsHandler(req, res)).catch(next);
 });
 
-// Band members endpoints (all consolidated into bandsHandler)
+// Band members endpoints (harus sebelum /api/bands agar tidak tertimpa)
+app.use('/api/bands/:id/members/:userId?', verifyToken, (req, res, next) => {
+  Promise.resolve(bandMembersHandler(req, res)).catch(next);
+});
 app.use('/api/bands', verifyToken, (req, res, next) => {
   Promise.resolve(bandsHandler(req, res)).catch(next);
 });

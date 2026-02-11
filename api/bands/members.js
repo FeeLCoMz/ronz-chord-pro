@@ -45,10 +45,12 @@ export default async function handler(req, res) {
     const client = getTursoClient();
 
     if (req.method === 'POST') {
+      console.log('[DEBUG] Mulai proses tambah anggota', { bandId, userId });
       // Add a new member to the band (invite by email)
       const body = await readJson(req);
       const { email, role } = body;
       if (!email || !role || !['member', 'admin'].includes(role)) {
+        console.log('[DEBUG] Email/role tidak valid', { email, role });
         return res.status(400).json({ error: 'Email dan role wajib diisi' });
       }
 
@@ -58,6 +60,7 @@ export default async function handler(req, res) {
         [bandId]
       );
       if (!bandResult.rows || bandResult.rows.length === 0) {
+        console.log('[DEBUG] Band tidak ditemukan', { bandId });
         return res.status(404).json({ error: 'Band not found' });
       }
       // Cek role user di band
@@ -68,6 +71,7 @@ export default async function handler(req, res) {
       const isOwner = bandResult.rows[0].createdBy === userId;
       const isAdmin = roleCheck.rows && roleCheck.rows[0]?.role === 'admin';
       if (!isOwner && !isAdmin) {
+        console.log('[DEBUG] Bukan owner/admin', { userId, bandId });
         return res.status(403).json({ error: 'Hanya owner/admin yang bisa menambah anggota' });
       }
 
@@ -77,6 +81,7 @@ export default async function handler(req, res) {
         [email]
       );
       if (!userResult.rows || userResult.rows.length === 0) {
+        console.log('[DEBUG] User tidak ditemukan', { email });
         return res.status(404).json({ error: 'User tidak ditemukan' });
       }
       const targetUserId = userResult.rows[0].id;
@@ -86,6 +91,7 @@ export default async function handler(req, res) {
         [bandId, targetUserId]
       );
       if (exists.rows && exists.rows.length > 0) {
+        console.log('[DEBUG] User sudah anggota', { targetUserId });
         return res.status(400).json({ error: 'User sudah menjadi anggota band' });
       }
       // Tambahkan ke band_members
@@ -93,6 +99,7 @@ export default async function handler(req, res) {
         'INSERT INTO band_members (bandId, userId, role, status, joinedAt) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)',
         [bandId, targetUserId, role, 'active']
       );
+      console.log('[DEBUG] Berhasil tambah anggota', { targetUserId, bandId });
       return res.status(201).json({
         userId: targetUserId,
         username: userResult.rows[0].username,

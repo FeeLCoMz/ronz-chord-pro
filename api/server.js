@@ -18,25 +18,27 @@ app.all('/api/setlists', (req, res) => setlistsHandler(req, res));
 app.all('/api/songs', (req, res) => songsHandler(req, res));
 // Remove old gigs endpoint
 // Route khusus untuk anggota band
-app.all('/api/bands/:id/members/:userId?', (req, res) => {
-	console.log('[SERVER] /api/bands/:id/members/:userId?', {
-		method: req.method,
-		path: req.path,
-		params: req.params,
-		query: req.query,
-		body: req.body
-	});
-	bandMembersHandler(req, res);
+// Route khusus untuk anggota band (HARUS sebelum /api/bands)
+app.all('/api/bands/:id/members', (req, res) => {
+  console.log('=== ROUTE MATCHED: /api/bands/:id/members ===');
+  bandMembersHandler(req, res);
 });
+app.all('/api/bands/:id/members/:userId', (req, res) => {
+  console.log('=== ROUTE MATCHED: /api/bands/:id/members/:userId ===');
+  bandMembersHandler(req, res);
+});
+
+// Route umum band (HARUS setelah /api/bands/:id/members/:userId?)
 app.all('/api/bands', (req, res) => {
-	console.log('[SERVER] /api/bands', {
-		method: req.method,
-		path: req.path,
-		params: req.params,
-		query: req.query,
-		body: req.body
-	});
-	bandsHandler(req, res);
+  console.log('=== ROUTE MATCHED: /api/bands ===');
+  console.log('[SERVER] /api/bands', {
+    method: req.method,
+    path: req.path,
+    params: req.params,
+    query: req.query,
+    body: req.body
+  });
+  bandsHandler(req, res);
 });
 
 module.exports = app;
