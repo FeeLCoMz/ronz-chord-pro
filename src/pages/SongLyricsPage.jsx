@@ -6,6 +6,9 @@ import TimeMarkers from "../components/TimeMarkers";
 import SetlistSongNavigator from "../components/SetlistSongNavigator";
 import TransposeKeyControl from "../components/TransposeKeyControl";
 import { getAuthHeader } from "../utils/auth.js";
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { usePermission } from '../hooks/usePermission.js';
+import { PERMISSIONS } from '../utils/permissionUtils.js';
 
 // Helper: get tempo term by BPM
 function getTempoTerm(bpm) {
@@ -24,6 +27,16 @@ export default function SongLyricsPage({ song: songProp }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
+  const { user } = useAuth();
+
+  // Determine bandId and userBandInfo for permission
+  const bandId = songProp?.bandId || songProp?.band_id || undefined;
+  // Try to get user role info from song or user
+  const userBandInfo = user && bandId ? {
+    role: user?.bandRoles?.[bandId] || user?.role || 'member',
+    bandId
+  } : user ? { role: user?.role || 'member' } : null;
+  const { can } = usePermission(bandId, userBandInfo);
 
   // State for fetched song data
   const [fetchedSong, setFetchedSong] = useState(null);
@@ -301,7 +314,7 @@ export default function SongLyricsPage({ song: songProp }) {
 
   // Handle time marker updates
   const handleTimeMarkerUpdate = async (updatedMarkers) => {
-    if (!song.id) return;
+    if (!song.id || !can(PERMISSIONS.SONG_EDIT)) return;
 
     try {
       const res = await fetch(`/api/songs/${song.id}`, {
@@ -518,9 +531,11 @@ export default function SongLyricsPage({ song: songProp }) {
           )}
         </div>
         <div className="song-lyrics-header-actions">
-          <button onClick={handleEdit} className="song-lyrics-edit-btn" title="Edit lagu">
-            ✏️ Edit
-          </button>
+          {can(PERMISSIONS.SONG_EDIT) && (
+            <button onClick={handleEdit} className="song-lyrics-edit-btn" title="Edit lagu">
+              ✏️ Edit
+            </button>
+          )}
           <button onClick={handleShare} className="song-lyrics-share-btn" title="Bagikan lagu">
             🔗 Bagikan
           </button>
@@ -587,7 +602,7 @@ export default function SongLyricsPage({ song: songProp }) {
               <div className="media-section-body">
                 <TimeMarkers
                   timeMarkers={timeMarkers}
-                  readonly={false}
+                  readonly={!can(PERMISSIONS.SONG_EDIT)}
                   onUpdate={handleTimeMarkerUpdate}
                   onSeek={(time) => {
                     if (youtubeRef.current && youtubeRef.current.handleSeek) {
@@ -837,15 +852,16 @@ export default function SongLyricsPage({ song: songProp }) {
             {/* 3. Edit Lirik */}
             {!isEditingLyrics ? (
               <>
-                <button
-                  type="button"
-                  onClick={handleEditLyrics}
-                  className="btn btn-primary"
-                  style={{ fontSize: "0.9em" }}
-                >
-                  ✏️ Edit Lirik
-                </button>
-
+                {can(PERMISSIONS.SONG_EDIT) && (
+                  <button
+                    type="button"
+                    onClick={handleEditLyrics}
+                    className="btn btn-primary"
+                    style={{ fontSize: "0.9em" }}
+                  >
+                    ✏️ Edit Lirik
+                  </button>
+                )}
                 {/* 4. Export Menu (RIGHT) */}
                 <div style={{ position: "relative" }}>
                   <button
