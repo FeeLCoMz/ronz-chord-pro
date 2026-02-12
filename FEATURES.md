@@ -29,7 +29,7 @@ Analytics utility untuk track user behavior dan custom events.
 import { trackSongAction } from '../utils/analyticsUtil.js';
 
 // Track when user views a song
-trackSongAction('view', 'Hallelujah');
+trackSongAction('view', 'Minin Uwo Lah Sukses');
 
 // Track when user adds new song
 trackSongAction('add', 'My Original Song');

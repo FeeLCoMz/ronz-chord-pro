@@ -31,7 +31,6 @@ export default function VoiceSearchButton({ onResult, disabled }) {
       onClick={handleStart}
       disabled={disabled}
       title="Cari dengan suara"
-      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px' }}
     >
       <span role="img" aria-label="mic">🎤</span>
     </button>

@@ -209,19 +209,21 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
       {/* Filters & Search */}
       <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* Search Bar + Voice Search */}
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: 4 }}>
           <input
             type="text"
             placeholder="🔍 Cari judul, artis, atau genre..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="search-input-main"
-            style={{ flex: 1 }}
+            style={{ width: '100%' }}
           />
-          <VoiceSearchButton
-            onResult={text => setSearch(text)}
-            disabled={loading}
-          />
+          <div style={{ alignItems: 'center', height: '100%' }}>
+            <VoiceSearchButton
+              onResult={text => setSearch(text)}
+              disabled={loading}
+            />
+          </div>
         </div>
 
         {/* Filters Row */}
