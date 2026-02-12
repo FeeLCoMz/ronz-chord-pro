@@ -177,6 +177,37 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Upcoming Events */}
+        <div className="dashboard-card">
+          <h2>📅 Upcoming Events</h2>
+          {eventsLoading ? (
+            <div className="dashboard-event-list">
+              {[...Array(3)].map((_, idx) => (
+                <div key={idx} className="activity-item">
+                  <span className="loading-skeleton" style={{width:'100%',height:24}} />
+                </div>
+              ))}
+            </div>
+          ) : upcomingEvents.length === 0 ? (
+            <div className="dashboard-empty">Tidak ada event dalam 7 hari ke depan</div>
+          ) : (
+            <div className="dashboard-event-list">
+              {upcomingEvents.map((event, idx) => (
+                <div key={event.id} className="activity-item" style={{cursor:'pointer'}} onClick={() => {
+                  if (event.type === 'practice') navigate(`/practice/${event.id}`);
+                  else if (event.type === 'gig') navigate(`/gigs/${event.id}`);
+                }}>
+                  <div className="activity-icon">{event.icon}</div>
+                  <div className="activity-content">
+                    <div className="activity-text">{event.title}</div>
+                    <div className="activity-time">{formatDate(event.date)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Band Highlights */}

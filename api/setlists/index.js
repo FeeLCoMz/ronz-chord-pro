@@ -121,8 +121,14 @@ export default async function handler(req, res) {
         // Update setlist_songs: remove all then insert new
         if (Array.isArray(body.songs)) {
           await client.execute(`DELETE FROM setlist_songs WHERE setlist_id = ?`, [idStr]);
+          const seenSongIds = new Set();
           for (let i = 0; i < body.songs.length; i++) {
             const songId = body.songs[i];
+            if (seenSongIds.has(songId)) {
+              // Skip duplicate song in setlist
+              continue;
+            }
+            seenSongIds.add(songId);
             const metaObj = (body.setlistSongMeta && body.setlistSongMeta[songId]) ? body.setlistSongMeta[songId] : {};
             await client.execute(
               `INSERT INTO setlist_songs (setlist_id, song_id, position, meta, createdAt, updatedAt)
