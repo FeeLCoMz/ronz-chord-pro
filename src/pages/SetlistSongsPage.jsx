@@ -442,7 +442,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
         </div>
       </div>
 
-      {/* Song List */}
+      {/* Song List dengan drag-and-drop */}
       {filteredSongs.length === 0 ? (
         <div className="empty-state">
           <p>
@@ -457,7 +457,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       ) : (
         <div className="song-list-container">
           {filteredSongs.map((song, idx) => {
-            // Untuk arrow, gunakan index di localOrder (urutan custom sebenarnya)
             const customIdx = localOrder.indexOf(song.id);
             const baseSong = baseSongMap.get(song.id);
             const keyChanged = baseSong && song.key && baseSong.key && song.key !== baseSong.key;
@@ -467,14 +466,51 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
               <div
                 key={song.id}
                 className="song-item"
+                draggable={sortBy === 'custom'}
+                onDragStart={e => {
+                  if (sortBy !== 'custom') return;
+                  e.dataTransfer.setData('song-idx', String(customIdx));
+                  e.currentTarget.classList.add('dragging');
+                }}
+                onDragEnd={e => {
+                  e.currentTarget.classList.remove('dragging');
+                }}
+                onDragOver={e => {
+                  if (sortBy !== 'custom') return;
+                  e.preventDefault();
+                  e.currentTarget.classList.add('drag-over');
+                }}
+                onDragLeave={e => {
+                  e.currentTarget.classList.remove('drag-over');
+                }}
+                onDrop={e => {
+                  if (sortBy !== 'custom') return;
+                  e.preventDefault();
+                  e.currentTarget.classList.remove('drag-over');
+                  const fromIdx = Number(e.dataTransfer.getData('song-idx'));
+                  const toIdx = customIdx;
+                  if (fromIdx !== toIdx) handleReorder(fromIdx, toIdx);
+                }}
                 onClick={() => navigate(`/songs/view/${song.id}`, {
                   state: {
                     setlistId: setlist.id,
-                    setlist: { ...setlist, songs: setlistSongs }, // pastikan urutan lagu terkirim
+                    setlist: { ...setlist, songs: setlistSongs },
                     setlistSong: song
                   }
                 })}
               >
+                {/* Drag handle icon */}
+                {sortBy === 'custom' && (
+                  <span style={{ cursor: 'grab', marginRight: 8, verticalAlign: 'middle' }} title="Seret untuk mengatur urutan">
+                    {/* DragHandleIcon */}
+                    <svg width={18} height={18} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
+                      <circle cx="7" cy="13" r="1.5" fill="currentColor"/>
+                      <circle cx="13" cy="7" r="1.5" fill="currentColor"/>
+                      <circle cx="13" cy="13" r="1.5" fill="currentColor"/>
+                    </svg>
+                  </span>
+                )}
                 {/* Song Info */}
                 <div className="song-info">
                   <div className="song-number" style={{ fontWeight: 600, marginRight: 12, minWidth: 24, display: 'inline-block' }}>{idx + 1}.</div>
@@ -509,22 +545,6 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                   className="song-actions"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <button
-                    onClick={() => sortBy === 'custom' && customIdx > 0 && handleReorder(customIdx, customIdx - 1)}
-                    className="btn-base arrow-btn"
-                    disabled={sortBy !== 'custom' || customIdx === 0}
-                    title="Naik satu posisi (hanya mode custom)"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    onClick={() => sortBy === 'custom' && customIdx < localOrder.length - 1 && handleReorder(customIdx, customIdx + 1)}
-                    className="btn-base arrow-btn"
-                    disabled={sortBy !== 'custom' || customIdx === localOrder.length - 1}
-                    title="Turun satu posisi (hanya mode custom)"
-                  >
-                    ↓
-                  </button>
                   <button
                     onClick={() => openEditSong(song.id)}
                     className="btn-base"
