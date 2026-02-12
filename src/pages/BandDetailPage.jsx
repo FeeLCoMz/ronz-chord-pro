@@ -164,20 +164,39 @@ export default function BandDetailPage() {
                     )}
                   </div>
                 </div>
-                {/* Permission: Only show edit for non-owner if can manage_members */}
+                {/* Permission: Only show edit/delete for non-owner if can manage_members */}
                 {(can('manage_members') || band.isOwner || band.userRole === 'admin') && !member.isOwner && (
-                  <button
-                    className="btn-base"
-                    style={{ marginLeft: 8 }}
-                    title="Edit Member Role"
-                    onClick={() => {
-                      setEditMember(member);
-                      setEditRole(member.role || 'member');
-                      setEditError(null);
-                    }}
-                  >
-                    <EditIcon size={16} />
-                  </button>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button
+                      className="btn-base"
+                      style={{ marginLeft: 8 }}
+                      title="Edit Member Role"
+                      onClick={() => {
+                        setEditMember(member);
+                        setEditRole(member.role || 'member');
+                        setEditError(null);
+                      }}
+                    >
+                      <EditIcon size={16} />
+                    </button>
+                    <button
+                      className="btn-base danger"
+                      style={{ marginLeft: 4 }}
+                      title="Hapus Member"
+                      onClick={async () => {
+                        if (window.confirm(`Yakin ingin menghapus ${member.username} dari band?`)) {
+                          try {
+                            await apiClient.removeBandMember(id, member.userId || member.id);
+                            await loadBand();
+                          } catch (err) {
+                            alert(err.message || 'Gagal menghapus member');
+                          }
+                        }
+                      }}
+                    >
+                      <DeleteIcon size={16} />
+                    </button>
+                  </div>
                 )}
               </div>
             ))}
