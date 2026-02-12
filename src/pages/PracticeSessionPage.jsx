@@ -39,8 +39,20 @@ export default function PracticeSessionPage() {
     return band ? { role: band.role || (band.isOwner ? 'owner' : 'member') } : { role: user?.role || 'member' };
   };
 
-  // Permission hook for selected band
+  // Permission hook for selected band (for create)
   const { can: canSelectedBand } = usePermission(selectedBandId, getUserBandInfo(selectedBandId));
+
+  // Precompute permissions for all sessions (for edit/delete)
+  const sessionPermissions = React.useMemo(() => {
+    const map = {};
+    sessions.forEach(session => {
+      const bandId = session.bandId;
+      const userBandInfo = getUserBandInfo(bandId);
+      map[session.id] = usePermission(bandId, userBandInfo);
+    });
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessions, bands, user]);
   useEffect(() => {
     updatePageMeta(pageMetadata.practice);
   }, []);
@@ -371,31 +383,24 @@ export default function PracticeSessionPage() {
 
               <div style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
                 {/* Permission for edit/delete per session */}
-                {(() => {
-                  const { can } = usePermission(session.bandId, getUserBandInfo(session.bandId));
-                  return (
-                    <>
-                      {can(PERMISSIONS.SETLIST_EDIT) && (
-                        <button
-                          className="icon-btn-small"
-                          onClick={() => handleEdit(session)}
-                          title="Edit"
-                        >
-                          <EditIcon size={16} />
-                        </button>
-                      )}
-                      {can(PERMISSIONS.SETLIST_DELETE) && (
-                        <button
-                          className="icon-btn-small delete-btn"
-                          onClick={() => setDeleteSession(session)}
-                          title="Hapus"
-                        >
-                          <DeleteIcon size={16} />
-                        </button>
-                      )}
-                    </>
-                  );
-                })()}
+                {sessionPermissions[session.id]?.can(PERMISSIONS.SETLIST_EDIT) && (
+                  <button
+                    className="icon-btn-small"
+                    onClick={() => handleEdit(session)}
+                    title="Edit"
+                  >
+                    <EditIcon size={16} />
+                  </button>
+                )}
+                {sessionPermissions[session.id]?.can(PERMISSIONS.SETLIST_DELETE) && (
+                  <button
+                    className="icon-btn-small delete-btn"
+                    onClick={() => setDeleteSession(session)}
+                    title="Hapus"
+                  >
+                    <DeleteIcon size={16} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
