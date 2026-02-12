@@ -1,23 +1,23 @@
+
 /**
  * Ruang Performer API Server
  * Handles songs, setlists, bands, practice sessions, and gigs management
  */
 
+// --- Core/3rd-party imports ---
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
-import { createRateLimiter, userKeyGenerator, RATE_LIMITS } from './middleware/rateLimiter.js';
-
-// Load .env.local first (highest priority), then .env
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
 import https from 'https';
 import http from 'http';
+
+// --- Middleware & utils ---
+import { createRateLimiter, userKeyGenerator, RATE_LIMITS } from './middleware/rateLimiter.js';
+
+// --- API Handlers ---
 import songsHandler from './songs/index.js';
 import setlistsHandler from './setlists/index.js';
 import bandsHandler from './bands/index.js';
@@ -31,8 +31,15 @@ import authResetHandler from './auth/reset-password.js';
 import auth2FASetupHandler from './auth/2fa-setup.js';
 import auth2FAVerifyHandler from './auth/2fa-verify.js';
 
+// --- Env setup ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
+// --- Express app setup ---
 const app = express();
 app.use(cors());
 
@@ -45,7 +52,7 @@ app.use((req, res, next) => {
   }
 });
 
-// Middleware to verify JWT token
+// --- JWT Middleware ---
 export function verifyToken(req, res, next) {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) {
