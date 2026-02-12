@@ -8,7 +8,7 @@ import EditIcon from '../components/EditIcon.jsx';
 import DeleteIcon from '../components/DeleteIcon.jsx';
 import { SongListSkeleton } from '../components/LoadingSkeleton.jsx';
 import { fetchSetLists } from '../apiClient.js';
-import SearchMicButton from '../components/SearchMicButton.jsx';
+import VoiceSearchButton from '../components/VoiceSearchButton.jsx';
 import { updatePageMeta, pageMetadata } from '../utils/metaTagsUtil.js';
 
 export default function SongListPage({ songs, loading, error, onSongClick }) {
@@ -208,7 +208,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
 
       {/* Filters & Search */}
       <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {/* Search Bar + Mic */}
+        {/* Search Bar + Voice Search */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
             type="text"
@@ -218,7 +218,10 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
             className="search-input-main"
             style={{ flex: 1 }}
           />
-          <SearchMicButton onResult={keyword => setSearch(keyword)} />
+          <VoiceSearchButton
+            onResult={text => setSearch(text)}
+            disabled={loading}
+          />
         </div>
 
         {/* Filters Row */}
