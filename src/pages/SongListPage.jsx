@@ -8,6 +8,7 @@ import EditIcon from '../components/EditIcon.jsx';
 import DeleteIcon from '../components/DeleteIcon.jsx';
 import { SongListSkeleton } from '../components/LoadingSkeleton.jsx';
 import { fetchSetLists } from '../apiClient.js';
+import SearchMicButton from '../components/SearchMicButton.jsx';
 import { updatePageMeta, pageMetadata } from '../utils/metaTagsUtil.js';
 
 export default function SongListPage({ songs, loading, error, onSongClick }) {
@@ -20,6 +21,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
   const [filterArtist, setFilterArtist] = useState('all');
   const [filterKey, setFilterKey] = useState('all');
   const [filterGenre, setFilterGenre] = useState('all');
+  const [filterSetlist, setFilterSetlist] = useState('all');
   const [sortBy, setSortBy] = useState('updated');
   const [sortOrder, setSortOrder] = useState('desc');
 
@@ -54,6 +56,12 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
     };
   }, [songs]);
 
+  // Extract setlist options for filter
+  const setlistOptions = useMemo(() => {
+    if (!Array.isArray(setlists)) return [];
+    return setlists.map(sl => ({ id: sl.id, name: sl.name || `Setlist ${sl.id}` }));
+  }, [setlists]);
+
   // Filter and sort songs
   const filteredSongs = useMemo(() => {
     let result = [...songs];
@@ -77,6 +85,16 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
     }
     if (filterGenre !== 'all') {
       result = result.filter(song => song.genre === filterGenre);
+    }
+    if (filterSetlist !== 'all') {
+      // Cari setlist yang dipilih
+      const selectedSetlist = setlists.find(sl => String(sl.id) === String(filterSetlist));
+      if (selectedSetlist && Array.isArray(selectedSetlist.songs)) {
+        const songIds = new Set(selectedSetlist.songs);
+        result = result.filter(song => songIds.has(song.id));
+      } else {
+        result = [];
+      }
     }
 
     // Apply sorting
@@ -118,18 +136,19 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
     });
 
     return result;
-  }, [songs, search, filterArtist, filterKey, filterGenre, sortBy, sortOrder]);
+  }, [songs, search, filterArtist, filterKey, filterGenre, filterSetlist, setlists, sortBy, sortOrder]);
 
   const handleClearFilters = () => {
     setSearch('');
     setFilterArtist('all');
     setFilterKey('all');
     setFilterGenre('all');
+    setFilterSetlist('all');
     setSortBy('updated');
     setSortOrder('desc');
   };
 
-  const hasActiveFilters = search || filterArtist !== 'all' || filterKey !== 'all' || filterGenre !== 'all';
+  const hasActiveFilters = search || filterArtist !== 'all' || filterKey !== 'all' || filterGenre !== 'all' || filterSetlist !== 'all';
 
   if (loading) {
     return (
@@ -189,14 +208,18 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
 
       {/* Filters & Search */}
       <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {/* Search Bar */}
-        <input
-          type="text"
-          placeholder="🔍 Cari judul, artis, atau genre..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="search-input-main"
-        />
+        {/* Search Bar + Mic */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="text"
+            placeholder="🔍 Cari judul, artis, atau genre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="search-input-main"
+            style={{ flex: 1 }}
+          />
+          <SearchMicButton onResult={keyword => setSearch(keyword)} />
+        </div>
 
         {/* Filters Row */}
         <div style={{
@@ -204,6 +227,17 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
           gap: '12px'
         }}>
+          {/* Filter by Setlist */}
+          <select
+            value={filterSetlist}
+            onChange={e => setFilterSetlist(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">Semua Setlist</option>
+            {setlistOptions.map(sl => (
+              <option key={sl.id} value={sl.id}>{sl.name}</option>
+            ))}
+          </select>
           <select
             value={filterArtist}
             onChange={(e) => setFilterArtist(e.target.value)}
