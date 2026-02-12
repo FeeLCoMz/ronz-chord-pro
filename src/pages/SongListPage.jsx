@@ -302,6 +302,10 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                   <span style={{ color: 'var(--primary-accent)', marginLeft: 8, fontSize: '0.95em' }}>
                     {setlistsLoading ? '...' : `📋 ${getSetlistCount(song.id)} setlist`}
                   </span>
+                  {/* Nama kontributor */}
+                  <span style={{ color: 'var(--text-secondary)', marginLeft: 8, fontSize: '0.95em' }}>
+                    ✍️ {song.contributorName || song.contributorUsername || '-'}
+                  </span>
                 </div>
               </div>
 

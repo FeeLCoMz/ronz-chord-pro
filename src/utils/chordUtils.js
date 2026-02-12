@@ -1,3 +1,11 @@
+// Parsing section dan chord dari baris seperti '[Intro] Am Em Dm'
+export function parseChordLineWithSection(line) {
+  const sectionMatch = line.match(/^\[(.+?)\]/);
+  const section = sectionMatch ? sectionMatch[1] : null;
+  const chordPart = line.replace(/^\[.+?\]\s*/, '').trim();
+  const chords = chordPart.split(/\s+/).filter(w => w && /^[A-G][#b]?m?(aj|sus|dim|aug|add)?\d*(\/([A-G][#b]?))?$/.test(w));
+  return { section, chords };
+}
 // Dummy add function for test compatibility
 export function add(a, b) {
   return a + b;

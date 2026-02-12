@@ -61,13 +61,16 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'GET') {
+      // Join ke tabel users untuk ambil nama kontributor
       const rows = await client.execute(
-        `SELECT id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, instruments, time_markers, userId, createdAt, updatedAt
+        `SELECT songs.id, songs.title, songs.artist, songs.youtubeId, songs.lyrics, songs.key, songs.tempo, songs.genre, songs.capo, songs.instruments, songs.time_markers, songs.userId, songs.createdAt, songs.updatedAt, users.username AS contributorUsername
          FROM songs
-         ORDER BY (updatedAt IS NULL) ASC, datetime(updatedAt) DESC, datetime(createdAt) DESC`
+         LEFT JOIN users ON users.id = songs.userId
+         ORDER BY (songs.updatedAt IS NULL) ASC, datetime(songs.updatedAt) DESC, datetime(songs.createdAt) DESC`
       );
       const list = (rows.rows ?? []).map(row => ({
         ...row,
+        contributorName: row.contributorUsername, // alias agar frontend tetap pakai contributorName
         time_markers: row.time_markers ? JSON.parse(row.time_markers) : [],
         instruments: row.instruments ? JSON.parse(row.instruments) : [],
       }));
