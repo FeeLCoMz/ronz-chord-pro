@@ -21,10 +21,14 @@ export default function GigPage() {
   const [showForm, setShowForm] = useState(false);
   const [editGig, setEditGig] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  // Pisahkan tanggal dan waktu untuk input
+  const today = new Date();
+  const defaultDate = today.toISOString().split('T')[0];
+  const defaultTime = today.toTimeString().slice(0,5);
   const [formData, setFormData] = useState({
     bandId: '',
-    date: new Date().toISOString().split('T')[0],
-    time: '',
+    date: defaultDate,
+    time: defaultTime,
     venue: '',
     city: '',
     fee: '',
@@ -93,23 +97,31 @@ export default function GigPage() {
       setFormError('Tanggal diperlukan');
       return;
     }
+    // Gabungkan tanggal dan waktu ke ISO string
+    let dateTimeStr = formData.date;
+    if (formData.time) {
+      dateTimeStr += 'T' + formData.time;
+    }
+    // Pastikan format ISO lengkap
+    const isoDate = new Date(dateTimeStr).toISOString();
+    const submitData = { ...formData, date: isoDate };
+    delete submitData.time;
 
     try {
       if (editGig) {
-        await updateGig(editGig.id, formData);
+        await updateGig(editGig.id, submitData);
       } else {
-        await createGig(formData);
+        await createGig(submitData);
       }
-      
       // Refresh gigs
       const data = await fetchGigs(selectedBandId || null);
       setGigs(Array.isArray(data) ? data : []);
-      
       setShowForm(false);
       setEditGig(null);
       setFormData({
         bandId: '',
-        date: new Date().toISOString().split('T')[0],
+        date: defaultDate,
+        time: defaultTime,
         venue: '',
         city: '',
         fee: '',
@@ -123,10 +135,14 @@ export default function GigPage() {
 
   const handleEdit = (gig) => {
     setEditGig(gig);
+    // Pisahkan tanggal dan waktu dari ISO string
+    let date = gig.date ? new Date(gig.date) : today;
+    const dateStr = date.toISOString().split('T')[0];
+    const timeStr = date.toTimeString().slice(0,5);
     setFormData({
       bandId: gig.bandId || '',
-      date: gig.date,
-      time: gig.time || '',
+      date: dateStr,
+      time: timeStr,
       venue: gig.venue || '',
       city: gig.city || '',
       fee: gig.fee || '',
@@ -235,24 +251,24 @@ export default function GigPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="form-label">Tanggal *</label>
-                <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label className="form-label">Tanggal *</label>
                   <input
                     type="date"
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                     className="modal-input"
                     required
-                    style={{ flex: 1 }}
                   />
+                </div>
+                <div style={{ width: 120 }}>
+                  <label className="form-label">Waktu</label>
                   <input
                     type="time"
                     value={formData.time}
                     onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                     className="modal-input"
-                    style={{ flex: 1 }}
-                    placeholder="Jam"
                   />
                 </div>
               </div>
@@ -408,9 +424,9 @@ export default function GigPage() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: '600', marginBottom: '8px', fontSize: '1.05em' }}>
                   🎤 {new Date(gig.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                  {gig.time && (
-                    <span style={{ marginLeft: 8, color: 'var(--primary-accent)', fontWeight: 500, fontSize: '0.95em' }}>
-                      • {gig.time.slice(0,5)}
+                  {gig.date && (
+                    <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '0.95em', marginLeft: 8 }}>
+                      {new Date(gig.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   )}
                 </div>
