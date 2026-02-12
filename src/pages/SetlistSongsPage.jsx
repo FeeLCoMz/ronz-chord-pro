@@ -182,7 +182,8 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
   const shareText = `${bandText}🎶 Setlist: ${setlist.name}\n\n` +
     setlistSongs.map((song, idx) => {
       const songKey = song.key ? ` [${song.key}]` : '';
-      return `${idx + 1}. ${song.title}${song.artist ? ' - ' + song.artist : ''}${songKey}`;
+      const songTempo = song.tempo ? ` (${song.tempo} BPM)` : '';
+      return `${idx + 1}. ${song.title}${song.artist ? ' - ' + song.artist : ''}${songKey}${songTempo}`;
     }).join('\n') +
     `\n\nLihat detail & chord: ${shareUrl}`;
 
@@ -593,6 +594,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
               setlist={setlist}
               setlistSongs={setlistSongs}
               posterRef={posterRef}
+              // Pastikan tempo diteruskan ke komponen poster
             />
             <textarea
               className="modal-input"

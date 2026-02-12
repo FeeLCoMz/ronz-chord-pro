@@ -26,6 +26,9 @@ export default function SetlistPoster({ setlist, setlistSongs, posterRef }) {
               </div>
               <div className="setlist-poster-extra">
                 {song.key && <span className="setlist-poster-tag">{song.key}</span>}
+                {song.tempo && (
+                  <span className="setlist-poster-tag" style={{ marginLeft: song.key ? 6 : 0 }}>{song.tempo} BPM</span>
+                )}
               </div>
             </div>
           ))}

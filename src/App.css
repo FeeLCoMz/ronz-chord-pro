@@ -5992,23 +5992,3 @@ body.dark-mode .song-lyrics-error {
   .setlist-poster-error {
     margin-top: 8px;
   }
-
-  @media (max-width: 768px) {
-    .setlist-poster {
-      padding: 20px;
-    }
-
-    .setlist-poster-item {
-      grid-template-columns: 32px 1fr;
-      grid-template-rows: auto auto;
-    }
-
-    .setlist-poster-extra {
-      grid-column: 1 / -1;
-      justify-content: flex-start;
-    }
-
-    .setlist-poster-list.two-columns {
-      column-count: 1;
-    }
-  }
