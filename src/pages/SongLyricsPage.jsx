@@ -558,7 +558,7 @@ export default function SongLyricsPage({ song: songProp }) {
               onClick={() => setMediaPanelExpanded(!mediaPanelExpanded)}
               aria-label={mediaPanelExpanded ? "Sembunyikan panel" : "Tampilkan panel"}
             >
-              {mediaPanelExpanded ? "▼" : "▶"}
+              {mediaPanelExpanded ? '▲' : '▶'}
             </button>
           </div>
         </div>
@@ -601,7 +601,7 @@ export default function SongLyricsPage({ song: songProp }) {
                   aria-label={showTimeMarkers ? 'Sembunyikan time marker' : 'Tampilkan time marker'}
                   title={showTimeMarkers ? 'Sembunyikan time marker' : 'Tampilkan time marker'}
                 >
-                  {showTimeMarkers ? '▲ Sembunyikan' : '▼ Tampilkan'}
+                  {showTimeMarkers ? '▼' : '▶' }
                 </button>
               </div>
               {showTimeMarkers && (
@@ -640,7 +640,7 @@ export default function SongLyricsPage({ song: songProp }) {
             aria-label={showSongInfo ? 'Sembunyikan info lagu' : 'Tampilkan info lagu'}
             title={showSongInfo ? 'Sembunyikan info lagu' : 'Tampilkan info lagu'}
           >
-            {showSongInfo ? '▲ Sembunyikan' : '▼ Tampilkan'}
+            {showSongInfo ? '▼' : '▶'}
           </button>
         </div>
         {showSongInfo && (
@@ -744,7 +744,7 @@ export default function SongLyricsPage({ song: songProp }) {
             className="btn btn-secondary"
             style={{ fontSize: "0.85em" }}
           >
-            {showChordAnalyzer ? "▼ Sembunyikan" : "▶ Tampilkan"}
+            {showChordAnalyzer ? "▼" : "▶"}
           </button>
         </div>
         {showChordAnalyzer && (
