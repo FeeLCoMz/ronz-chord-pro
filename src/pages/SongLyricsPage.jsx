@@ -77,9 +77,61 @@ export default function SongLyricsPage({ song: songProp }) {
   const [savingLyrics, setSavingLyrics] = useState(false);
   const [editError, setEditError] = useState(null);
 
+
   // Chord Analyzer state
   const [showChordAnalyzer, setShowChordAnalyzer] = useState(false);
   const [chordStats, setChordStats] = useState({ chords: [], count: 0 });
+
+  // Arrangement & Instrument Analysis state
+  const [showArrangementPanel, setShowArrangementPanel] = useState(true);
+  const [arrangementAnalysis, setArrangementAnalysis] = useState("");
+  const [instrumentsUsed, setInstrumentsUsed] = useState("");
+  const [isEditingArrangement, setIsEditingArrangement] = useState(false);
+  const [savingArrangement, setSavingArrangement] = useState(false);
+  const [arrangementError, setArrangementError] = useState(null);
+  // Sync arrangement/instruments from song data
+  useEffect(() => {
+    if (song) {
+      setArrangementAnalysis(song.arrangement_analysis || "");
+      setInstrumentsUsed(Array.isArray(song.instruments) ? song.instruments.join(", ") : (song.instruments || ""));
+    }
+  }, [song]);
+  // Save arrangement/instruments
+  const handleSaveArrangement = async () => {
+    if (!song.id || !can(PERMISSIONS.SONG_EDIT)) return;
+    setSavingArrangement(true);
+    setArrangementError(null);
+    try {
+      const res = await fetch(`/api/songs/${song.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify({
+          ...song,
+          arrangement_analysis: arrangementAnalysis,
+          instruments: instrumentsUsed.split(",").map(s => s.trim()).filter(Boolean),
+        }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Gagal menyimpan analisa aransemen");
+      }
+      // Fetch fresh data
+      const fetchRes = await fetch(`/api/songs/${song.id}`, {
+        headers: getAuthHeader(),
+      });
+      if (!fetchRes.ok) throw new Error("Gagal memuat data terbaru");
+      const updatedSong = await fetchRes.json();
+      setFetchedSong(updatedSong);
+      setIsEditingArrangement(false);
+    } catch (err) {
+      setArrangementError(err.message);
+    } finally {
+      setSavingArrangement(false);
+    }
+  };
 
   // Export menu state
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -747,6 +799,7 @@ export default function SongLyricsPage({ song: songProp }) {
         )}
       </div>
 
+
       {/* Chord Analyzer Panel - Selalu tampil */}
       <div className="song-lyrics-analyzer">
         <div
@@ -793,6 +846,91 @@ export default function SongLyricsPage({ song: songProp }) {
               </div>
             </div>
           </>
+        )}
+      </div>
+
+      {/* Arrangement & Instrument Analysis Panel */}
+      <div className="song-arrangement-panel card" style={{ margin: '32px 0', padding: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h3 style={{ margin: 0 }}>🎼 Analisa Aransemen & Instrumen</h3>
+          <button
+            className="btn btn-secondary"
+            style={{ fontSize: '0.85em' }}
+            onClick={() => setShowArrangementPanel(!showArrangementPanel)}
+          >
+            {showArrangementPanel ? '▼' : '▶'}
+          </button>
+        </div>
+        {showArrangementPanel && (
+          <div>
+            {isEditingArrangement ? (
+              <>
+                <div className="form-group">
+                  <label htmlFor="arrangement-analysis">Analisa Aransemen</label>
+                  <textarea
+                    id="arrangement-analysis"
+                    className="modal-input"
+                    style={{ minHeight: 60, width: '100%' }}
+                    value={arrangementAnalysis}
+                    onChange={e => setArrangementAnalysis(e.target.value)}
+                    placeholder="Contoh: Intro piano, verse gitar akustik, chorus full band..."
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="instruments-used">Instrumen yang Digunakan</label>
+                  <input
+                    id="instruments-used"
+                    className="modal-input"
+                    style={{ width: '100%' }}
+                    value={instrumentsUsed}
+                    onChange={e => setInstrumentsUsed(e.target.value)}
+                    placeholder="Contoh: Piano, Gitar Akustik, Bass, Drum, Synth"
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleSaveArrangement}
+                    disabled={savingArrangement}
+                  >
+                    {savingArrangement ? '⏳ Menyimpan...' : '✓ Simpan'}
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setIsEditingArrangement(false)}
+                    disabled={savingArrangement}
+                  >
+                    ✕ Batal
+                  </button>
+                </div>
+                {arrangementError && <div className="song-lyrics-error">{arrangementError}</div>}
+              </>
+            ) : (
+              <>
+                <div style={{ marginBottom: 8 }}>
+                  <strong>Analisa Aransemen:</strong>
+                  <div style={{ whiteSpace: 'pre-wrap', color: arrangementAnalysis ? 'inherit' : 'var(--text-secondary)' }}>
+                    {arrangementAnalysis || <span style={{ fontStyle: 'italic' }}>Belum ada analisa aransemen</span>}
+                  </div>
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <strong>Instrumen yang Digunakan:</strong>
+                  <div style={{ color: instrumentsUsed ? 'inherit' : 'var(--text-secondary)' }}>
+                    {instrumentsUsed || <span style={{ fontStyle: 'italic' }}>Belum diisi</span>}
+                  </div>
+                </div>
+                {can(PERMISSIONS.SONG_EDIT) && (
+                  <button
+                    className="btn btn-primary"
+                    style={{ marginTop: 8 }}
+                    onClick={() => setIsEditingArrangement(true)}
+                  >
+                    ✏️ Edit Analisa
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         )}
       </div>
 
