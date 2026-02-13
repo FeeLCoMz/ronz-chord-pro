@@ -177,12 +177,17 @@ export const getTransposeSteps = (fromKey, toKey) => {
 export const isChordLine = (line) => {
   if (!line.trim()) return false;
 
+  // Remove section label at start (e.g. [Coda])
+  let cleanedLine = line.replace(/^\[.+?\]\s*/, '');
+  // Remove repeat token (e.g. (2x), (3x))
+  cleanedLine = cleanedLine.replace(/\(\d+x\)/g, '').trim();
+
   // Check for compact chord format with .. separator (e.g., D..Gm..Bb)
-  const compactPattern = /^(?:-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/[A-G][#b]?)?)(?:\.\.(?:-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/[A-G][#b]?)?))+$/;
-  if (compactPattern.test(line.trim())) return true;
+  const compactPattern = /^(?:-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/([A-G][#b]?))?)(?:\.\.(?:-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/([A-G][#b]?))?))+$/;
+  if (compactPattern.test(cleanedLine.trim())) return true;
 
   // Try to extract all chords using CHORD_REGEX_GLOBAL
-  const matches = [...line.matchAll(CHORD_REGEX_GLOBAL)];
+  const matches = [...cleanedLine.matchAll(CHORD_REGEX_GLOBAL)];
 
   if (matches.length === 0) return false;
 
@@ -193,7 +198,7 @@ export const isChordLine = (line) => {
   }
 
   // Remove spaces to get actual character count
-  const lineWithoutSpaces = line.replace(/\s+/g, '');
+  const lineWithoutSpaces = cleanedLine.replace(/\s+/g, '');
 
   // If more than 50% of non-space characters are chords, treat as chord line
   return totalChordLength > 0 && (totalChordLength / lineWithoutSpaces.length) >= 0.5;
