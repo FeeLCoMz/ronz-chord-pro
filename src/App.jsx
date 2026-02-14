@@ -261,6 +261,10 @@ function AppContent() {
             element={<SetlistSongsPage activeSetlist={activeSetlist} setActiveSetlist={setActiveSetlist} songs={songs} setlists={setlists} setSetlists={setSetlists} setLoadingSetlists={setLoadingSetlists} />}
           />
           <Route
+            path="/setlists/:setlistId/songs/:id"
+            element={<SongLyricsRoute songs={songs} activeSetlist={activeSetlist} />}
+          />
+          <Route
             path="/setlists"
             element={
               <SetlistPage

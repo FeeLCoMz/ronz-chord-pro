@@ -491,7 +491,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                   const toIdx = customIdx;
                   if (fromIdx !== toIdx) handleReorder(fromIdx, toIdx);
                 }}
-                onClick={() => navigate(`/songs/view/${song.id}`, {
+                onClick={() => navigate(`/setlists/${setlist.id}/songs/${song.id}`, {
                   state: {
                     setlistId: setlist.id,
                     setlist: { ...setlist, songs: setlistSongs },

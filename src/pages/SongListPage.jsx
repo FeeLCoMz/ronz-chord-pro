@@ -373,12 +373,17 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                       { role: user?.role || 'member', bandId: song.bandId || null },
                       PERMISSIONS.SONG_EDIT
                     ) || song.userId === currentUserId;
-                    canDelete = canPerformAction(
-                      user,
-                      song.bandId || null,
-                      { role: user?.role || 'member', bandId: song.bandId || null },
-                      PERMISSIONS.SONG_DELETE
-                    ) && song.userId === currentUserId;
+                    // Allow delete if user has permission OR is the contributor and song is not in any setlist
+                    const isContributor = song.userId === currentUserId;
+                    const notInAnySetlist = getSetlistCount(song.id) === 0;
+                    canDelete = (
+                      canPerformAction(
+                        user,
+                        song.bandId || null,
+                        { role: user?.role || 'member', bandId: song.bandId || null },
+                        PERMISSIONS.SONG_DELETE
+                      ) && isContributor
+                    ) || (isContributor && notInAnySetlist);
                   }
                   if (!canEdit && !canDelete) return null;
                   return (
