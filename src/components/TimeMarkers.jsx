@@ -54,9 +54,18 @@ export default function TimeMarkers({
     return parseInt(timeStr) || 0;
   };
 
-  const handlePlay = (timestamp) => {
-    if (onSeek && typeof onSeek === 'function') {
-      onSeek(timestamp);
+  const [playingMarker, setPlayingMarker] = useState(null);
+  const handleTogglePlay = (timestamp) => {
+    if (playingMarker === timestamp) {
+      setPlayingMarker(null);
+      if (onSeek && typeof onSeek === 'function') {
+        onSeek(null, { pause: true });
+      }
+    } else {
+      setPlayingMarker(timestamp);
+      if (onSeek && typeof onSeek === 'function') {
+        onSeek(timestamp);
+      }
     }
   };
 
@@ -254,10 +263,11 @@ export default function TimeMarkers({
                 >
                   <button
                     type="button"
-                    onClick={() => handlePlay(marker.time)}
+                    onClick={() => handleTogglePlay(marker.time)}
                     className="time-marker-play-btn"
+                    style={{ minWidth: 60 }}
                   >
-                    ▶ {formatTime(marker.time)}
+                    {playingMarker === marker.time ? '⏸️ Pause' : '▶️ Play'} {formatTime(marker.time)}
                   </button>
                   <div className="time-marker-label">
                     {marker.label || `Marker ${idx + 1}`}

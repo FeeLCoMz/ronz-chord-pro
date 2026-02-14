@@ -634,8 +634,12 @@ export default function SongLyricsPage({ song: songProp }) {
                     timeMarkers={timeMarkers}
                     readonly={!can(PERMISSIONS.SONG_EDIT)}
                     onUpdate={handleTimeMarkerUpdate}
-                    onSeek={(time) => {
-                      if (youtubeRef.current && youtubeRef.current.handleSeek) {
+                    onSeek={(time, opts) => {
+                      if (opts && opts.pause && youtubeRef.current && youtubeRef.current.handlePause) {
+                        youtubeRef.current.handlePause();
+                        return;
+                      }
+                      if (typeof time === 'number' && youtubeRef.current && youtubeRef.current.handleSeek) {
                         youtubeRef.current.handleSeek(time);
                       }
                     }}
@@ -1053,6 +1057,11 @@ export default function SongLyricsPage({ song: songProp }) {
               onTimestampClick={(seconds) => {
                 if (youtubeRef.current && typeof youtubeRef.current.handleSeek === 'function') {
                   youtubeRef.current.handleSeek(seconds);
+                }
+              }}
+              onTimestampPause={() => {
+                if (youtubeRef.current && typeof youtubeRef.current.handlePause === 'function') {
+                  youtubeRef.current.handlePause();
                 }
               }}
             />

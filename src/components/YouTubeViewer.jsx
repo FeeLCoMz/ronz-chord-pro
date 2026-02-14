@@ -32,6 +32,14 @@ const YouTubeViewer = React.forwardRef(({
     handleSeek: (time) => {
       if (player && typeof player.seekTo === 'function') {
         player.seekTo(time, true);
+        if (typeof player.playVideo === 'function') {
+          player.playVideo();
+        }
+      }
+    },
+    handlePause: () => {
+      if (player && typeof player.pauseVideo === 'function') {
+        player.pauseVideo();
       }
     }
   }), [currentTime, player]);
