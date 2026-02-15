@@ -1,3 +1,5 @@
+// Simple in-memory cache for song info (title+artist)
+const songInfoCache = {};
 
 import 'dotenv/config';
 import busboy from 'busboy';
@@ -80,6 +82,11 @@ async function handleSongSearch(req, res) {
   const { title, artist } = body;
   if (!title) {
     return res.status(400).json({ error: 'Title required' });
+  }
+  // Cache key based on title and artist (case-insensitive)
+  const cacheKey = `${title.toLowerCase()}|${(artist || '').toLowerCase()}`;
+  if (songInfoCache[cacheKey]) {
+    return res.status(200).json(songInfoCache[cacheKey]);
   }
   try {
     const results = {
@@ -164,6 +171,8 @@ async function handleSongSearch(req, res) {
       { title: 'Chordify', site: 'chordify.net', url: `https://www.chordify.net/search?q=${encodeURIComponent(`${title} ${artist || results.artist || ''}`)}` },
       { title: 'Google Lirik', site: 'google.com', url: `https://www.google.com/search?q=${encodeURIComponent(`${title} ${artist || results.artist || ''} lirik`)}` }
     ];
+    // Save to cache before returning
+    songInfoCache[cacheKey] = results;
     return res.status(200).json(results);
   } catch (error) {
     console.error('Error in song search:', error);

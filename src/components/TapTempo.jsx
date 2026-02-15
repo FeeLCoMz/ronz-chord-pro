@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 
 // Komponen TapTempo: klik/tap berulang untuk dapatkan BPM
-export default function TapTempo({ onTempo, initialTempo = '', disabled = false }) {
+export default function TapTempo({ onTempo, initialTempo = '', disabled = false, label = 'Tap Tempo' }) {
   const [bpm, setBpm] = useState(initialTempo || '');
   const [taps, setTaps] = useState([]);
   const timeoutRef = useRef();
@@ -41,7 +41,7 @@ export default function TapTempo({ onTempo, initialTempo = '', disabled = false 
         className="btn-base"        
         title="Tap to detect BPM"
       >
-        🎯 Tap Tempo
+        🎯 {label}
       </button>         
       {taps.length > 0 && (
         <span style={{

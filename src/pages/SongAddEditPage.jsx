@@ -39,6 +39,8 @@ export default function SongAddEditPage({ onSongUpdated }) {
   const [aiResult, setAiResult] = useState(null);
   const [aiConfirmFields, setAiConfirmFields] = useState({});
   const [mediaPanelExpanded, setMediaPanelExpanded] = useState(false);
+  const [chordLinksExpanded, setChordLinksExpanded] = useState(false);
+  const [partiturExpanded, setPartiturExpanded] = useState(false);
   const [showPiano, setShowPiano] = useState(false);
   const [transpose, setTranspose] = useState(0);
 
@@ -234,7 +236,7 @@ export default function SongAddEditPage({ onSongUpdated }) {
         <h1>{isEditMode ? "Edit Lagu" : "Tambah Lagu Baru"}</h1>
       </div>
       <form onSubmit={handleSubmit}>
-        <div className="form-section">
+        <div className="card song-section-card">
           <div className="form-grid-2col">
             <div>
               <label className="form-label-required">
@@ -324,12 +326,12 @@ export default function SongAddEditPage({ onSongUpdated }) {
                   className="form-input-field"
                   style={{ flex: 1 }}
                 />
-                <TapTempo onTempo={setTempo} initialTempo={tempo} />
+                <TapTempo onTempo={setTempo} initialTempo={tempo} label="Tap" />
               </div>
             </div>
 
             <div>
-              <label className="form-label-required">� Time Signature</label>
+              <label className="form-label-required">𝄞 Time Signature</label>
               <input
                 type="text"
                 value={timeSignature}
@@ -340,7 +342,7 @@ export default function SongAddEditPage({ onSongUpdated }) {
             </div>
 
             <div>
-              <label className="form-label-required">�🎸 Genre</label>
+              <label className="form-label-required">🎶 Genre</label>
               <input
                 type="text"
                 value={genre}
@@ -363,13 +365,15 @@ export default function SongAddEditPage({ onSongUpdated }) {
           </div>
           <div>
             <label className="form-label-required">🎹 Keyboard Patch</label>
-            <input
-              type="text"
-              value={keyboardPatch}
-              onChange={(e) => setKeyboardPatch(e.target.value)}
-              placeholder="Contoh: EP Mark I, Pad, Strings"
-              className="form-input-field"
-            />
+              <textarea
+                id="keyboardPatch"
+                name="keyboardPatch"
+                className="modal-input"
+                value={keyboardPatch}
+                onChange={(e) => setKeyboardPatch(e.target.value)}
+                placeholder="Contoh: EP Mark I, Pad, Strings"
+                rows={3}
+              />
           </div>
         </div>
 
@@ -462,8 +466,22 @@ export default function SongAddEditPage({ onSongUpdated }) {
           )}
         </div>
 
-        {/* Chord Links Panel */}
-        <ChordLinks searchQuery={[title, artist].filter(Boolean).join(" - ")} />
+
+        {/* Chord Links Panel - Collapsible */}
+        <div className="song-section-card">
+          <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }} onClick={() => setChordLinksExpanded(v => !v)}>
+            <h3 className="song-section-title" style={{ flex: 1, margin: 0 }}>🔗 Chord Links</h3>
+            <button type="button" className="media-panel-toggle" style={{ marginLeft: 8 }} tabIndex={-1}>
+              {chordLinksExpanded ? "▼" : "▶"}
+            </button>
+          </div>
+          {chordLinksExpanded && (
+            <div style={{ marginTop: 8 }}>
+              <ChordLinks searchQuery={[title, artist].filter(Boolean).join(" - ")} />
+            </div>
+          )}
+        </div>
+
 
         {/* Lyrics Section */}
         <div className="song-section-card">
@@ -481,20 +499,30 @@ export default function SongAddEditPage({ onSongUpdated }) {
             }}
           />
         </div>
-        {/* Sheet Music Section (selalu tampil) */}
+
+        {/* Sheet Music Section - Collapsible */}
         <div className="song-section-card">
-          <h3 className="song-section-title">🎼 Partitur (MusicXML)</h3>
-          <textarea
-            value={sheetMusicXml}
-            onChange={(e) => setSheetMusicXml(e.target.value)}
-            placeholder="Paste MusicXML di sini..."
-            rows={10}
-            className="form-input-field"
-            style={{ fontFamily: "monospace", resize: "vertical" }}
-          />
-          <div className="form-hint">
-            Hanya format MusicXML. Gunakan software notasi musik untuk ekspor MusicXML.
+          <div style={{ display: "flex", alignItems: "center", cursor: "pointer" }} onClick={() => setPartiturExpanded(v => !v)}>
+            <h3 className="song-section-title" style={{ flex: 1, margin: 0 }}>🎼 Partitur (MusicXML)</h3>
+            <button type="button" className="media-panel-toggle" style={{ marginLeft: 8 }} tabIndex={-1}>
+              {partiturExpanded ? "▼" : "▶"}
+            </button>
           </div>
+          {partiturExpanded && (
+            <>
+              <textarea
+                value={sheetMusicXml}
+                onChange={(e) => setSheetMusicXml(e.target.value)}
+                placeholder="Paste MusicXML di sini..."
+                rows={10}
+                className="form-input-field"
+                style={{ fontFamily: "monospace", resize: "vertical" }}
+              />
+              <div className="form-hint">
+                Hanya format MusicXML. Gunakan software notasi musik untuk ekspor MusicXML.
+              </div>
+            </>
+          )}
         </div>
 
         {/* Error Display */}
