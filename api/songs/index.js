@@ -45,8 +45,7 @@ export default async function handler(req, res) {
         lyrics TEXT,
         key TEXT,
         tempo TEXT,
-        genre TEXT,        
-        -- instruments TEXT, -- removed
+        genre TEXT,                
         time_markers TEXT,
         userId TEXT,
         createdAt TEXT DEFAULT (datetime('now')),
@@ -107,7 +106,7 @@ export default async function handler(req, res) {
         const id = item.id?.toString() || randomUUID();
         await client.execute(
           `INSERT INTO songs (id, title, artist, youtubeId, lyrics, key, tempo, genre, time_markers, arrangement_style, keyboard_patch, sheet_music_xml, userId, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
              title = excluded.title,
              artist = excluded.artist,
