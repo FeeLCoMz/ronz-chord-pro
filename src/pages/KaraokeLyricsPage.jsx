@@ -3,7 +3,7 @@ import '../styles/karaoke.css';
 import AutoScrollBar from '../components/AutoScrollBar.jsx';
 import { useParams } from 'react-router-dom';
 import { getAuthHeader } from '../utils/auth.js';
-import { parseChordLine, parseSection } from '../utils/chordUtils.js';
+import { isChordLine, parseSection } from '../utils/chordUtils.js';
 
 // KaraokeLyricsPage: Penampil lirik fullscreen untuk penyanyi/karaoke
 export default function KaraokeLyricsPage() {
@@ -31,7 +31,7 @@ export default function KaraokeLyricsPage() {
   // Split lyrics into lines
   const lyricLines = song && song.lyrics ? song.lyrics.split(/\r?\n/) : [];
   // Sembunyikan baris chord (hanya tampilkan lirik dan struktur)
-  const lyricOnlyLines = lyricLines.filter(line => !parseChordLine(line));
+  const lyricOnlyLines = lyricLines.filter(line => !isChordLine(line));
 
 
 

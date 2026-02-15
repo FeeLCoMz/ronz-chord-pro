@@ -62,7 +62,18 @@ export default function SongLyricsPage({ song: songProp }) {
   // 6. Data Lagu & Metadata
   // =========================
   // Gunakan fetchedSong jika sudah ada, fallback ke object kosong
-  const song = fetchedSong || {};
+  // Deteksi metadata "Original Key: X" di lirik
+  let song = fetchedSong || {};
+  let originalKey = '';
+  let lyricsClean = song.lyrics || '';
+  if (lyricsClean) {
+    const metaMatch = lyricsClean.match(/^Original Key:\s*([A-G][#b]?m?(?:aj|min|dim|aug)?\b)/im);
+    if (metaMatch) {
+      originalKey = metaMatch[1];
+      // Hapus baris metadata dari lirik
+      lyricsClean = lyricsClean.replace(/^Original Key:.*$/im, '').replace(/^\s*\n/, '');
+    }
+  }
   const artist = setlistSongData.artist || song?.artist || "";
   const key = setlistSongData.key || song?.key || "";
   const tempo = setlistSongData.tempo || song?.tempo || "";
@@ -287,7 +298,7 @@ export default function SongLyricsPage({ song: songProp }) {
   const handleExportText = () => {
     if (!song) return;
 
-    const content = `${song.title}\nArtist: ${artist}\nKey: ${key}\nTempo: ${tempo} BPM\nCapo: ${capo || "None"}\n\n${song.lyrics || ""}`;
+    const content = `${song.title}\nArtist: ${artist}\nKey: ${key}\n${originalKey ? `Original Key: ${originalKey}\n` : ''}Tempo: ${tempo} BPM\nCapo: ${capo || "None"}\n\n${lyricsClean}`;
     const blob = new Blob([content], { type: "text/plain" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -321,7 +332,7 @@ export default function SongLyricsPage({ song: songProp }) {
     <p><strong>Tempo:</strong> ${tempo} BPM</p>
     <p><strong>Capo:</strong> ${capo || "None"}</p>
   </div>
-  <div class="lyrics">${song.lyrics || ""}</div>
+  <div class="lyrics">${lyricsClean}</div>
 </body>
 </html>
     `;
@@ -698,6 +709,12 @@ export default function SongLyricsPage({ song: songProp }) {
                   transpose={transpose}
                   onTransposeChange={setTranspose}
                 />
+                {originalKey && (
+                  <div className="song-info-original-key" style={{ fontSize: '0.95em', color: 'var(--text-secondary)' }}>
+                    <span style={{ fontWeight: 500 }}>Original: </span>
+                    <span>{originalKey}</span>
+                  </div>
+                )}
               </div>
             )}
             {/* 2. Capo - Setup Info */}

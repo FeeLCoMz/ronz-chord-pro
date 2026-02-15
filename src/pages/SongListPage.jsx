@@ -15,15 +15,39 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentUserId = user?.userId || user?.id;
-  const [search, setSearch] = useState('');
+  // Restore state from localStorage
+  const getPersistedState = () => {
+    try {
+      const raw = localStorage.getItem('songListPageState');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  };
+  const persisted = getPersistedState();
+  const [search, setSearch] = useState(persisted.search || '');
   const [setlists, setSetlists] = useState([]);
   const [setlistsLoading, setSetlistsLoading] = useState(true);
-  const [filterArtist, setFilterArtist] = useState('all');
-  const [filterKey, setFilterKey] = useState('all');
-  const [filterGenre, setFilterGenre] = useState('all');
-  const [filterSetlist, setFilterSetlist] = useState('all');
-  const [sortBy, setSortBy] = useState('updated');
-  const [sortOrder, setSortOrder] = useState('desc');
+  const [filterArtist, setFilterArtist] = useState(persisted.filterArtist || 'all');
+  const [filterKey, setFilterKey] = useState(persisted.filterKey || 'all');
+  const [filterGenre, setFilterGenre] = useState(persisted.filterGenre || 'all');
+  const [filterSetlist, setFilterSetlist] = useState(persisted.filterSetlist || 'all');
+  const [sortBy, setSortBy] = useState(persisted.sortBy || 'updated');
+  const [sortOrder, setSortOrder] = useState(persisted.sortOrder || 'desc');
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    const state = {
+      search,
+      filterArtist,
+      filterKey,
+      filterGenre,
+      filterSetlist,
+      sortBy,
+      sortOrder,
+    };
+    localStorage.setItem('songListPageState', JSON.stringify(state));
+  }, [search, filterArtist, filterKey, filterGenre, filterSetlist, sortBy, sortOrder]);
 
   useEffect(() => {
     updatePageMeta(pageMetadata.songs);

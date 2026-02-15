@@ -5,7 +5,7 @@ import { usePermission } from '../hooks/usePermission.js';
 import { PERMISSIONS } from '../utils/permissionUtils.js';
 import * as apiClient from '../apiClient.js';
 
-export default function Sidebar({ isOpen, onClose, theme, setTheme }) {
+export default function Sidebar({ isOpen, onClose, theme, setTheme, performanceMode, setPerformanceMode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
@@ -65,16 +65,25 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme }) {
             <span className="sidebar-logo-icon">🎸</span>
             <span className="sidebar-logo-text">Ruang Performer</span>
           </div>
-          {/* Theme toggle button for desktop */}
-          <button
-            className={`btn-base theme-switch-btn ${theme === 'dark' ? 'dark' : 'light'}`}
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            title="Ganti mode gelap/terang"
-            style={{ marginLeft: 'auto', marginTop: 4 }}
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'dark' ? '🌙' : '☀️'}
-          </button>
+          {/* Theme & Performance Mode toggle buttons for desktop */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', marginTop: 4 }}>
+            <button
+              className={`btn-base theme-switch-btn ${theme === 'dark' ? 'dark' : 'light'}`}
+              onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+              title="Ganti mode gelap/terang"
+              aria-label="Toggle dark mode"
+            >
+              {theme === 'dark' ? '🌙' : '☀️'}
+            </button>
+            <button
+              className={`btn-base performance-switch-btn${performanceMode ? ' active' : ''}`}
+              onClick={() => setPerformanceMode(v => !v)}
+              title={performanceMode ? 'Nonaktifkan Performance Mode' : 'Aktifkan Performance Mode'}
+              aria-label="Toggle performance mode"
+            >
+              {performanceMode ? '🎤 Performance' : '🎶 Normal'}
+            </button>
+          </div>
         </div>
 
         {/* Navigation */}

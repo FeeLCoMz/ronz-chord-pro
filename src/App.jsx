@@ -206,6 +206,8 @@ function AppContent() {
           onClose={() => setSidebarOpen(false)}
           theme={theme}
           setTheme={setTheme}
+          performanceMode={performanceMode}
+          setPerformanceMode={setPerformanceMode}
         />
         <Toast message={toastMessage} onClose={() => setToastMessage("")} />
 
