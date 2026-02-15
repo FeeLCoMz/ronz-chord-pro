@@ -379,7 +379,7 @@ const parseStandardFormat = (lines) => {
         return keyRaw;
       })();
 
-      if (['title', 'artist', 'key', 'tempo', 'capo', 'time', 'original_key'].includes(normalizedKey)) {
+      if (['title', 'artist', 'key', 'tempo', 'time', 'original_key'].includes(normalizedKey)) {
         parsed.push({ type: 'metadata', key: normalizedKey, value });
         continue;
       }

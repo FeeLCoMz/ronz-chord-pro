@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       try {
         const result = await client.execute(
-          `SELECT s.id, s.title, s.artist, s.youtubeId, s.lyrics, s.key, s.tempo, s.genre, s.capo, 
+          `SELECT s.id, s.title, s.artist, s.youtubeId, s.lyrics, s.key, s.tempo, s.genre, 
                   s.time_markers, s.arrangement_style, s.keyboard_patch, s.userId, s.bandId, s.createdAt, s.updatedAt,
                   s.sheet_music_xml, b.name as bandName, u.username as contributor
            FROM songs s
@@ -133,7 +133,6 @@ export default async function handler(req, res) {
         key = COALESCE(?, key),
         tempo = COALESCE(?, tempo),
         genre = COALESCE(?, genre),
-        capo = COALESCE(?, capo),
         time_markers = COALESCE(?, time_markers),
         arrangement_style = COALESCE(?, arrangement_style),
         keyboard_patch = COALESCE(?, keyboard_patch),
@@ -146,12 +145,6 @@ export default async function handler(req, res) {
         const tempoInt = parseInt(String(body.tempo).replace(/,/g, '.'), 10);
         if (!isNaN(tempoInt)) tempoStr = tempoInt.toString();
       }
-      // Pastikan capo disimpan sebagai string integer
-      let capoStr = null;
-      if (body.capo !== undefined && body.capo !== null && body.capo !== '') {
-        const capoInt = parseInt(String(body.capo), 10);
-        if (!isNaN(capoInt)) capoStr = capoInt.toString();
-      }
       let updateParams = [
         body.title ?? null,
         body.artist ?? null,
@@ -160,7 +153,6 @@ export default async function handler(req, res) {
         body.key ?? null,
         tempoStr,
         body.genre ?? null,
-        capoStr,
         (Array.isArray(body.time_markers) ? JSON.stringify(body.time_markers) : (body.time_markers ?? null)),
         body.arrangementStyle ?? null,
         body.keyboardPatch ?? null,

@@ -45,8 +45,7 @@ export default async function handler(req, res) {
         lyrics TEXT,
         key TEXT,
         tempo TEXT,
-        genre TEXT,
-        capo TEXT,
+        genre TEXT,        
         -- instruments TEXT, -- removed
         time_markers TEXT,
         userId TEXT,
@@ -63,7 +62,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       // Join ke tabel users untuk ambil nama kontributor
       const rows = await client.execute(
-        `SELECT songs.id, songs.title, songs.artist, songs.youtubeId, songs.lyrics, songs.key, songs.tempo, songs.genre, songs.capo, songs.time_markers, songs.userId, songs.createdAt, songs.updatedAt, songs.sheet_music_xml, users.username AS contributorUsername
+        `SELECT songs.id, songs.title, songs.artist, songs.youtubeId, songs.lyrics, songs.key, songs.tempo, songs.genre, songs.time_markers, songs.userId, songs.createdAt, songs.updatedAt, songs.sheet_music_xml, users.username AS contributorUsername
          FROM songs
          LEFT JOIN users ON users.id = songs.userId
          ORDER BY (songs.updatedAt IS NULL) ASC, datetime(songs.updatedAt) DESC, datetime(songs.createdAt) DESC`
@@ -105,16 +104,10 @@ export default async function handler(req, res) {
           const tempoInt = parseInt(String(item.tempo).replace(/,/g, '.'), 10);
           if (!isNaN(tempoInt)) tempoStr = tempoInt.toString();
         }
-        // Pastikan capo disimpan sebagai string integer
-        let capoStr = null;
-        if (item.capo !== undefined && item.capo !== null && item.capo !== '') {
-          const capoInt = parseInt(String(item.capo), 10);
-          if (!isNaN(capoInt)) capoStr = capoInt.toString();
-        }
         const id = item.id?.toString() || randomUUID();
         await client.execute(
-          `INSERT INTO songs (id, title, artist, youtubeId, lyrics, key, tempo, genre, capo, time_markers, arrangement_style, keyboard_patch, sheet_music_xml, userId, createdAt, updatedAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `INSERT INTO songs (id, title, artist, youtubeId, lyrics, key, tempo, genre, time_markers, arrangement_style, keyboard_patch, sheet_music_xml, userId, createdAt, updatedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
            ON CONFLICT(id) DO UPDATE SET
              title = excluded.title,
              artist = excluded.artist,
@@ -123,7 +116,6 @@ export default async function handler(req, res) {
              key = excluded.key,
              tempo = excluded.tempo,
              genre = excluded.genre,
-             capo = excluded.capo,
              time_markers = excluded.time_markers,
              arrangement_style = excluded.arrangement_style,
              keyboard_patch = excluded.keyboard_patch,
@@ -138,7 +130,6 @@ export default async function handler(req, res) {
             key || null,
             tempoStr,
             genre || null,
-            capoStr,
             (Array.isArray(item.timestamps) ? JSON.stringify(item.timestamps) : (item.timestamps || null)),
             item.arrangementStyle || null,
             item.keyboardPatch || null,

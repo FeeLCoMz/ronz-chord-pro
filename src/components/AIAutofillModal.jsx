@@ -299,36 +299,7 @@ export default function AIAutofillModal({
                   🎸 Genre: <span style={{ fontWeight: '600' }}>{aiResult.genre}</span>
                 </span>
               </label>
-            )}
-            {aiResult.capo !== undefined && aiResult.capo !== null && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
-                <input
-                  type="checkbox"
-                  checked={aiConfirmFields.capo || false}
-                  onChange={e => setAiConfirmFields(f => ({...f, capo: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer'
-                  }}
-                />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  📌 Capo: <span style={{ fontWeight: '600' }}>Fret {aiResult.capo}</span>
-                </span>
-              </label>
-            )}
+            )}            
             {aiResult.youtubeId && (
               <label style={{
                 display: 'flex',

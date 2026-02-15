@@ -79,8 +79,7 @@ export default function SongLyricsPage({ song: songProp }) {
   const tempo = setlistSongData.tempo || song?.tempo || "";
   const genre = setlistSongData.genre || song?.genre || "";
   const arrangementStyle = setlistSongData.arrangementStyle || song?.arrangementStyle || song?.arrangement_style || "";
-  const keyboardPatch = setlistSongData.keyboardPatch || song?.keyboardPatch || song?.keyboard_patch || "";
-  const capo = setlistSongData.capo || song?.capo || "";
+  const keyboardPatch = setlistSongData.keyboardPatch || song?.keyboardPatch || song?.keyboard_patch || "";  
   const timeSignature = setlistSongData.time_signature || song?.time_signature || "4/4";
   const youtubeId = song?.youtubeId || song?.youtube_url || "";
   const timeMarkers = song?.time_markers || [];
@@ -298,7 +297,7 @@ export default function SongLyricsPage({ song: songProp }) {
   const handleExportText = () => {
     if (!song) return;
 
-    const content = `${song.title}\nArtist: ${artist}\nKey: ${key}\n${originalKey ? `Original Key: ${originalKey}\n` : ''}Tempo: ${tempo} BPM\nCapo: ${capo || "None"}\n\n${lyricsClean}`;
+    const content = `${song.title}\nArtist: ${artist}\nKey: ${key}\n${originalKey ? `Original Key: ${originalKey}\n` : ''}Tempo: ${tempo} BPM\n\n${lyricsClean}`;
     const blob = new Blob([content], { type: "text/plain" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -317,7 +316,6 @@ export default function SongLyricsPage({ song: songProp }) {
 <html>
 <head>
   <title>${song.title}</title>
-  <style>
     body { font-family: Arial, sans-serif; margin: 40px; }
     h1 { color: #333; }
     .meta { color: #666; margin: 20px 0; }
@@ -329,8 +327,7 @@ export default function SongLyricsPage({ song: songProp }) {
   <div class="meta">
     <p><strong>Artist:</strong> ${artist}</p>
     <p><strong>Key:</strong> ${key}</p>
-    <p><strong>Tempo:</strong> ${tempo} BPM</p>
-    <p><strong>Capo:</strong> ${capo || "None"}</p>
+    <p><strong>Tempo:</strong> ${tempo} BPM</p>    
   </div>
   <div class="lyrics">${lyricsClean}</div>
 </body>
@@ -340,6 +337,7 @@ export default function SongLyricsPage({ song: songProp }) {
     const printWindow = window.open("", "", "height=400,width=600");
     printWindow.document.write(content);
     printWindow.document.close();
+    const content = `
     printWindow.print();
     setShowExportMenu(false);
   };
@@ -716,14 +714,7 @@ export default function SongLyricsPage({ song: songProp }) {
                   </div>
                 )}
               </div>
-            )}
-            {/* 2. Capo - Setup Info */}
-            {capo && (
-              <div className="song-info-item song-info-priority">
-                <span className="song-info-label">📌 Capo</span>
-                <span className="song-info-value">Fret {capo}</span>
-              </div>
-            )}
+            )}            
             {/* 3. Time Signature - Rhythm Structure */}
             {timeSignature && (
               <div className="song-info-item">

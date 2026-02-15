@@ -1,6 +1,17 @@
 
 # Copilot Instructions — Ruang Performer
-## Permission Enforcement Policy (CRITICAL)
+
+## Data Deletion Confirmation Policy (CRITICAL)
+
+**ALWAYS confirm with the user before making any change (migration, schema edit, or API modification) that could result in deletion of records from the database.**
+
+- If a change may cause data loss (e.g., dropping columns, tables, or records), you MUST:
+  - Clearly inform the user about the risk.
+  - Ask for explicit confirmation before proceeding.
+  - Document the confirmation in the change log or commit message if relevant.
+
+**NEVER proceed with destructive database changes without user confirmation.**
+
 
 **ALWAYS check and enforce the permission system whenever adding, editing, or suggesting any CRUD (Create, Read, Update, Delete) button, action, or feature that requires user authorization.**
 

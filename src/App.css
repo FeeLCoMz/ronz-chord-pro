@@ -4384,7 +4384,7 @@ body.dark-mode .ct {
   transform: translateY(-1px);
 }
 
-/* Priority items - Key & Capo (most important) */
+/* Priority items - Key (most important) */
 .song-info-item.song-info-priority {
   background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
   border-width: 2px;

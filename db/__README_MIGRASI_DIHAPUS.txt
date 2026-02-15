@@ -1,1 +1,0 @@
-File migrasi telah dihapus secara manual karena database hanya digunakan di satu environment. Jika butuh migrasi ulang, buat file baru sesuai kebutuhan.
