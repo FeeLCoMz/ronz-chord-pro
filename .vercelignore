@@ -9,7 +9,7 @@ api/auth/2fa-verify.js
 api/auth/forgot-password.js
 api/auth/reset-password.js
 api/__tests__/
-# api/middleware/
+api/middleware/
 api/ai.js
 api/legacy/
 api/old_*.js
