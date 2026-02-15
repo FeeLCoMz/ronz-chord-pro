@@ -1,3 +1,30 @@
+// Tools (Owner) API
+export async function exportAllData() {
+  const res = await fetch(`${API_BASE}/tools`, {
+    method: 'GET',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    let err;
+    try { err = await res.json(); } catch {}
+    throw new Error(err?.error || 'Failed to export data');
+  }
+  return await res.json();
+}
+
+export async function importAllData({ songs, setlists, bands, users }) {
+  const res = await fetch(`${API_BASE}/tools`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ songs, setlists, bands, users })
+  });
+  if (!res.ok) {
+    let err;
+    try { err = await res.json(); } catch {}
+    throw new Error(err?.error || 'Failed to import data');
+  }
+  return await res.json();
+}
 // Simple API client for Turso backend
 import * as authUtils from './utils/auth.js';
 

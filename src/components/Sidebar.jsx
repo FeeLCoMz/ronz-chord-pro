@@ -23,13 +23,11 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme, performanceM
     { path: '/karaoke', label: 'Lirik', icon: '🎤' },
     { path: '/setlists', label: 'Setlist', icon: '📋' },
     { path: '/bands/manage', label: 'Band Saya', icon: '🎸' },
-    // Invitations menu removed
     { path: '/practice', label: 'Latihan', icon: '💪' },
     { path: '/gigs', label: 'Konser', icon: '🎤' },
-      // ...existing code...
-    // Menu Audit Log (khusus admin/owner)
-    ...(can && can(PERMISSIONS.ADMIN_VIEW_LOGS)
-      ? [{ path: '/audit-logs', label: 'Audit Log', icon: '🕵️' }] : []),
+    // Menu Tools (khusus owner)
+    ...(user && user.role === 'owner'
+      ? [{ path: '/tools', label: 'Tools', icon: '🛠️' }] : []),
   ];
 
   const isActive = (path) => {

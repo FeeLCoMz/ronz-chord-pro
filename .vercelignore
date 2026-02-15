@@ -4,7 +4,6 @@
 
 # === API: Unused/disabled/over-quota endpoints ===
 api/index.js
-api/server.js
 api/auth/2fa-setup.js
 api/auth/2fa-verify.js
 api/auth/forgot-password.js

@@ -1,4 +1,5 @@
 import KaraokeLyricsListPage from "./pages/KaraokeLyricsListPage.jsx";
+import ToolsPage from "./pages/ToolsPage.jsx";
 import PracticeSessionDetailPage from "./pages/PracticeSessionDetailPage.jsx";
 import GigDetailPage from "./pages/GigDetailPage.jsx";
 import KaraokeSongSearch from "./components/KaraokeSongSearch.jsx";
@@ -406,6 +407,7 @@ function AppContent() {
               {/* InvitationPage and PendingInvitationsPage removed */}
               <Route path="/settings/2fa" element={<TwoFactorSetupPage />} />
               <Route path="/audit-logs" element={<AuditLogPage />} />
+               <Route path="/tools" element={<ToolsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
