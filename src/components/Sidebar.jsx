@@ -20,9 +20,8 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme, performanceM
   const navItems = [
     { path: '/', label: 'Dashboard', icon: '🏠' },
     { path: '/songs', label: 'Lagu', icon: '🎵' },
-    { path: '/karaoke', label: 'Lirik', icon: '🎤' },
     { path: '/setlists', label: 'Setlist', icon: '📋' },
-    { path: '/bands/manage', label: 'Band Saya', icon: '🎸' },
+    { path: '/bands/manage', label: 'Band', icon: '🎸' },
     { path: '/practice', label: 'Latihan', icon: '💪' },
     { path: '/gigs', label: 'Konser', icon: '🎤' },
     // Menu Tools (khusus owner)
