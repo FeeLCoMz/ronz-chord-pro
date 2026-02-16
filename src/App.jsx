@@ -1,4 +1,3 @@
-import KaraokeLyricsListPage from "./pages/KaraokeLyricsListPage.jsx";
 import ToolsPage from "./pages/ToolsPage.jsx";
 import PracticeSessionDetailPage from "./pages/PracticeSessionDetailPage.jsx";
 import GigDetailPage from "./pages/GigDetailPage.jsx";
@@ -328,7 +327,6 @@ function AppContent() {
                 path="/songs/view/:id"
                 element={<SongLyricsRoute songs={songs} activeSetlist={activeSetlist} />}
               />
-              <Route path="/karaoke" element={<KaraokeLyricsListPage songs={songs} />} />
               <Route
                 path="/karaoke/:id"
                 element={
