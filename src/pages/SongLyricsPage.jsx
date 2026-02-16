@@ -469,7 +469,7 @@ export default function SongLyricsPage({ song: songProp }) {
           <p className="not-found-message">Lagu yang Anda cari tidak tersedia</p>
           <button
             onClick={handleBack}
-            className="btn
+            className="btn"
             aria-label="Kembali ke halaman sebelumnya"
           >
             ← Kembali
