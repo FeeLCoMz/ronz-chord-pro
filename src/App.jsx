@@ -21,7 +21,7 @@ import * as apiClient from "./apiClient.js";
 
 // Lazy load non-critical pages for code splitting
 const SongListPage = lazy(() => import("./pages/SongListPage.jsx"));
-const SongLyricsPage = lazy(() => import("./pages/SongLyricsPage.jsx"));
+const SongChordsPage = lazy(() => import("./pages/SongChordsPage.jsx"));
 const SongAddEditPage = lazy(() => import("./pages/SongAddEditPage.jsx"));
 const SetlistPage = lazy(() => import("./pages/SetlistPage.jsx"));
 const SetlistSongsPage = lazy(() => import("./pages/SetlistSongsPage.jsx"));
@@ -30,7 +30,7 @@ const BandManagementPage = lazy(() => import("./pages/BandManagementPage.jsx"));
 const PracticeSessionPage = lazy(() => import("./pages/PracticeSessionPage.jsx"));
 const GigPage = lazy(() => import("./pages/GigPage.jsx"));
 const AuditLogPage = lazy(() => import("./pages/AuditLogPage.jsx"));
-const KaraokeLyricsPage = lazy(() => import("./pages/KaraokeLyricsPage.jsx"));
+const SongLyricsPage = lazy(() => import("./pages/SongLyricsPage.jsx"));
 
 // Loading fallback component
 function PageLoader() {
@@ -336,7 +336,7 @@ function AppContent() {
                     >
                       <KaraokeSongSearch songs={songs} />
                     </div>
-                    <KaraokeLyricsPage />
+                    <SongLyricsPage />
                   </>
                 }
               />
@@ -430,7 +430,7 @@ function EditSongRoute({ onSongUpdated }) {
 function SongLyricsRoute({ songs, activeSetlist }) {
   const { id } = useParams();
   const song = Array.isArray(songs) ? songs.find((s) => String(s.id) === String(id)) : null;
-  return <SongLyricsPage song={song} activeSetlist={activeSetlist} />;
+  return <SongChordsPage song={song} activeSetlist={activeSetlist} />;
 }
 
 export default App;

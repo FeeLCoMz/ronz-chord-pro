@@ -206,7 +206,7 @@ export default function SongAddEditPage({ onSongUpdated }) {
 
       // Navigate based on mode: list for new song, detail for edit
       if (isEditMode) {
-        // Navigate with fromEdit flag to force SongLyricsPage to fetch fresh data
+        // Navigate with fromEdit flag to force SongChordsPage to fetch fresh data
         navigate(`/songs/view/${savedSong.id || id}`, {
           replace: true,
           state: { fromEdit: true },

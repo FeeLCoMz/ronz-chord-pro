@@ -75,7 +75,7 @@
 ### Core Pages (All Modernized)
 - ✅ DashboardPage - Hero + stats
 - ✅ SongListPage - Grid of songs with search
-- ✅ SongLyricsPage - Song detail with chords
+- ✅ SongChordsPage - Song detail with chords
 - ✅ SongAddEditPage - Add/edit songs
 - ✅ SetlistPage - Manage setlists
 - ✅ SetlistSongsPage - Edit setlist songs
