@@ -315,7 +315,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
 
           <button
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="btn sort-button"
+            className="btn btn-secondary"
             title={sortOrder === 'asc' ? 'Urut Naik' : 'Urut Turun'}
           >
             {sortOrder === 'asc' ? '↑ A-Z' : '↓ Z-A'}
@@ -324,7 +324,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
           {hasActiveFilters && (
             <button
               onClick={handleClearFilters}
-              className="btn reset-filter-btn"
+              className="btn btn-secondary"
             >
               ✕ Reset
             </button>

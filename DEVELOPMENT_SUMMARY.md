@@ -90,7 +90,6 @@
 - ✅ ErrorBoundary - Error handling
 - ✅ LoadingSkeleton - 5 skeleton types
 - ✅ Sidebar - Navigation
-- ✅ SearchBar - Search functionality
 - ✅ TapTempo - BPM detection
 - ✅ TransposeBar - Key transpose
 - ✅ ChordDisplay - Chord visualization

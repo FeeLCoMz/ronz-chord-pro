@@ -167,7 +167,7 @@ export default function AuditLogPage() {
                 onClick={() => setFilters({
                   category: '', severity: '', status: '', startDate: '', endDate: ''
                 })}
-                className="btn reset-filter-btn"
+                className="btn btn-secondary"
               >
                 Clear Filters
               </button>

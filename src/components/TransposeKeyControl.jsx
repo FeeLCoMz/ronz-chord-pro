@@ -71,7 +71,7 @@ export default function TransposeKeyControl({ originalKey, targetKey, transpose,
         <button
           type="button"
           onClick={handleTransposeDown}
-          className="key-transpose-btn"
+          className="btn btn-secondary"
           title="Transpose down"
           aria-label="Transpose down"
         >
@@ -91,7 +91,7 @@ export default function TransposeKeyControl({ originalKey, targetKey, transpose,
         <button
           type="button"
           onClick={handleTransposeUp}
-          className="key-transpose-btn"
+          className="btn btn-secondary"
           title="Transpose up"
           aria-label="Transpose up"
         >
@@ -118,7 +118,7 @@ export default function TransposeKeyControl({ originalKey, targetKey, transpose,
         <button
           type="button"
           onClick={handleTransposeDown}
-          className="key-transpose-btn"
+          className="btn btn-secondary"
           title="Transpose down"
           aria-label="Transpose down"
         >
@@ -138,7 +138,7 @@ export default function TransposeKeyControl({ originalKey, targetKey, transpose,
         <button
           type="button"
           onClick={handleTransposeUp}
-          className="key-transpose-btn"
+          className="btn btn-secondary"
           title="Transpose up"
           aria-label="Transpose up"
         >

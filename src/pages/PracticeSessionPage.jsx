@@ -381,7 +381,7 @@ export default function PracticeSessionPage() {
                 {/* Permission for edit/delete per session (pure function, not hook) */}
                 {canSession(session, PERMISSIONS.SETLIST_EDIT) && (
                   <button
-                    className="icon-btn-small"
+                    className="btn btn-secondary"
                     onClick={() => handleEdit(session)}
                     title="Edit"
                   >
@@ -390,7 +390,7 @@ export default function PracticeSessionPage() {
                 )}
                 {canSession(session, PERMISSIONS.SETLIST_DELETE) && (
                   <button
-                    className="icon-btn-small delete-btn"
+                    className="btn btn-red"
                     onClick={() => setDeleteSession(session)}
                     title="Hapus"
                   >

@@ -27,7 +27,7 @@ export default function VoiceSearchButton({ onResult, disabled }) {
   return (
     <button
       type="button"
-      className="btn voice-search-btn"
+      className="btn btn-secondary"
       onClick={handleStart}
       disabled={disabled}
       title="Cari dengan suara"

@@ -557,7 +557,7 @@ export default function SongLyricsPage({ song: songProp }) {
       <div className="song-lyrics-header">
         <button
           onClick={handleBack}
-          className="song-lyrics-back-btn"
+          className="btn btn-secondary"
           aria-label="Kembali"
           title="Kembali"
         >
@@ -574,11 +574,11 @@ export default function SongLyricsPage({ song: songProp }) {
         </div>
         <div className="song-lyrics-header-actions">
           {can(PERMISSIONS.SONG_EDIT) && (
-            <button onClick={handleEdit} className="song-lyrics-edit-btn" title="Edit lagu">
+            <button onClick={handleEdit} className="btn btn-secondary" title="Edit lagu">
               ✏️ Edit
             </button>
           )}
-          <button onClick={handleShare} className="song-lyrics-share-btn" title="Bagikan lagu">
+          <button onClick={handleShare} className="btn btn-secondary" title="Bagikan lagu">
             🔗 Bagikan
           </button>
         </div>
@@ -729,7 +729,7 @@ export default function SongLyricsPage({ song: songProp }) {
                 <div className="song-info-tempo-controls">
                   <button
                     onClick={() => setScrollSpeed(Math.max(40, scrollSpeed - 5))}
-                    className="tempo-adjust-btn"
+                    className="btn btn-secondary"
                     title="Tempo down"
                     aria-label="Tempo down"
                   >
@@ -741,7 +741,7 @@ export default function SongLyricsPage({ song: songProp }) {
                   </div>
                   <button
                     onClick={() => setScrollSpeed(Math.min(240, scrollSpeed + 5))}
-                    className="tempo-adjust-btn"
+                    className="btn btn-secondary"
                     title="Tempo up"
                     aria-label="Tempo up"
                   >
@@ -749,7 +749,7 @@ export default function SongLyricsPage({ song: songProp }) {
                   </button>
                   <button
                     onClick={() => setIsMetronomeActive(!isMetronomeActive)}
-                    className={`tempo-metronome-btn ${isMetronomeActive ? "active" : ""}`}
+                    className={`btn btn-secondary ${isMetronomeActive ? "active" : ""}`}
                     title={isMetronomeActive ? "Stop metronome" : "Start metronome"}
                     aria-label={isMetronomeActive ? "Stop metronome" : "Start metronome"}
                   >
@@ -919,7 +919,7 @@ export default function SongLyricsPage({ song: songProp }) {
             <div className="song-lyrics-zoom-controls">
               <button
                 onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}
-                className="song-lyrics-zoom-btn"
+                className="btn btn-secondary"
                 title="Perkecil"
               >
                 −
@@ -927,12 +927,12 @@ export default function SongLyricsPage({ song: songProp }) {
               <span className="song-lyrics-zoom-display">{(zoom * 100).toFixed(0)}%</span>
               <button
                 onClick={() => setZoom(Math.min(1.5, zoom + 0.1))}
-                className="song-lyrics-zoom-btn"
+                className="btn btn-secondary"
                 title="Perbesar"
               >
                 +
               </button>
-              <button onClick={() => setZoom(1)} className="song-lyrics-zoom-btn" title="Reset">
+              <button onClick={() => setZoom(1)} className="btn btn-secondary" title="Reset">
                 ⟲
               </button>
             </div>
@@ -986,7 +986,7 @@ export default function SongLyricsPage({ song: songProp }) {
                   type="button"
                   onClick={handleCancelEditLyrics}
                   disabled={savingLyrics}
-                  className="song-lyrics-edit-btn"
+                  className="btn btn-secondary"
                 >
                   ✕ Batal
                 </button>

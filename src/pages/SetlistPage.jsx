@@ -228,7 +228,7 @@ export default function SetlistPage({
 
           <button
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="btn sort-button"
+            className="btn btn-secondary"
             title={sortOrder === 'asc' ? 'Urut Naik' : 'Urut Turun'}
           >
             {sortOrder === 'asc' ? '↑ A-Z' : '↓ Z-A'}
@@ -237,7 +237,7 @@ export default function SetlistPage({
           {hasActiveFilters && (
             <button
               onClick={handleClearFilters}
-              className="btn reset-filter-btn"
+              className="btn btn-secondary"
             >
               ✕ Reset
             </button>

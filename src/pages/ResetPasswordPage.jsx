@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
           </p>
           <button 
             onClick={() => navigate('/login')}
-            className="btn full-width-btn"
+            className="btn"
             style={{ background: 'var(--primary-color)', color: 'white' }}
           >
             Back to Login
@@ -133,7 +133,7 @@ export default function ResetPasswordPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="At least 6 characters"
-              className="modal-input full-width-btn"
+              className="modal-input"
               disabled={loading}
             />
           </div>
@@ -147,14 +147,14 @@ export default function ResetPasswordPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm your password"
-              className="modal-input full-width-btn"
+              className="modal-input"
               disabled={loading}
             />
           </div>
 
           <button
             type="submit"
-            className="btn full-width-btn"
+            className="btn"
             style={{
               background: 'var(--primary-color)',
               color: 'white',

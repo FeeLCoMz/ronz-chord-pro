@@ -191,7 +191,7 @@ export default function TimeMarkers({
               type="button"
               onClick={handleAddNew}
               disabled={!newTime}
-              className="time-marker-add-btn"
+              className="btn"
             >
               ➕ Tambah Timestamp
             </button>
@@ -240,14 +240,14 @@ export default function TimeMarkers({
                       <button
                         type="button"
                         onClick={handleSaveEdit}
-                        className="time-marker-save-btn"
+                        className="btn"
                       >
                         ✓ Simpan
                       </button>
                       <button
                         type="button"
                         onClick={handleCancelEdit}
-                        className="time-marker-cancel-btn"
+                        className="btn"
                       >
                         ✕ Batal
                       </button>
@@ -264,7 +264,7 @@ export default function TimeMarkers({
                   <button
                     type="button"
                     onClick={() => handleTogglePlay(marker.time)}
-                    className="time-marker-play-btn"
+                    className="btn"
                     style={{ minWidth: 60 }}
                   >
                     {playingMarker === marker.time ? '⏸️ Pause' : '▶️ Play'} {formatTime(marker.time)}
@@ -277,14 +277,14 @@ export default function TimeMarkers({
                       <button
                         type="button"
                         onClick={() => handleEdit(marker)}
-                        className="time-marker-edit-btn"
+                        className="btn btn-secondary"
                       >
                         ✏️
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDelete(marker)}
-                        className="time-marker-delete-btn"
+                        className="btn btn-red"
                       >
                         🗑️
                       </button>

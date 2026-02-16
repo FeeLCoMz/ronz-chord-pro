@@ -339,14 +339,14 @@ export default function GigPage() {
               <div className="form-actions">
                 <button
                   type="button"
-                  className="btn tab-btn"
+                  className="btn "
                   onClick={() => { setShowForm(false); setEditGig(null); }}
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="btn tab-btn"
+                  className="btn "
                   style={{ background: '#4f8cff', color: '#fff', fontWeight: 600 }}
                 >
                   {editGig ? 'Simpan Perubahan' : 'Buat Jadwal'}
