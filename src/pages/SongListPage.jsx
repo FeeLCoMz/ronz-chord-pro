@@ -191,7 +191,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
         <div className="page-header">
           <h1>🎵 Lagu Saya</h1>
         </div>
-        <div className="error-text" style={{ padding: '20px' }}>{error}</div>
+        <div className="error-text">{error}</div>
       </div>
     );
   }
@@ -339,7 +339,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
             {hasActiveFilters ? 'Tidak ada lagu yang cocok dengan filter' : 'Belum ada lagu'}
           </p>
           {!hasActiveFilters && (
-            <button className="btn" onClick={() => onSongClick('add')} style={{ marginTop: '12px' }}>
+            <button className="btn" onClick={() => onSongClick('add')}>
               <PlusIcon size={18} /> Tambah Lagu Pertama
             </button>
           )}
@@ -379,8 +379,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                 style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
               >
                 <button
-                  className="btn btn-secondary"
-                  style={{ padding: '6px 14px', fontSize: '0.85em' }}
+                  className="btn btn-secondary"                  
                   title="Lihat Karaoke"
                   onClick={() => navigate(`/karaoke/${song.id}`)}
                 >
@@ -415,8 +414,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                       {canEdit && (
                         <button
                           onClick={() => onSongClick('edit', song.id)}
-                          className="btn"
-                          style={{ padding: '6px 12px', fontSize: '0.85em' }}
+                          className="btn"                          
                           title="Edit"
                         >
                           <EditIcon size={16} />
@@ -425,14 +423,7 @@ export default function SongListPage({ songs, loading, error, onSongClick }) {
                       {canDelete && (
                         <button
                           onClick={() => onSongClick('delete', song.id)}
-                          className="btn"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '0.85em',
-                            background: '#dc2626',
-                            borderColor: '#b91c1c',
-                            color: '#fff'
-                          }}
+                          className="btn btn-red"
                           title="Hapus"
                         >
                           <DeleteIcon size={16} />

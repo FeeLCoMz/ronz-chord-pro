@@ -52,11 +52,6 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme, performanceM
       {/* Overlay untuk mobile */}
       {isOpen && <div className="sidebar-overlay" onClick={onClose} tabIndex={-1} aria-label="Tutup sidebar"></div>}
       <aside className={`sidebar ${isOpen ? 'open' : ''}`} role="navigation" aria-label="Sidebar utama" tabIndex={0}>
-        {/* Close button for mobile */}
-        <button className="sidebar-close-btn" onClick={onClose} title="Tutup sidebar" aria-label="Tutup sidebar" tabIndex={0}>
-          ✕
-        </button>
-
         {/* Logo/Branding */}
         <div className="sidebar-header">
           <div className="sidebar-logo">
@@ -66,7 +61,7 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme, performanceM
           {/* Theme & Performance Mode toggle buttons for desktop */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', marginTop: 4 }}>
             <button
-              className={`btn theme-switch-btn ${theme === 'dark' ? 'dark' : 'light'}`}
+              className={`btn btn-secondary ${theme === 'dark' ? 'dark' : 'light'}`}
               onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
               title="Ganti mode gelap/terang"
               aria-label="Toggle dark mode"
@@ -74,7 +69,7 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme, performanceM
               {theme === 'dark' ? '🌙' : '☀️'}
             </button>
             <button
-              className={`btn performance-switch-btn${performanceMode ? ' active' : ''}`}
+              className={`btn btn-secondary ${performanceMode ? ' active' : ''}`}
               onClick={() => setPerformanceMode(v => !v)}
               title={performanceMode ? 'Nonaktifkan Performance Mode' : 'Aktifkan Performance Mode'}
               aria-label="Toggle performance mode"
@@ -117,7 +112,7 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme, performanceM
         {/* Footer - Logout */}
         <div className="sidebar-footer">
           <button
-            className="sidebar-logout-btn"
+            className="btn"
             onClick={handleLogout}
             title="Logout"
             aria-label="Logout"

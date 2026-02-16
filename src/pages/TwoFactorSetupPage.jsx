@@ -199,7 +199,7 @@ export default function TwoFactorSetupPage() {
             </div>
             <button
               type="submit"
-              className="btn-submit"
+              className="btn"
               style={{ width: '100%' }}
               disabled={verifying || !verificationToken || verificationToken.length !== 6}
             >

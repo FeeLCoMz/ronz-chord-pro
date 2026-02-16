@@ -337,14 +337,14 @@ export default function BandDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="btn-cancel"
+                  className="btn"
                   disabled={isSubmitting}
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="btn-submit"
+                  className="btn"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Simpan'}
@@ -510,14 +510,14 @@ export default function BandDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
-                  className="btn-cancel"
+                  className="btn"
                   disabled={isSubmitting}
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="btn-submit"
+                  className="btn"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Menyimpan...' : 'Simpan'}

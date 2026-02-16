@@ -530,10 +530,10 @@ export default function SongAddEditPage({ onSongUpdated }) {
 
         {/* Action Buttons */}
         <div className="form-actions">
-          <button type="button" onClick={handleCancel} className="btn-cancel">
+          <button type="button" onClick={handleCancel} className="btn">
             Batal
           </button>
-          <button type="submit" disabled={loading} className="btn-submit">
+          <button type="submit" disabled={loading} className="btn">
             {loading ? "⏳ Menyimpan..." : isEditMode ? "💾 Simpan Perubahan" : "➕ Tambah Lagu"}
           </button>
         </div>

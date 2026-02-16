@@ -60,7 +60,7 @@ class ErrorBoundary extends React.Component {
               </details>
             )}
 
-            <button onClick={this.handleReset} className="btn-reset">
+            <button onClick={this.handleReset} className="btn">
               Kembali ke Beranda
             </button>
           </div>

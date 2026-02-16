@@ -355,11 +355,11 @@ export function SongManager({ songId, bandId, userRole, userId }) {
   return (
     <div className="song-manager">
       {can(PERMISSIONS.SONG_EDIT) && (
-        <button className="btn-edit">Edit</button>
+        <button className="btn">Edit</button>
       )}
       
       {can(PERMISSIONS.SONG_DELETE) && (
-        <button className="btn-delete">Delete</button>
+        <button className="btn">Delete</button>
       )}
       
       {/* Show warning if trying to edit someone else's song as member */}

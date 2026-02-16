@@ -13,7 +13,7 @@ export default function ChordLinks({ searchQuery }) {
           href={`https://www.ultimate-guitar.com/search.php?search_type=title&value=${encodeURIComponent(searchQuery)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="tab-btn chord-link-btn"
+          className="btn chord-link-btn"
         >
           🎸 Ultimate Guitar
         </a>
@@ -21,7 +21,7 @@ export default function ChordLinks({ searchQuery }) {
           href={`https://www.chordtela.com/?s=${encodeURIComponent(searchQuery)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="tab-btn chord-link-btn"
+          className="btn chord-link-btn"
         >
           🎵 ChordTela
         </a>
@@ -29,7 +29,7 @@ export default function ChordLinks({ searchQuery }) {
           href={`https://www.google.com/search?q=${encodeURIComponent(searchQuery + ' chord')}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="tab-btn chord-link-btn"
+          className="btn chord-link-btn"
         >
           🔍 Google Search
         </a>

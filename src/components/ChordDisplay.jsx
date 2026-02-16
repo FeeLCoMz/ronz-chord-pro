@@ -74,7 +74,7 @@ export default function ChordDisplay({ song, transpose = 0, zoom = 1, onTimestam
                     <span style={{fontWeight: 600}}>{t.token}</span>
                     <button
                       type="button"
-                      className="cd-timestamp-toggle-btn"
+                      className="btn"
                       onClick={() => {
                         if (isPlaying) {
                           onTimestampPause && onTimestampPause();

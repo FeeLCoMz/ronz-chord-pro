@@ -450,7 +450,7 @@ export default function SongLyricsPage({ song: songProp }) {
           <p className="not-found-message">{error}</p>
           <button
             onClick={handleBack}
-            className="btn-submit"
+            className="btn"
             aria-label="Kembali ke halaman sebelumnya"
           >
             ← Kembali
@@ -469,7 +469,7 @@ export default function SongLyricsPage({ song: songProp }) {
           <p className="not-found-message">Lagu yang Anda cari tidak tersedia</p>
           <button
             onClick={handleBack}
-            className="btn-submit"
+            className="btn
             aria-label="Kembali ke halaman sebelumnya"
           >
             ← Kembali
@@ -978,7 +978,7 @@ export default function SongLyricsPage({ song: songProp }) {
                   type="button"
                   onClick={handleSaveLyrics}
                   disabled={savingLyrics}
-                  className="song-lyrics-edit-btn-save"
+                  className="btn"
                 >
                   {savingLyrics ? "⏳ Menyimpan..." : "✓ Simpan"}
                 </button>
@@ -986,7 +986,7 @@ export default function SongLyricsPage({ song: songProp }) {
                   type="button"
                   onClick={handleCancelEditLyrics}
                   disabled={savingLyrics}
-                  className="song-lyrics-edit-btn-cancel"
+                  className="song-lyrics-edit-btn"
                 >
                   ✕ Batal
                 </button>
