@@ -16,19 +16,7 @@ export default function AIAutofillModal({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        left: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '20px'
-      }}
+      className="modal-overlay ai-autofill-modal-overlay"
       role="dialog"
       aria-modal="true"
       tabIndex={-1}
@@ -38,70 +26,29 @@ export default function AIAutofillModal({
       }}
     >
       <div
-        style={{
-          background: 'var(--card-bg)',
-          borderRadius: '8px',
-          padding: '24px',
-          maxWidth: '600px',
-          width: '100%',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          border: '1px solid var(--border-color)'
-        }}
+        className="modal ai-autofill-modal"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{
-          fontSize: '1.3em',
-          fontWeight: '700',
-          color: 'var(--text-primary)',
-          marginTop: 0,
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
+        <h3 className="ai-autofill-modal-title">
           🤖 Konfirmasi AI Autofill
         </h3>
-        <p style={{
-          fontSize: '0.95em',
-          color: 'var(--text-muted)',
-          marginBottom: '20px'
-        }}>
+        <p className="ai-autofill-modal-desc">
           Pilih field yang ingin diisi otomatis dari hasil AI:
         </p>
         {/* Chord Links */}
         {Array.isArray(aiResult.chordLinks) && aiResult.chordLinks.length > 0 && (
-          <div style={{
-            marginBottom: '20px',
-            padding: '12px',
-            background: 'var(--secondary-bg)',
-            borderRadius: '6px'
-          }}>
-            <div style={{
-              fontWeight: '600',
-              marginBottom: '8px',
-              color: 'var(--text-primary)',
-              fontSize: '0.95em'
-            }}>
+          <div className="ai-autofill-chordlinks">
+            <div className="ai-autofill-chordlinks-label">
               📚 Sumber Chord:
             </div>
-            <ul style={{
-              paddingLeft: '20px',
-              margin: 0
-            }}>
+            <ul className="ai-autofill-chordlinks-list">
               {aiResult.chordLinks.map((cl, idx) => (
-                <li key={idx} style={{
-                  marginBottom: '4px',
-                  fontSize: '0.9em'
-                }}>
+                <li key={idx} className="ai-autofill-chordlinks-item">
                   <a
                     href={cl.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{
-                      color: 'var(--primary-color)',
-                      textDecoration: 'underline'
-                    }}
+                    className="ai-autofill-chordlinks-link"
                   >
                     {cl.title || cl.site}
                   </a>
@@ -111,251 +58,117 @@ export default function AIAutofillModal({
           </div>
         )}
         <form onSubmit={handleSubmit}>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            marginBottom: '20px'
-          }}>
+          <div className="ai-autofill-fields">
             {/* Artist */}
             {aiResult.artist && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
+              <label className="ai-autofill-field">
                 <input
                   type="checkbox"
                   checked={aiConfirmFields.artist || false}
                   onChange={e => setAiConfirmFields(f => ({...f, artist: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer'
-                  }}
+                  className="ai-autofill-checkbox"
                 />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  👤 Artist: <span style={{ fontWeight: '600' }}>{aiResult.artist}</span>
+                <span className="ai-autofill-field-label">
+                  👤 Artist: <span className="ai-autofill-field-value">{aiResult.artist}</span>
                 </span>
               </label>
             )}
 
             {/* Key */}
             {aiResult.key && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
+              <label className="ai-autofill-field">
                 <input
                   type="checkbox"
                   checked={aiConfirmFields.key || false}
                   onChange={e => setAiConfirmFields(f => ({...f, key: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer'
-                  }}
+                  className="ai-autofill-checkbox"
                 />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  🎼 Key: <span style={{ fontWeight: '600' }}>{aiResult.key}</span>
+                <span className="ai-autofill-field-label">
+                  🎼 Key: <span className="ai-autofill-field-value">{aiResult.key}</span>
                 </span>
               </label>
             )}
 
             {/* Tempo */}
             {aiResult.tempo && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
+              <label className="ai-autofill-field">
                 <input
                   type="checkbox"
                   checked={aiConfirmFields.tempo || false}
                   onChange={e => setAiConfirmFields(f => ({...f, tempo: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer'
-                  }}
+                  className="ai-autofill-checkbox"
                 />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  ⏱️ Tempo: <span style={{ fontWeight: '600' }}>{aiResult.tempo} BPM</span>
+                <span className="ai-autofill-field-label">
+                  ⏱️ Tempo: <span className="ai-autofill-field-value">{aiResult.tempo} BPM</span>
                 </span>
               </label>
             )}
 
             {/* Arrangement Style */}
             {aiResult.arrangementStyle && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
+              <label className="ai-autofill-field">
                 <input
                   type="checkbox"
                   checked={aiConfirmFields.arrangementStyle || false}
                   onChange={e => setAiConfirmFields(f => ({...f, arrangementStyle: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer'
-                  }}
+                  className="ai-autofill-checkbox"
                 />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  🎹 Gaya Aransemen: <span style={{ fontWeight: '600' }}>{aiResult.arrangementStyle}</span>
+                <span className="ai-autofill-field-label">
+                  🎹 Gaya Aransemen: <span className="ai-autofill-field-value">{aiResult.arrangementStyle}</span>
                 </span>
               </label>
             )}
 
             {/* Keyboard Patch */}
             {aiResult.keyboardPatch && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
+              <label className="ai-autofill-field">
                 <input
                   type="checkbox"
                   checked={aiConfirmFields.keyboardPatch || false}
                   onChange={e => setAiConfirmFields(f => ({...f, keyboardPatch: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer'
-                  }}
+                  className="ai-autofill-checkbox"
                 />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  🎹 Keyboard Patch: <span style={{ fontWeight: '600' }}>{Array.isArray(aiResult.keyboardPatch) ? aiResult.keyboardPatch.join(', ') : aiResult.keyboardPatch}</span>
+                <span className="ai-autofill-field-label">
+                  🎹 Keyboard Patch: <span className="ai-autofill-field-value">{Array.isArray(aiResult.keyboardPatch) ? aiResult.keyboardPatch.join(', ') : aiResult.keyboardPatch}</span>
                 </span>
               </label>
             )}
             {aiResult.genre && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
+              <label className="ai-autofill-field">
                 <input
                   type="checkbox"
                   checked={aiConfirmFields.genre || false}
                   onChange={e => setAiConfirmFields(f => ({...f, genre: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer'
-                  }}
+                  className="ai-autofill-checkbox"
                 />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  🎸 Genre: <span style={{ fontWeight: '600' }}>{aiResult.genre}</span>
+                <span className="ai-autofill-field-label">
+                  🎸 Genre: <span className="ai-autofill-field-value">{aiResult.genre}</span>
                 </span>
               </label>
             )}            
             {aiResult.youtubeId && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
+              <label className="ai-autofill-field">
                 <input
                   type="checkbox"
                   checked={aiConfirmFields.youtubeId || false}
                   onChange={e => setAiConfirmFields(f => ({...f, youtubeId: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer'
-                  }}
+                  className="ai-autofill-checkbox"
                 />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  🎬 YouTube ID: <span style={{ fontWeight: '600', fontSize: '0.85em' }}>{aiResult.youtubeId}</span>
+                <span className="ai-autofill-field-label">
+                  🎬 YouTube ID: <span className="ai-autofill-field-value ai-autofill-youtubeid">{aiResult.youtubeId}</span>
                 </span>
               </label>
             )}
             {aiResult.lyrics && (
-              <label style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '10px',
-                padding: '10px',
-                background: 'var(--secondary-bg)',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}>
+              <label className="ai-autofill-field ai-autofill-field-lyrics">
                 <input
                   type="checkbox"
                   checked={aiConfirmFields.lyrics || false}
                   onChange={e => setAiConfirmFields(f => ({...f, lyrics: e.target.checked}))}
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    cursor: 'pointer',
-                    marginTop: '2px'
-                  }}
+                  className="ai-autofill-checkbox ai-autofill-checkbox-lyrics"
                 />
-                <span style={{
-                  flex: 1,
-                  color: 'var(--text-primary)',
-                  fontSize: '0.95em'
-                }}>
-                  🎤 Lirik: <span style={{ fontWeight: '600', fontStyle: 'italic' }}>
+                <span className="ai-autofill-field-label">
+                  🎤 Lirik: <span className="ai-autofill-field-value ai-autofill-lyrics-value">
                     {aiResult.lyrics.slice(0, 80)}{aiResult.lyrics.length > 80 ? '...' : ''}
                   </span>
                 </span>
@@ -363,40 +176,17 @@ export default function AIAutofillModal({
             )}
             {/* Tambahkan field lain sesuai kebutuhan */}
           </div>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '12px',
-            marginTop: '24px'
-          }}>
+          <div className="ai-autofill-modal-actions">
             <button
               type="button"
               onClick={onClose}
-              style={{
-                padding: '10px 20px',
-                background: 'var(--secondary-bg)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '6px',
-                fontSize: '0.95em',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
+              className="btn ai-autofill-cancel"
             >
               Batal
             </button>
             <button
               type="submit"
-              style={{
-                padding: '10px 20px',
-                background: 'var(--primary-color)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                fontSize: '0.95em',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
+              className="btn btn-primary ai-autofill-apply"
             >
               ✓ Terapkan Pilihan
             </button>

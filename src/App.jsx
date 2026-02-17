@@ -15,7 +15,6 @@ import NotFound from "./components/NotFound.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import Sidebar from "./components/Sidebar.jsx";
 import Toast from "./components/Toast.jsx";
-// ...notificationUtil import removed...
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import * as apiClient from "./apiClient.js";
 
@@ -405,7 +404,7 @@ function AppContent() {
               {/* InvitationPage and PendingInvitationsPage removed */}
               <Route path="/settings/2fa" element={<TwoFactorSetupPage />} />
               <Route path="/audit-logs" element={<AuditLogPage />} />
-               <Route path="/tools" element={<ToolsPage />} />
+              <Route path="/tools" element={<ToolsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
