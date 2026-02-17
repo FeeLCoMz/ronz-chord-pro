@@ -141,9 +141,10 @@ export default async function handler(req, res) {
         return;
       }
       if (req.method === 'DELETE') {
-        // Permission constants
-        const { SETLIST_DELETE } = require('../../src/utils/permissionUtils.js').PERMISSIONS;
-        const { hasPermission } = require('../../src/utils/permissionUtils.js');
+        // Permission constants (ESM compatible)
+        const permUtils = await import('../../src/utils/permissionUtils.js');
+        const SETLIST_DELETE = permUtils.PERMISSIONS.SETLIST_DELETE;
+        const hasPermission = permUtils.hasPermission;
         const userRole = req.user?.role;
         if (!hasPermission(userRole, SETLIST_DELETE)) {
           res.status(403).json({ error: 'You do not have permission to delete setlists' });
