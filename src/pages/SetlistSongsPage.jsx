@@ -6,6 +6,7 @@ import SetlistPoster from '../components/SetlistPoster.jsx';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 import * as authUtils from '../utils/auth.js';
 import { cacheSetlist, getSetlist as getSetlistOffline } from '../utils/offlineCache.js';
@@ -235,6 +236,48 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       .catch((err) => {
         setPosterError('Gagal membuat poster. Coba lagi.');
         console.error('html2canvas error:', err);
+      })
+      .finally(() => {
+        setIsGeneratingPoster(false);
+      });
+  }
+
+  function handleDownloadPDF() {
+    if (!posterRef.current || !setlist) return;
+    setIsGeneratingPoster(true);
+    setPosterError('');
+
+    const safeName = (setlist.name || 'setlist')
+      .replace(/[\/:*?"<>|]+/g, '')
+      .trim();
+
+    html2canvas(posterRef.current, {
+      backgroundColor: '#0f172a',
+      scale: 2,
+      useCORS: true
+    })
+      .then((canvas) => {
+        const imgData = canvas.toDataURL('image/png');
+        // Ukuran poster default: 1080x1350 px, konversi ke mm (A4: 210x297mm)
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        // Hitung rasio agar poster fit di A4
+        const imgProps = { width: canvas.width, height: canvas.height };
+        let pdfWidth = pageWidth;
+        let pdfHeight = (imgProps.height * pageWidth) / imgProps.width;
+        if (pdfHeight > pageHeight) {
+          pdfHeight = pageHeight;
+          pdfWidth = (imgProps.width * pageHeight) / imgProps.height;
+        }
+        const x = (pageWidth - pdfWidth) / 2;
+        const y = (pageHeight - pdfHeight) / 2;
+        pdf.addImage(imgData, 'PNG', x, y, pdfWidth, pdfHeight);
+        pdf.save(`${safeName || 'setlist'}-poster.pdf`);
+      })
+      .catch((err) => {
+        setPosterError('Gagal membuat PDF. Coba lagi.');
+        console.error('html2canvas/pdf error:', err);
       })
       .finally(() => {
         setIsGeneratingPoster(false);
@@ -651,6 +694,13 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                 disabled={isGeneratingPoster}
               >
                 {isGeneratingPoster ? 'Membuat Poster...' : 'Unduh Poster'}
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPoster}
+              >
+                {isGeneratingPoster ? 'Membuat PDF...' : 'Download PDF'}
               </button>
               <button className="btn btn-secondary" onClick={() => setShowShareModal(false)}>Tutup</button>
             </div>

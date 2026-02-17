@@ -13,7 +13,8 @@
   border-radius: 18px;
   padding: 32px;
   width: 1080px;
-  height: 1350px;
+  min-height: 1350px;
+  height: auto;
   aspect-ratio: auto;
   max-width: none;
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.45);
@@ -165,4 +166,35 @@
 
 .setlist-poster-error {
   margin-top: 8px;
+}
+
+@media (max-width: 700px) {
+  .setlist-poster {
+    width: 98vw;
+    min-width: 0;
+    padding: 12px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(15,23,42,0.25);
+  }
+  .setlist-poster-title {
+    font-size: 1.5rem !important;
+    white-space: normal;
+  }
+  .setlist-poster-header img {
+    width: 48px !important;
+    height: 48px !important;
+  }
+  .setlist-poster-list.two-columns {
+    flex-direction: column !important;
+    column-count: 1 !important;
+    column-gap: 0 !important;
+  }
+  .setlist-poster-item {
+    font-size: 1rem !important;
+    padding: 8px 6px;
+  }
+  .setlist-poster-footer {
+    font-size: 0.9rem;
+  }
 }

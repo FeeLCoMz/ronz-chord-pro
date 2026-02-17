@@ -29,6 +29,28 @@ export default function SetlistPoster({ setlist, setlistSongs, posterRef }) {
           <div className="setlist-poster-subtitle">{posterSubtitle}</div>
           <div className="setlist-poster-divider" />
         </div>
+            {/* Tanggal & Venue */}
+            {setlist?.date && (
+              <div style={{ fontSize: '1.1rem', color: '#fbbf24', fontWeight: 700, marginBottom: 4 }}>
+                {new Date(setlist.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {setlist?.venue && (
+                  <span style={{ color: '#a5b4fc', fontWeight: 600, marginLeft: 8 }}>
+                    | {setlist.venue}
+                  </span>
+                )}
+              </div>
+            )}
+            {/* Tagline / Deskripsi Singkat */}
+            {setlist?.tagline && (
+              <div style={{ fontSize: '1.05rem', color: '#fbbf24', fontWeight: 600, marginBottom: 6, fontStyle: 'italic' }}>
+                {setlist.tagline}
+              </div>
+            )}
+            {!setlist?.tagline && setlist?.notes && (
+              <div style={{ fontSize: '1.05rem', color: '#fbbf24', fontWeight: 600, marginBottom: 6, fontStyle: 'italic' }}>
+                {setlist.notes}
+              </div>
+            )}
         <div className={`setlist-poster-list${useTwoColumns ? ' two-columns' : ''}`}
           style={useTwoColumns ? { display: 'flex', flexDirection: 'row', columnGap: 24 } : {}}>
           {useTwoColumns ? (
