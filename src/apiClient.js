@@ -6,10 +6,10 @@ export async function backupDatabase() {
   });
   if (!res.ok) {
     let err;
-    try { err = await res.json(); } catch {}
-    throw new Error(err?.error || 'Failed to backup database');
+    try { err = await res.text(); } catch {}
+    throw new Error('Failed to backup database');
   }
-  return await res.json();
+  return await res.text();
 }
 export async function exportAllData() {
   const res = await fetch(`${API_BASE}/tools`, {

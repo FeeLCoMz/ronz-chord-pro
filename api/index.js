@@ -32,6 +32,7 @@ import auth2FASetupHandler from './auth/2fa-setup.js';
 import auth2FAVerifyHandler from './auth/2fa-verify.js';
 // Tools handler (export/import)
 import toolsHandler from './tools/index.js';
+import toolsBackupHandler from './tools/backup.js';
 
 // --- Env setup ---
 const __filename = fileURLToPath(import.meta.url);
@@ -44,6 +45,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 // --- Express app setup ---
 const app = express();
 app.use(cors());
+
+
+// Backup SQL route (must be before /api/tools catch-all)
+app.use('/api/tools/backup', verifyToken, (req, res, next) => {
+  Promise.resolve(toolsBackupHandler(req, res)).catch(next);
+});
 
 // Tools API (export/import data)
 app.use('/api/tools', verifyToken, (req, res, next) => {

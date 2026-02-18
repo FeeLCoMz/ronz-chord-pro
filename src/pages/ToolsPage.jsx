@@ -51,9 +51,9 @@ export default function ToolsPage() {
     setBackupError(null);
     setBackupSuccess(null);
     try {
-      const result = await apiClient.backupDatabase();
-      if (!result || !result.sql) throw new Error('Backup gagal: tidak ada data SQL');
-      const blob = new Blob([result.sql], { type: 'text/sql' });
+      const sqlText = await apiClient.backupDatabase();
+      if (!sqlText || !sqlText.trim()) throw new Error('Backup gagal: tidak ada data SQL');
+      const blob = new Blob([sqlText], { type: 'text/sql' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

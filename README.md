@@ -1,8 +1,24 @@
+
 # Ruang Performer
 
-Aplikasi web untuk manajemen chord, setlist, dan performa musik.
+Aplikasi web untuk manajemen chord, setlist, band, dan performa musik. Mendukung multi-user, multi-band, backup SQL, serta sistem permission berbasis role.
 
 ## Struktur Folder
+
+```
+src/            # Frontend React (pages, components, hooks, utils)
+api/            # Serverless API (Vercel/Express, Turso/libSQL)
+db/             # Skema dan migrasi database
+public/         # Static assets
+__tests__/      # Unit test (Vitest/Jest)
+```
+
+## Fitur Utama
+- Manajemen lagu, setlist, band, gigs, dan latihan
+- Sistem permission role-based (owner, admin, member, guest)
+- Backup & restore database ke file SQL (dump) dan JSON
+- Otentikasi JWT, 2FA, audit log, analytics
+- UI responsif, dark mode, dan komponen custom
 
 ## Instalasi
 ```bash
@@ -11,21 +27,27 @@ npm install
 
 ## Menjalankan
 ```bash
-npm run dev
+npm run dev         # Frontend (Vite, port 5173)
+npm run dev:api     # API server lokal (Express, port 3000)
 ```
 
-## Testing
-```bash
-npm test
-```
+## Backup Database (SQL)
+- Gunakan menu "Backup Database" di halaman Tools (khusus owner)
+- File .sql berisi CREATE TABLE & INSERT, cocok untuk restore manual
+- Pastikan routing/proxy sudah mengarah ke /api/tools/backup
+
+## Routing & Proxy
+- Vercel: routing diatur di vercel.json
+- Dev lokal: Express (api/index.js) harus punya route khusus untuk /api/tools/backup sebelum catch-all /api/tools
+- Vite proxy: sudah otomatis ke http://localhost:3000 untuk /api
 
 ## Environment
-Lihat `.env.example` untuk variabel yang dibutuhkan.
+Lihat `.env.example` untuk variabel yang dibutuhkan (TURSO_DATABASE_URL, JWT_SECRET, dsb).
 
 ## Kontribusi
 Pull request dan issue dipersilakan.
 
----
+----
 
 ## 🚦 Permission Example
 
