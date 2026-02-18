@@ -1,9 +1,50 @@
 // Global array Gemini models yang didukung (urutkan dari prioritas utama ke cadangan)
 const GEMINI_MODELS_SUPPORTED = [
   'gemini-2.5-flash',
-  'gemini-pro',
-  'gemini-1.5-pro',
-  'gemini-pro-vision',
+  'gemini-2.5-pro',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-001',
+  'gemini-2.0-flash-exp-image-generation',
+  'gemini-2.0-flash-lite-001',
+  'gemini-2.0-flash-lite',
+  'gemini-exp-1206',
+  'gemini-2.5-flash-preview-tts',
+  'gemini-2.5-pro-preview-tts',
+  'gemma-3-1b-it',
+  'gemma-3-4b-it',
+  'gemma-3-12b-it',
+  'gemma-3-27b-it',
+  'gemma-3n-e4b-it',
+  'gemma-3n-e2b-it',
+  'gemini-flash-latest',
+  'gemini-flash-lite-latest',
+  'gemini-pro-latest',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash-image', // Nano Banana
+  'gemini-2.5-flash-preview-09-2025',
+  'gemini-2.5-flash-lite-preview-09-2025',
+  'gemini-3-pro-preview',
+  'gemini-3-flash-preview',
+  'gemini-3-pro-image-preview', // Nano Banana Pro
+  'nano-banana-pro-preview', // Nano Banana Pro
+  'gemini-robotics-er-1.5-preview',
+  'gemini-2.5-computer-use-preview-10-2025',
+  'deep-research-pro-preview-12-2025',
+  'gemini-embedding-001',
+  'aqa',
+  'imagen-4.0-generate-preview-06-06',
+  'imagen-4.0-ultra-generate-preview-06-06',
+  'imagen-4.0-generate-001',
+  'imagen-4.0-ultra-generate-001',
+  'imagen-4.0-fast-generate-001',
+  'veo-2.0-generate-001',
+  'veo-3.0-generate-001',
+  'veo-3.0-fast-generate-001',
+  'veo-3.1-generate-preview',
+  'veo-3.1-fast-generate-preview',
+  'gemini-2.5-flash-native-audio-latest',
+  'gemini-2.5-flash-native-audio-preview-09-2025',
+  'gemini-2.5-flash-native-audio-preview-12-2025',
 ];
 // Simple in-memory cache for song info (title+artist)
 const songInfoCache = {};
@@ -255,14 +296,15 @@ async function handleSongSearch(req, res) {
         if (lastError && (lastError.status === 429 || (lastError.message && lastError.message.includes('429')) || (lastError.message && lastError.message.toLowerCase().includes('quota')))) {
           isQuotaError = true;
         }
-        if (isQuotaError) {
-          results.debug.geminiError = 'Gemini API quota exceeded';
-          results.debug.geminiQuota = true;
-          return res.status(429).json({ error: 'Gemini API quota exceeded. Please try again later.' });
-        } else {
-          results.debug.geminiError = lastError?.message || 'Gemini API gagal';
-          return res.status(500).json({ error: 'Gemini API gagal', message: lastError?.message });
-        }
+        results.debug.geminiError = isQuotaError ? 'Gemini API quota exceeded' : (lastError?.message || 'Gemini API gagal');
+        results.debug.geminiQuota = isQuotaError;
+        // Tetap return hasil YouTube, chordLinks, dan field lain yang tidak bergantung Gemini
+        // Jangan return error status, biarkan frontend handle error dari debug.geminiError
+        // (artist, youtubeId, chordLinks, dsb tetap terisi jika ada)
+        // Model Gemini tidak diisi
+        // Save to cache before returning
+        songInfoCache[cacheKey] = results;
+        return res.status(200).json(results);
       }
     }
     // Always return artist (from input or AI)
