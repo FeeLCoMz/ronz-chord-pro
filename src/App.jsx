@@ -1,4 +1,5 @@
 import ToolsPage from "./pages/ToolsPage.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 import PracticeSessionDetailPage from "./pages/PracticeSessionDetailPage.jsx";
 import GigDetailPage from "./pages/GigDetailPage.jsx";
 import KaraokeSongSearch from "./components/KaraokeSongSearch.jsx";
@@ -405,6 +406,7 @@ function AppContent() {
               <Route path="/settings/2fa" element={<TwoFactorSetupPage />} />
               <Route path="/audit-logs" element={<AuditLogPage />} />
               <Route path="/tools" element={<ToolsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

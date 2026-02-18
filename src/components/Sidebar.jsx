@@ -17,16 +17,18 @@ export default function Sidebar({ isOpen, onClose, theme, setTheme, performanceM
   const userBandInfo = user && user.role ? { role: user.role } : null;
   const { can } = usePermission(null, userBandInfo);
 
+  // Urutan menu: Dashboard, Songs, Setlists, Bands, Gigs, Practice, Audit Log (izin), Settings/Profile (login)
   const navItems = [
     { path: '/', label: 'Dashboard', icon: '🏠' },
     { path: '/songs', label: 'Lagu', icon: '🎵' },
     { path: '/setlists', label: 'Setlist', icon: '📋' },
     { path: '/bands/manage', label: 'Band', icon: '🎸' },
-    { path: '/practice', label: 'Latihan', icon: '💪' },
     { path: '/gigs', label: 'Konser', icon: '🎤' },
-    // Menu Tools (khusus owner)
-    ...(user && user.role === 'owner'
-      ? [{ path: '/tools', label: 'Tools', icon: '🛠️' }] : []),
+    { path: '/practice', label: 'Latihan', icon: '💪' },
+    ...(can && can('view_audit_log') ? [{ path: '/audit', label: 'Audit Log', icon: '📝' }] : []),
+    ...(user && user.role === 'owner' ? [{ path: '/tools', label: 'Tools', icon: '🛠️' }] : []),
+    // Profile (Settings/Akun) hanya jika login
+    ...(user ? [{ path: '/profile', label: 'Profil', icon: '👤' }] : []),
   ];
 
   const isActive = (path) => {
