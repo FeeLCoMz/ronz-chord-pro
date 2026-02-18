@@ -1,4 +1,16 @@
 // Tools (Owner) API
+export async function backupDatabase() {
+  const res = await fetch(`${API_BASE}/tools/backup`, {
+    method: 'GET',
+    headers: getHeaders()
+  });
+  if (!res.ok) {
+    let err;
+    try { err = await res.json(); } catch {}
+    throw new Error(err?.error || 'Failed to backup database');
+  }
+  return await res.json();
+}
 export async function exportAllData() {
   const res = await fetch(`${API_BASE}/tools`, {
     method: 'GET',

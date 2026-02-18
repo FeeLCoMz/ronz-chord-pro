@@ -15,11 +15,14 @@ export default function ToolsPage() {
     );
   }
 
-  // State for import/export
+  // State for import/export/backup
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState(null);
   const [importSuccess, setImportSuccess] = useState(null);
+  const [backingUp, setBackingUp] = useState(false);
+  const [backupError, setBackupError] = useState(null);
+  const [backupSuccess, setBackupSuccess] = useState(null);
   const fileInputRef = useRef();
 
   // Export handler
@@ -40,6 +43,30 @@ export default function ToolsPage() {
       alert('Export gagal: ' + (e.message || e));
     }
     setExporting(false);
+  };
+
+  // Backup handler
+  const handleBackup = async () => {
+    setBackingUp(true);
+    setBackupError(null);
+    setBackupSuccess(null);
+    try {
+      const result = await apiClient.backupDatabase();
+      if (!result || !result.sql) throw new Error('Backup gagal: tidak ada data SQL');
+      const blob = new Blob([result.sql], { type: 'text/sql' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ruang-performer-db-backup-${new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')}.sql`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setBackupSuccess('Backup database berhasil!');
+    } catch (e) {
+      setBackupError('Backup gagal: ' + (e.message || e));
+    }
+    setBackingUp(false);
   };
 
   // Import handler
@@ -71,6 +98,13 @@ export default function ToolsPage() {
           <h2>Export Data</h2>
           <p>Ekspor seluruh data aplikasi ke file JSON untuk backup atau migrasi.</p>
           <button className="btn btn-secondary" onClick={handleExport} disabled={exporting}>{exporting ? 'Exporting...' : 'Export JSON'}</button>
+        </div>
+        <div className="tool-card">
+          <h2>Backup Database</h2>
+          <p>Backup seluruh database ke file SQL (dump). Cocok untuk restore manual atau migrasi ke server lain.</p>
+          <button className="btn btn-primary" onClick={handleBackup} disabled={backingUp}>{backingUp ? 'Backing up...' : 'Backup SQL'}</button>
+          {backupError && <div style={{ color: 'red', marginTop: 8 }}>{backupError}</div>}
+          {backupSuccess && <div style={{ color: 'green', marginTop: 8 }}>{backupSuccess}</div>}
         </div>
         <div className="tool-card">
           <h2>Import Data</h2>
