@@ -21,7 +21,61 @@ export default async function handler(req, res) {
   const url = req.url || '';
   if (url.startsWith('/song-search')) return await handleSongSearch(req, res);
   if (url.startsWith('/transcribe')) return await handleTranscribe(req, res);
+  if (url.startsWith('/recommend-setlist')) return await handleRecommendSetlist(req, res);
   return await handleChat(req, res);
+
+// --- AI Setlist Recommendation Handler ---
+async function handleRecommendSetlist(req, res) {
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  try {
+    const body = await readJson(req);
+    const genre = (body.genre || '').toString();
+    const mood = (body.mood || '').toString();
+    const numSongs = parseInt(body.numSongs, 10) || 6;
+
+    // Ambil daftar lagu dari database (songs table)
+    const { getTursoClient } = await import('./_turso.js');
+    const client = getTursoClient();
+    let query = 'SELECT id, title, artist, genre FROM songs';
+    const params = [];
+    const filters = [];
+    if (genre) {
+      filters.push('LOWER(genre) LIKE ?');
+      params.push(`%${genre.toLowerCase()}%`);
+    }
+    if (filters.length > 0) {
+      query += ' WHERE ' + filters.join(' AND ');
+    }
+    query += ' ORDER BY RANDOM() LIMIT ?';
+    params.push(numSongs);
+    const rows = await client.execute(query, params);
+    let songs = (rows.rows || []).map(r => ({ id: r.id, title: r.title, artist: r.artist, genre: r.genre }));
+
+    // Jika hasil kurang dari numSongs, tambahkan random dari semua lagu
+    if (songs.length < numSongs) {
+      const allRows = await client.execute('SELECT id, title, artist, genre FROM songs ORDER BY RANDOM() LIMIT ?', [numSongs]);
+      const allSongs = (allRows.rows || []).map(r => ({ id: r.id, title: r.title, artist: r.artist, genre: r.genre }));
+      // Gabungkan tanpa duplikat
+      const seen = new Set(songs.map(s => s.id));
+      for (const s of allSongs) {
+        if (!seen.has(s.id) && songs.length < numSongs) {
+          songs.push(s);
+          seen.add(s.id);
+        }
+      }
+    }
+
+    // (Opsional) Jika ingin AI, bisa panggil LLM di sini untuk urutkan/beri alasan
+    // Untuk sekarang, return langsung
+    res.status(200).json({ songs });
+  } catch (err) {
+    console.error('AI recommend setlist error:', err);
+    res.status(500).json({ error: 'Gagal mendapatkan rekomendasi setlist', message: err.message });
+  }
+}
 }
 
 // --- Chat/general AI handler ---
