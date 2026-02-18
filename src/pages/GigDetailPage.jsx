@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as apiClient from '../apiClient.js';
+import { Link } from 'react-router-dom';
 import GigPoster from '../components/GigPoster.jsx';
 import { toPng } from 'html-to-image';
 import { usePermission } from '../hooks/usePermission.js';
 
 export default function GigDetailPage() {
+  const [setlist, setSetlist] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
   const [gig, setGig] = useState(null);
@@ -24,8 +26,17 @@ export default function GigDetailPage() {
       try {
         const data = await apiClient.fetchGigById(id);
         setGig(data);
+        if (data?.setlistId) {
+          // Fetch setlist detail jika ada
+          const setlists = await apiClient.fetchSetLists();
+          const found = Array.isArray(setlists) ? setlists.find(s => s.id === data.setlistId) : null;
+          setSetlist(found || null);
+        } else {
+          setSetlist(null);
+        }
       } catch {
         setGig(null);
+        setSetlist(null);
       }
       setLoading(false);
     })();
@@ -63,7 +74,6 @@ export default function GigDetailPage() {
       <div className="page-header">
         <h1>🎤 Gig: {gig.bandName || 'Gig'}</h1>
         <button className="btn" onClick={() => navigate(-1)}>← Kembali</button>
-        {/* Permission check: hanya tampil jika user boleh edit gig */}
         {can && can('gig:edit') && (
           <button
             className="btn btn-primary"
@@ -73,27 +83,34 @@ export default function GigDetailPage() {
             ✏️ Edit Gig
           </button>
         )}
-        {/* Jika logic userBandInfo tidak jelas, pastikan gig API mengembalikan userBandInfo sesuai bandId */}
-        {/* Referensi permission: gig:edit, lihat permissionUtils.js */}
       </div>
       <div className="card">
         <p><b>Tanggal:</b> {new Date(gig.date).toLocaleString('id-ID')}</p>
         <p><b>Venue:</b> {gig.venue || '-'}</p>
+        <p><b>Kota:</b> {gig.city || '-'}</p>
+        <p><b>Fee/Bayaran:</b> {gig.fee ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(gig.fee) : '-'}</p>
+        <p><b>Status:</b> {gig.status || '-'}</p>
+        <div style={{ marginBottom: 8 }}>
+          <b>Setlist:</b> {gig.setlistName ? (
+            <>
+              <Link to={gig.setlistId ? `/setlists/${gig.setlistId}` : '#'} style={{ color: 'var(--primary-accent)', textDecoration: 'underline' }}>
+                {gig.setlistName}
+              </Link>
+              {setlist && Array.isArray(setlist.songs) && setlist.songs.length > 0 && (
+                <ul style={{ margin: '8px 0 0 16px', padding: 0, fontSize: '0.98em', color: 'var(--text-secondary)' }}>
+                  {setlist.songs.map((song, idx) => (
+                    <li key={song.id || idx}>
+                      {song.title || '[Lagu dihapus]'}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : '-'}
+        </div>
         <p><b>Catatan:</b> {gig.notes || '-'}</p>
       </div>
-      <div style={{ margin: '32px 0 0 0' }}>
-        <h3 style={{ marginBottom: 12 }}>🎫 Poster Gig</h3>
-        <GigPoster gig={gig} ref={posterRef} />
-        {posterError && <div className="error-text setlist-poster-error">{posterError}</div>}
-        <button
-          className="btn"
-          style={{ marginTop: 16 }}
-          onClick={handleDownloadPoster}
-          disabled={isGeneratingPoster}
-        >
-          {isGeneratingPoster ? 'Membuat Poster...' : 'Unduh Poster'}
-        </button>
-      </div>
+      {/* Poster Gig dihapus sesuai permintaan */}
     </div>
   );
 }
