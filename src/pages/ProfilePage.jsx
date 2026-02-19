@@ -6,6 +6,12 @@ import { generateAuditReport } from '../utils/auditLogger.js';
 
 
 export default function ProfilePage() {
+      const [auditLogs, setAuditLogs] = useState([]);
+      const [auditLoading, setAuditLoading] = useState(true);
+      const [auditError, setAuditError] = useState('');
+    const [showDelete, setShowDelete] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
   const { user, logout } = useAuth();
   const [profile, setProfile] = useState(user);
   const [activityStats, setActivityStats] = useState(null);
@@ -16,6 +22,22 @@ export default function ProfilePage() {
   React.useEffect(() => {
     trackPageView('/profile', 'Profil Akun');
   }, []);
+
+  React.useEffect(() => {
+    async function fetchAuditLogs() {
+      setAuditLoading(true);
+      setAuditError('');
+      try {
+        const logs = await apiClient.getUserAuditLogs();
+        setAuditLogs(logs);
+      } catch (e) {
+        setAuditError(e.message || 'Gagal mengambil audit log');
+      } finally {
+        setAuditLoading(false);
+      }
+    }
+    if (profile && profile.id) fetchAuditLogs();
+  }, [profile]);
 
   React.useEffect(() => {
     async function fetchActivity() {
@@ -71,6 +93,40 @@ export default function ProfilePage() {
     trackEvent('logout', { email: user.email });
     logout();
   };
+
+  // Handler for delete account
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      await apiClient.deleteAccount();
+      trackEvent('account_delete', { email: profile.email });
+      logout();
+    } catch (err) {
+      setDeleteError(err.message || 'Gagal menghapus akun');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Modal konfirmasi hapus akun
+  const DeleteAccountModal = () => (
+    <div className="modal-overlay" onClick={() => setShowDelete(false)}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <h2>Konfirmasi Hapus Akun</h2>
+        <p style={{ color: '#ef4444', marginBottom: 16 }}>
+          Apakah Anda yakin ingin menghapus akun? Semua data Anda akan hilang dan tidak bisa dikembalikan.
+        </p>
+        {deleteError && <div className="error-text">{deleteError}</div>}
+        <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
+          <button className="btn btn-danger" type="button" onClick={handleDeleteAccount} disabled={deleteLoading}>
+            {deleteLoading ? 'Menghapus...' : 'Hapus Akun'}
+          </button>
+          <button className="btn" type="button" onClick={() => setShowDelete(false)} disabled={deleteLoading}>Batal</button>
+        </div>
+      </div>
+    </div>
+  );
 
 
   // Edit Profile Modal
@@ -279,6 +335,7 @@ export default function ProfilePage() {
           <button className="btn btn-primary" type="button" onClick={() => setShowEdit(true)}>Edit Profil</button>
           <button className="btn btn-secondary" type="button" onClick={() => setShowPassword(true)}>Ubah Password</button>
           <button className="btn" type="button" onClick={handleLogout}>Logout</button>
+          <button className="btn btn-danger" type="button" onClick={() => setShowDelete(true)} style={{ marginLeft: 8 }}>Hapus Akun</button>
         </div>
       </div>
       {/* Statistik Aktivitas User */}
@@ -318,8 +375,32 @@ export default function ProfilePage() {
           <div>Tidak ada data aktivitas.</div>
         )}
       </div>
+      {/* Audit Log User */}
+      <div className="card" style={{ marginTop: 24 }}>
+        <h2>Riwayat Aktivitas (Audit Log)</h2>
+        {auditLoading ? (
+          <div>Loading...</div>
+        ) : auditError ? (
+          <div className="error-text">{auditError}</div>
+        ) : auditLogs.length === 0 ? (
+          <div>Tidak ada aktivitas.</div>
+        ) : (
+          <ul style={{ margin: 0, paddingLeft: 16 }}>
+            {auditLogs.map(log => (
+              <li key={log.id} style={{ marginBottom: 8 }}>
+                <span style={{ fontWeight: 500 }}>{log.action}</span>
+                <span style={{ color: '#888', marginLeft: 8 }}>{log.category}</span>
+                <span style={{ color: '#555', marginLeft: 8 }}>{log.severity}</span>
+                <span style={{ color: '#999', marginLeft: 8 }}>{new Date(log.createdAt).toLocaleString()}</span>
+                {log.status === 'failed' && <span style={{ color: '#ef4444', marginLeft: 8 }}>Gagal</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       {showEdit && <EditProfileModal />}
       {showPassword && <ChangePasswordModal />}
+      {showDelete && <DeleteAccountModal />}
     </div>
   );
 }

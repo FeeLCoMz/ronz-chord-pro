@@ -1,3 +1,27 @@
+export async function getUserAuditLogs() {
+  const res = await fetch('/api/auth/user-audit-logs', {
+    method: 'GET',
+    headers: {
+      ...authUtils.getAuthHeader(),
+      'Content-Type': 'application/json',
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Gagal mengambil audit log');
+  return data.logs;
+}
+export async function deleteAccount() {
+  const res = await fetch('/api/auth/delete-account', {
+    method: 'DELETE',
+    headers: {
+      ...authUtils.getAuthHeader(),
+      'Content-Type': 'application/json',
+    },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Gagal menghapus akun');
+  return data;
+}
 // Update user profile
 export async function updateProfile(profileData) {
   const res = await fetch(`${API_BASE}/auth/me`, {
