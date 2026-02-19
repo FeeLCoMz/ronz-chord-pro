@@ -62,7 +62,16 @@ export function parseTimestampToken(token) {
 // Global regex untuk deteksi chord (standar, konsisten di semua fungsi)
 const CHORD_REGEX = /^[A-G][#b]?m?(aj|sus|dim|aug|add)?\d*(\/([A-G][#b]?))?$/i;
 
-// ...existing code...
+/**
+ * Validasi apakah sebuah token adalah chord valid.
+ * @param {string} chord - Token chord (misal: Am, F#m7, Bbmaj7, G/B)
+ * @returns {boolean}
+ */
+export function isValidChord(chord) {
+  if (typeof chord !== 'string') return false;
+  return CHORD_REGEX.test(chord.trim());
+}
+
 // ...existing code...
 
 /**
