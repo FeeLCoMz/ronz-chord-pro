@@ -54,6 +54,18 @@ export default async function handler(req, res) {
 
     if (req.method === 'PUT') {
       // Update profile
+      // Get token from Authorization header
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+      }
+      let decoded;
+      try {
+        decoded = jwt.verify(token, JWT_SECRET);
+      } catch (error) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+      const userId = decoded.userId;
       const body = req.body || await new Promise((resolve, reject) => {
         let data = '';
         req.on('data', chunk => { data += chunk; });
@@ -77,9 +89,6 @@ export default async function handler(req, res) {
       // Build SQL
       const setClause = Object.keys(fields).map(k => `${k} = ?`).join(', ');
       const values = Object.values(fields);
-      // Use req.user from verifyToken middleware
-      const userId = req.user?.userId;
-      if (!userId) return res.status(401).json({ error: 'Unauthorized' });
       values.push(userId);
       await client.execute(
         `UPDATE users SET ${setClause}, updatedAt = CURRENT_TIMESTAMP WHERE id = ?`,
