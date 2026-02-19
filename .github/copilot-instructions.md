@@ -10,8 +10,7 @@
   - Ask for explicit confirmation before proceeding.
   - Document the confirmation in the change log or commit message if relevant.
 
-**NEVER proceed with destructive database changes without user confirmation.**
-
+**NEVER proceed with destructive database changes without user confirmation.** This is crucial to prevent accidental data loss and ensure that all changes are intentional and understood by the user.
 
 **ALWAYS check and enforce the permission system whenever adding, editing, or suggesting any CRUD (Create, Read, Update, Delete) button, action, or feature that requires user authorization.**
 
@@ -36,6 +35,7 @@ This applies to all pages, components, and API routes. If in doubt, ask for clar
 ## Commands
 
 **PENTING:** Setelah memodifikasi file di folder `api/`, Anda harus merestart server lokal (`npm run dev:api` atau server Vercel/Express) agar perubahan API diterapkan.
+
 ```bash
 npm install              # Install dependencies
 npm run dev              # Dev server (port 5173, proxies /api to 3000)
@@ -205,3 +205,13 @@ trackSongAction('view', songTitle); // Auto-sends to GA
 - **Permissions:** `src/utils/permissionUtils.js`, `src/hooks/usePermission.js`
 - **DB schema:** `db/schema.sql`
 - **Features:** `FEATURES.md` (analytics, service worker, web vitals)
+# Documentation Handling Policy (ADDITIONAL)
+
+**ALWAYS** baca file dokumentasi yang relevan (misal: README.md, PERMISSIONS.md, FEATURES.md, USER_MANAGEMENT.md, dsb) sebelum melakukan perubahan atau menjawab permintaan yang berkaitan dengan dokumentasi, kebijakan, atau panduan.
+
+- Jika permintaan user berkaitan dengan dokumentasi:
+  - Identifikasi file dokumentasi yang relevan di workspace.
+  - Baca dan pahami isi file tersebut sebelum melakukan perubahan atau memberikan jawaban.
+  - Pastikan perubahan atau jawaban konsisten dengan isi dan standar dokumentasi yang ada.
+
+**JANGAN** membuat, mengubah, atau menjawab terkait dokumentasi tanpa membaca file dokumentasi yang relevan terlebih dahulu.
