@@ -34,6 +34,17 @@ export default async function handler(req, res) {
       if (user.genres && typeof user.genres === 'string') {
         try { user.genres = JSON.parse(user.genres); } catch {}
       }
+
+      // Fetch bands where user is a member
+      const bandsResult = await client.execute(
+        `SELECT b.id, b.name, b.genre, b.description, bm.role
+         FROM band_members bm
+         JOIN bands b ON bm.bandId = b.id
+         WHERE bm.userId = ? AND bm.status = 'active' AND b.deletedAt IS NULL`,
+        [user.id]
+      );
+      user.bands = bandsResult.rows || [];
+
       return res.status(200).json({
         success: true,
         user: {
@@ -47,7 +58,8 @@ export default async function handler(req, res) {
           experience: user.experience,
           genres: user.genres,
           location: user.location,
-          createdAt: user.createdAt
+          createdAt: user.createdAt,
+          bands: user.bands
         }
       });
     }

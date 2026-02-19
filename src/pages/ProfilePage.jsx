@@ -6,46 +6,10 @@ import { generateAuditReport } from '../utils/auditLogger.js';
 
 
 export default function ProfilePage() {
-    const [activityStats, setActivityStats] = useState(null);
-    const [activityLoading, setActivityLoading] = useState(true);
-    React.useEffect(() => {
-      async function fetchActivity() {
-        setActivityLoading(true);
-        try {
-          // Ambil audit log user dari API (mock: gunakan AuditLogPage logic)
-          const logs = [];
-          // TODO: Ganti dengan API call ke audit log user jika tersedia
-          // Sementara, gunakan event login, profile update, password change
-          if (profile) {
-            logs.push({
-              id: 1,
-              action: 'USER_LOGIN',
-              category: 'USER',
-              severity: 'low',
-              userId: profile.id,
-              status: 'success',
-              createdAt: profile.createdAt || new Date().toISOString(),
-            });
-            logs.push({
-              id: 2,
-              action: 'PROFILE_UPDATE',
-              category: 'USER',
-              severity: 'medium',
-              userId: profile.id,
-              status: 'success',
-              createdAt: profile.updatedAt || new Date().toISOString(),
-            });
-          }
-          setActivityStats(generateAuditReport(logs));
-        } catch (e) {
-          setActivityStats(null);
-        } finally {
-          setActivityLoading(false);
-        }
-      }
-      fetchActivity();
-    }, [profile]);
   const { user, logout } = useAuth();
+  const [profile, setProfile] = useState(user);
+  const [activityStats, setActivityStats] = useState(null);
+  const [activityLoading, setActivityLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -53,8 +17,43 @@ export default function ProfilePage() {
     trackPageView('/profile', 'Profil Akun');
   }, []);
 
-
-  const [profile, setProfile] = useState(user);
+  React.useEffect(() => {
+    async function fetchActivity() {
+      setActivityLoading(true);
+      try {
+        // Ambil audit log user dari API (mock: gunakan AuditLogPage logic)
+        const logs = [];
+        // TODO: Ganti dengan API call ke audit log user jika tersedia
+        // Sementara, gunakan event login, profile update, password change
+        if (profile) {
+          logs.push({
+            id: 1,
+            action: 'USER_LOGIN',
+            category: 'USER',
+            severity: 'low',
+            userId: profile.id,
+            status: 'success',
+            createdAt: profile.createdAt || new Date().toISOString(),
+          });
+          logs.push({
+            id: 2,
+            action: 'PROFILE_UPDATE',
+            category: 'USER',
+            severity: 'medium',
+            userId: profile.id,
+            status: 'success',
+            createdAt: profile.updatedAt || new Date().toISOString(),
+          });
+        }
+        setActivityStats(generateAuditReport(logs));
+      } catch (e) {
+        setActivityStats(null);
+      } finally {
+        setActivityLoading(false);
+      }
+    }
+    fetchActivity();
+  }, [profile]);
 
   if (!profile) {
     return (
@@ -261,6 +260,20 @@ export default function ProfilePage() {
              <span className="text-primary">{Array.isArray(profile.genres) ? profile.genres.join(', ') : (profile.genres || '-')}</span>
              <button className="btn btn-secondary" style={{ marginLeft: 8 }} type="button" onClick={() => setShowEdit(true)}>Edit Preferensi</button>
            </div>
+          {Array.isArray(profile.bands) && profile.bands.length > 0 && (
+            <div className="profile-row" style={{ marginTop: 12 }}>
+              <span className="text-secondary">Daftar Band:</span>
+              <ul style={{ margin: 0, paddingLeft: 16 }}>
+                {profile.bands.map(band => (
+                  <li key={band.id}>
+                    <span style={{ fontWeight: 500 }}>{band.name}</span>
+                    {band.genre && <span style={{ color: '#888', marginLeft: 8 }}>({band.genre})</span>}
+                    {band.role && <span style={{ color: '#555', marginLeft: 8 }}>- {band.role}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
         <div className="profile-actions">
           <button className="btn btn-primary" type="button" onClick={() => setShowEdit(true)}>Edit Profil</button>
