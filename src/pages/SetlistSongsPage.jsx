@@ -450,15 +450,17 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           <p>{setlistSongs.length} lagu di setlist ini</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {/* Sembunyikan tombol edit/tambah saat performanceMode aktif */}
+          {/* Sembunyikan tombol edit/tambah/bagikan saat performanceMode aktif */}
           {!performanceMode && canEdit && (
             <button className="btn" onClick={() => setShowAddSong(true)} title="Tambah Lagu ke Setlist">
               <PlusIcon size={22} /> Tambah Lagu
             </button>
           )}
-          <button className="btn" onClick={() => setShowShareModal(true)} title="Bagikan Setlist">
-            📤 Bagikan
-          </button>
+          {!performanceMode && (
+            <button className="btn" onClick={() => setShowShareModal(true)} title="Bagikan Setlist">
+              📤 Bagikan
+            </button>
+          )}
         </div>
       </div>
 
