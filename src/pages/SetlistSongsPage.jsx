@@ -3,6 +3,7 @@ import PlusIcon from '../components/PlusIcon.jsx';
 import EditIcon from '../components/EditIcon.jsx';
 import DeleteIcon from '../components/DeleteIcon.jsx';
 import SetlistPoster from '../components/SetlistPoster.jsx';
+import DragHandleIcon from '../components/DragHandleIcon.jsx';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import html2canvas from 'html2canvas';
@@ -23,11 +24,11 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
   let setlist = Array.isArray(setlists) ? setlists.find(s => String(s.id) === String(setlistId)) : null;
   // Permission logic
   const bandId = setlist?.bandId || null;
-  // Mendukung userBandInfo array (multi-band) atau object (single band)
+  // Mendukung userBandInfo array (multi-band) atau object (single band), konsisten bandId/id
   let currentUserBandInfo = null;
   if (Array.isArray(userBandInfo) && bandId) {
-    currentUserBandInfo = userBandInfo.find(b => String(b.bandId) === String(bandId));
-  } else if (userBandInfo && bandId && userBandInfo.bandId && String(userBandInfo.bandId) === String(bandId)) {
+    currentUserBandInfo = userBandInfo.find(b => String(b.bandId || b.id) === String(bandId));
+  } else if (userBandInfo && bandId && (userBandInfo.bandId || userBandInfo.id) && String(userBandInfo.bandId || userBandInfo.id) === String(bandId)) {
     currentUserBandInfo = userBandInfo;
   } else if (!bandId) {
     // Setlist pribadi, role owner, bandId null agar konsisten
@@ -37,22 +38,8 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
   const { user } = usePermission(bandId, currentUserBandInfo);
   // For personal setlist, fallback to userFromAuth if user is undefined
   const effectiveUser = user || userFromAuth;
+  // Permission logic DRY: helper
   const canEdit = canEditSetlist(setlist, userBandInfo, effectiveUser);
-  // DEBUG LOGGING for permission troubleshooting
-  React.useEffect(() => {
-    // Only log if setlist and bandId exist
-    if (setlist) {
-      console.log('[DEBUG][SetlistSongsPage]');
-      console.log('setlist.id:', setlist.id);
-      console.log('setlist.bandId:', setlist.bandId);
-      console.log('userBandInfo:', userBandInfo);
-      console.log('currentUserBandInfo:', currentUserBandInfo);
-      console.log('user:', user);
-      console.log('userFromAuth:', userFromAuth);
-      console.log('effectiveUser:', effectiveUser);
-      console.log('canEditSetlist:', canEdit);
-    }
-  }, [setlist, bandId, userBandInfo, currentUserBandInfo, user, userFromAuth, effectiveUser, canEdit]);
 
   // Jika setlist tidak ditemukan (misal offline), coba ambil dari cache offline
   const [offlineSetlist, setOfflineSetlist] = useState(null);
@@ -223,8 +210,8 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
   const hasActiveFilters = searchText || filterArtist || filterGenre;
 
   // Early returns AFTER all hooks
-  if (isLoading) return <div className="main-content info-text">Memuat setlist...</div>;
-  if (!setlist) return <div className="main-content error-text">Setlist tidak ditemukan</div>;
+  if (isLoading) return <div className="main-content"><div className="card"><div className="loading-skeleton" style={{height: 40, marginBottom: 16}}></div><div className="loading-skeleton" style={{height: 24, width: '60%', marginBottom: 8}}></div><div className="loading-skeleton" style={{height: 24, width: '40%', marginBottom: 8}}></div></div></div>;
+  if (!setlist) return <div className="main-content error-text">Setlist tidak ditemukan atau offline cache kosong</div>;
 
   function handleClearFilters() {
     setSearchText('');
@@ -455,14 +442,10 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
         <div>
           <h1>📋 {setlist.name}</h1>
           {setlist.bandName && (
-            <div className="setlist-band-name" style={{ fontWeight: 500, color: 'var(--primary-accent, #3730a3)', marginBottom: 2 }}>
-              🎸 {setlist.bandName}
-            </div>
+            <div className="setlist-band-name">🎸 {setlist.bandName}</div>
           )}
           {setlist.description && (
-            <div className="setlist-description" style={{ color: 'var(--text-secondary, #666)', marginBottom: 2, fontSize: '1em' }}>
-              {setlist.description}
-            </div>
+            <div className="setlist-description">{setlist.description}</div>
           )}
           <p>{setlistSongs.length} lagu di setlist ini</p>
         </div>
@@ -480,77 +463,65 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       </div>
 
       {/* Filter dan Search Bar */}
+      {/* Filter dan Search Bar, sembunyikan di performanceMode */}
       {!performanceMode && (
-        <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {/* Search Input */}
-        <input
-          type="text"
-          placeholder="🔍 Cari judul atau artis..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          className="search-input-main"
-        />
-
-        {/* Filter Row */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: '12px'
-          }}
-        >
-          <select
-            value={filterArtist}
-            onChange={(e) => setFilterArtist(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Artis: Semua</option>
-            {uniqueArtists.map(artist => (
-              <option key={artist} value={artist}>{artist}</option>
-            ))}
-          </select>
-
-          <select
-            value={filterGenre}
-            onChange={(e) => setFilterGenre(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Genre: Semua</option>
-            {uniqueGenres.map(genre => (
-              <option key={genre} value={genre}>{genre}</option>
-            ))}
-          </select>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="filter-select"
-          >
-            <option value="custom">Urutkan: Custom</option>
-            <option value="title">Urutkan: Judul</option>
-            <option value="artist">Urutkan: Artis</option>
-            <option value="key">Urutkan: Kunci</option>
-            <option value="tempo">Urutkan: Tempo</option>
-            <option value="created">Urutkan: Tanggal</option>
-          </select>
-
-          <button
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="btn btn-secondary"
-            title={sortOrder === 'asc' ? 'Urut Naik' : 'Urut Turun'}
-          >
-            {sortOrder === 'asc' ? '↑ A-Z' : '↓ Z-A'}
-          </button>
-
-          {hasActiveFilters && (
-            <button
-              onClick={handleClearFilters}
-              className="btn btn-secondary"
+        <div className="filter-container">
+          <input
+            type="text"
+            placeholder="🔍 Cari judul atau artis..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="search-input-main"
+          />
+          <div className="filter-row">
+            <select
+              value={filterArtist}
+              onChange={(e) => setFilterArtist(e.target.value)}
+              className="filter-select"
             >
-              ✕ Reset
+              <option value="">Artis: Semua</option>
+              {uniqueArtists.map(artist => (
+                <option key={artist} value={artist}>{artist}</option>
+              ))}
+            </select>
+            <select
+              value={filterGenre}
+              onChange={(e) => setFilterGenre(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">Genre: Semua</option>
+              {uniqueGenres.map(genre => (
+                <option key={genre} value={genre}>{genre}</option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="filter-select"
+            >
+              <option value="custom">Urutkan: Custom</option>
+              <option value="title">Urutkan: Judul</option>
+              <option value="artist">Urutkan: Artis</option>
+              <option value="key">Urutkan: Kunci</option>
+              <option value="tempo">Urutkan: Tempo</option>
+              <option value="created">Urutkan: Tanggal</option>
+            </select>
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="btn btn-secondary"
+              title={sortOrder === 'asc' ? 'Urut Naik' : 'Urut Turun'}
+            >
+              {sortOrder === 'asc' ? '↑ A-Z' : '↓ Z-A'}
             </button>
-          )}
-        </div>
+            {hasActiveFilters && (
+              <button
+                onClick={handleClearFilters}
+                className="btn btn-secondary"
+              >
+                ✕ Reset
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -613,22 +584,14 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
               >
                 {/* Drag handle icon */}
                 {sortBy === 'custom' && (
-                  <span style={{ cursor: 'grab', marginRight: 8, verticalAlign: 'middle' }} title="Seret untuk mengatur urutan">
-                    {/* DragHandleIcon */}
-                    <svg width={18} height={18} viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="7" cy="7" r="1.5" fill="currentColor"/>
-                      <circle cx="7" cy="13" r="1.5" fill="currentColor"/>
-                      <circle cx="13" cy="7" r="1.5" fill="currentColor"/>
-                      <circle cx="13" cy="13" r="1.5" fill="currentColor"/>
-                    </svg>
+                  <span className="drag-handle-icon" title="Seret untuk mengatur urutan">
+                    <DragHandleIcon size={18} />
                   </span>
                 )}
                 {/* Song Info */}
                 <div className="song-info">
-                  <div className="song-number" style={{ fontWeight: 600, marginRight: 12, minWidth: 24, display: 'inline-block' }}>{idx + 1}.</div>
-                  <h3 className="song-title" style={{ display: 'inline-block' }}>
-                    {song.title}
-                  </h3>
+                  <div className="song-number">{idx + 1}.</div>
+                  <h3 className="song-title">{song.title}</h3>
                   <div className="song-meta">
                     {song.artist && <span>👤 {song.artist}</span>}
                     {song.key && (
@@ -659,30 +622,22 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                     onClick={(e) => e.stopPropagation()}
                   >
                     {canEdit && (
-                      <button
-                        onClick={() => openEditSong(song.id)}
-                        className="btn"
-                        style={{ padding: '6px 12px', fontSize: '0.85em' }}
-                        title="Edit detail lagu di setlist"
-                      >
-                        <EditIcon size={16} />
-                      </button>
-                    )}
-                    {canEdit && (
-                      <button
-                        onClick={() => handleDeleteSongFromSetlist(song.id)}
-                        className="btn"
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: '0.85em',
-                          background: '#dc2626',
-                          borderColor: '#b91c1c',
-                          color: '#fff'
-                        }}
-                        title="Hapus dari setlist"
-                      >
-                        <DeleteIcon size={16} />
-                      </button>
+                      <>
+                        <button
+                          onClick={() => openEditSong(song.id)}
+                          className="btn"
+                          title="Edit detail lagu di setlist"
+                        >
+                          <EditIcon size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSongFromSetlist(song.id)}
+                          className="btn btn-red"
+                          title="Hapus dari setlist"
+                        >
+                          <DeleteIcon size={16} />
+                        </button>
+                      </>
                     )}
                   </div>
                 )}

@@ -1,4 +1,45 @@
 /* ========================================
+   SONG TITLE (SetlistSongsPage)
+   ======================================== */
+.song-title {
+  display: inline-block;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1.08em;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+/* ========================================
+   SONG NUMBER (SetlistSongsPage)
+   ======================================== */
+.song-number {
+  font-weight: 600;
+  margin-right: 12px;
+  min-width: 24px;
+  display: inline-block;
+  color: var(--text-muted);
+  font-size: 1em;
+}
+/* ========================================
+   DRAG HANDLE ICON (DragHandleIcon.jsx)
+   ======================================== */
+.drag-handle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  margin-right: 8px;
+  vertical-align: middle;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+.song-item.dragging .drag-handle-icon {
+  color: var(--primary-accent);
+}
+.song-item:active .drag-handle-icon {
+  cursor: grabbing;
+}
+/* ========================================
    AI AUTOFILL MODAL STYLES
    ======================================== */
 .ai-autofill-modal-overlay {
