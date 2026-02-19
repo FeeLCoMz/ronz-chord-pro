@@ -1,5 +1,3 @@
-
-
 # Copilot Instructions — Ruang Performer
 
 ## Data Deletion Confirmation Policy (CRITICAL)
@@ -276,3 +274,17 @@ trackSongAction('view', songTitle); // Auto-sends to GA
   - Pastikan perubahan atau jawaban konsisten dengan isi dan standar dokumentasi yang ada.
 
 **JANGAN** membuat, mengubah, atau menjawab terkait dokumentasi tanpa membaca file dokumentasi yang relevan terlebih dahulu.
+
+---
+
+## Copilot API Index Registration Policy (ADDITIONAL)
+
+**ALWAYS** update `api/index.js` for local Express development to register any new or changed API endpoint handler files (e.g., `api/auth/user-audit-logs.js`).
+
+- If you add, rename, or modify an API handler file:
+  - Ensure the corresponding Express route is registered in `api/index.js`.
+  - Use the correct HTTP method and path matching the handler file.
+  - Import the handler and add the route, following the existing registration pattern.
+  - Remind the user to restart the local API server (`npm run dev:api`) after changes.
+
+**JANGAN** biarkan endpoint baru/tidak terdaftar di `api/index.js` saat development lokal.

@@ -33,6 +33,7 @@ import auth2FAVerifyHandler from './auth/2fa-verify.js';
 // Tools handler (export/import)
 import toolsHandler from './tools/index.js';
 import toolsBackupHandler from './tools/backup.js';
+import userAuditLogsHandler from './auth/user-audit-logs.js';
 
 // --- Env setup ---
 const __filename = fileURLToPath(import.meta.url);
@@ -112,6 +113,11 @@ app.get('/api/auth/me', verifyToken, (req, res, next) => {
 // UPDATE profile
 app.put('/api/auth/me', verifyToken, (req, res, next) => {
   Promise.resolve(authMeHandler(req, res)).catch(next);
+});
+
+// User audit logs
+app.get('/api/auth/user-audit-logs', verifyToken, (req, res, next) => {
+  Promise.resolve(userAuditLogsHandler(req, res)).catch(next);
 });
 
 // Change password
