@@ -1,19 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
-import AutoScrollBar from '../components/AutoScrollBar.jsx';
+import SongChordsLyricsDisplay from '../components/SongChordsLyricsDisplay.jsx';
+import SongChordsAnalyzer from '../components/SongChordsAnalyzer.jsx';
+import SongChordsLyricsToolbar from '../components/SongChordsLyricsToolbar.jsx';
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import ChordDisplay from "../components/ChordDisplay.jsx";
-import SongSheetMusic from "../components/SongSheetMusic.jsx";
-import YouTubeViewer from "../components/YouTubeViewer.jsx";
-import TimeMarkers from "../components/TimeMarkers.jsx";
 import SetlistSongNavigator from "../components/SetlistSongNavigator.jsx";
-import TransposeKeyControl from "../components/TransposeKeyControl.jsx";
+import SongChordsHeader from '../components/SongChordsHeader.jsx';
+import SongChordsMediaPanel from '../components/SongChordsMediaPanel.jsx';
+import SongChordsInfo from '../components/SongChordsInfo.jsx';
 import { getAuthHeader } from "../utils/auth.js";
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { usePermission } from '../hooks/usePermission.js';
 import { PERMISSIONS } from '../utils/permissionUtils.js';
-import { transposeChord, isValidChord } from "../utils/chordUtils.js";
-
-import { getTempoTerm } from "../utils/musicNotationUtils.js";
 import { cacheSong, getSong as getSongOffline } from '../utils/offlineCache.js';
 
 /**
@@ -526,416 +523,82 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
 
   return (
     <div className={`page-container${performanceMode ? ' performance-mode' : ''}`}> {/* Tambah class jika performanceMode */}
-      {/* Enhanced Header Section */}
-      <div className="song-lyrics-header">
-        <button
-          onClick={handleBack}
-          className="btn btn-secondary"
-          aria-label="Kembali"
-          title="Kembali"
-        >
-          ←
-        </button>
-        <div className="song-lyrics-info">
-          <h1 className="song-lyrics-title">{song.title}</h1>
-          {artist && <p className="song-lyrics-artist">{artist}</p>}
-          {/* Sembunyikan kontributor saat performanceMode aktif */}
-          {!performanceMode && song.contributor && (
-            <p className="song-lyrics-owner">
-              Kontributor: <span className="song-lyrics-owner-name">{song.contributor}</span>
-            </p>
-          )}
-        </div>
-        <div className="song-lyrics-header-actions">
-          {/* Sembunyikan tombol edit & bagikan saat performanceMode aktif */}
-          {!performanceMode && can(PERMISSIONS.SONG_EDIT) && (
-            <button onClick={handleEdit} className="btn btn-secondary" title="Edit lagu">
-              ✏️ Edit
-            </button>
-          )}
-          {!performanceMode && (
-            <button onClick={handleShare} className="btn btn-secondary" title="Bagikan lagu">
-              🔗 Bagikan
-            </button>
-          )}
-        </div>
-      </div>
+      <SongChordsHeader
+        song={song}
+        artist={artist}
+        performanceMode={performanceMode}
+        canEdit={can(PERMISSIONS.SONG_EDIT)}
+        onEdit={handleEdit}
+        onShare={handleShare}
+        shareMessage={shareMessage}
+        onBack={handleBack}
+      />
 
-      {shareMessage && (
-        <div className="info-text" style={{ marginBottom: "16px" }}>
-          {shareMessage}
-        </div>
-      )}
+      <SongChordsMediaPanel
+        mediaPanelExpanded={mediaPanelExpanded}
+        setMediaPanelExpanded={setMediaPanelExpanded}
+        youtubeId={youtubeId}
+        youtubeRef={youtubeRef}
+        timeMarkers={timeMarkers}
+        showTimeMarkers={showTimeMarkers}
+        setShowTimeMarkers={setShowTimeMarkers}
+        performanceMode={performanceMode}
+        canEdit={can(PERMISSIONS.SONG_EDIT)}
+        handleTimeMarkerUpdate={handleTimeMarkerUpdate}
+      />
 
-      {/* 1. Media Panel - YouTube & Time Markers (First Priority) */}
-      <div className="media-panel">
-        <div className="media-panel-header">
-          <div className="media-panel-header-content">
-            <div>
-              <h3 className="media-panel-title">
-                <span className="media-panel-icon">📺</span>
-                Video Referensi
-              </h3>
-              <p className="media-panel-subtitle">Dengarkan referensi lagu sebelum berlatih</p>
-            </div>
-            <button
-              className="media-panel-toggle"
-              onClick={() => setMediaPanelExpanded(!mediaPanelExpanded)}
-              aria-label={mediaPanelExpanded ? "Sembunyikan panel" : "Tampilkan panel"}
-            >
-              {mediaPanelExpanded ? '▲' : '▶'}
-            </button>
-          </div>
-        </div>
+      <SongChordsInfo
+        songKey={key}
+        originalKey={originalKey}
+        transpose={transpose}
+        setTranspose={setTranspose}
+        timeSignature={timeSignature}
+        tempo={tempo}
+        scrollSpeed={scrollSpeed}
+        setScrollSpeed={setScrollSpeed}
+        isMetronomeActive={isMetronomeActive}
+        setIsMetronomeActive={setIsMetronomeActive}
+        genre={genre}
+        arrangementStyle={arrangementStyle}
+        keyboardPatch={keyboardPatch}
+        showSongInfo={showSongInfo}
+        setShowSongInfo={setShowSongInfo}
+      />
 
-        {mediaPanelExpanded && (
-          <div className="media-panel-content media-panel-grid">
-            {/* YouTube Video Section - Left */}
-            <div className="media-section media-video-section">
-              <div className="media-section-header">
-                <span className="media-section-icon">🎥</span>
-                <span className="media-section-label">YouTube Video</span>
-              </div>
-              <div className="media-section-body">
-                {youtubeId ? (
-                  <YouTubeViewer ref={youtubeRef} videoId={youtubeId} />
-                ) : (
-                  <div className="media-empty-state">
-                    <span className="media-empty-icon">📹</span>
-                    <p className="media-empty-text">Tidak ada video YouTube</p>
-                    <p className="media-empty-hint">Tambahkan YouTube URL di edit song</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Time Markers Section - Right */}
-            <div className="media-section media-markers-section">
-              <div className="media-section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <span className="media-section-icon">⏱️</span>
-                  <span className="media-section-label">Time Markers</span>
-                  {timeMarkers.length > 0 && (
-                    <span className="media-section-badge">{timeMarkers.length}</span>
-                  )}
-                </div>
-                <button
-                  className="btn btn-secondary"
-                  style={{ fontSize: '0.9em' }}
-                  onClick={() => setShowTimeMarkers(!showTimeMarkers)}
-                  aria-label={showTimeMarkers ? 'Sembunyikan time marker' : 'Tampilkan time marker'}
-                  title={showTimeMarkers ? 'Sembunyikan time marker' : 'Tampilkan time marker'}
-                >
-                  {showTimeMarkers ? '▼' : '▶' }
-                </button>
-              </div>
-              {showTimeMarkers && (
-                <div className="media-section-body">
-                  <TimeMarkers
-                    timeMarkers={timeMarkers}
-                    readonly={performanceMode || !can(PERMISSIONS.SONG_EDIT)}
-                    onUpdate={handleTimeMarkerUpdate}
-                    onSeek={(time, opts) => {
-                      if (opts && opts.pause && youtubeRef.current && youtubeRef.current.handlePause) {
-                        youtubeRef.current.handlePause();
-                        return;
-                      }
-                      if (typeof time === 'number' && youtubeRef.current && youtubeRef.current.handleSeek) {
-                        youtubeRef.current.handleSeek(time);
-                      }
-                    }}
-                    getCurrentYouTubeTime={() => {
-                      if (youtubeRef.current && typeof youtubeRef.current.currentTime === "number") {
-                        return youtubeRef.current.currentTime;
-                      }
-                      return 0;
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        </div>
-
-      {/* 2. Song Info - Compact Horizontal Layout */}
-      <div className="song-info-compact">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 className="song-info-compact-title">📋 Info Lagu</h3>
-          <button
-            className="btn btn-secondary"
-            style={{ fontSize: '0.9em' }}
-            onClick={() => setShowSongInfo(!showSongInfo)}
-            aria-label={showSongInfo ? 'Sembunyikan info lagu' : 'Tampilkan info lagu'}
-            title={showSongInfo ? 'Sembunyikan info lagu' : 'Tampilkan info lagu'}
-          >
-            {showSongInfo ? '▼' : '▶'}
-          </button>
-        </div>
-        {showSongInfo && (
-          <div className="song-info-compact-grid">
-            {/* 1. Key - Most Important */}
-            {key && (
-              <div className="song-info-item song-info-priority song-info-key">
-                <span className="song-info-label">🎹 Key</span>
-                <TransposeKeyControl
-                  originalKey={song?.key || key}
-                  targetKey={setlistSongData.key || song?.key || key}
-                  transpose={transpose}
-                  onTransposeChange={setTranspose}
-                />
-                {originalKey && (
-                  <div className="song-info-original-key" style={{ fontSize: '0.95em', color: 'var(--text-secondary)' }}>
-                    <span style={{ fontWeight: 500 }}>Original: </span>
-                    <span>{originalKey}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            {/* 3. Time Signature - Rhythm Structure */}
-            {timeSignature && (
-              <div className="song-info-item">
-                <span className="song-info-label">🎼 Time</span>
-                <span className="song-info-value">{timeSignature}</span>
-              </div>
-            )}
-            {/* 4. Tempo - Timing */}
-            {tempo && (
-              <div className="song-info-item song-info-tempo">
-                <span className="song-info-label">⏱️ Tempo</span>
-                <div className="song-info-tempo-controls">
-                  <button
-                    onClick={() => setScrollSpeed(Math.max(40, scrollSpeed - 5))}
-                    className="btn btn-secondary"
-                    title="Tempo down"
-                    aria-label="Tempo down"
-                  >
-                    −
-                  </button>
-                  <div className="song-info-tempo-display">
-                    <span className="song-info-value">{scrollSpeed}</span>
-                    <span className="song-info-tempo-unit">BPM</span>                  
-                  </div>
-                  <button
-                    onClick={() => setScrollSpeed(Math.min(240, scrollSpeed + 5))}
-                    className="btn btn-secondary"
-                    title="Tempo up"
-                    aria-label="Tempo up"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => setIsMetronomeActive(!isMetronomeActive)}
-                    className={`btn btn-secondary ${isMetronomeActive ? "active" : ""}`}
-                    title={isMetronomeActive ? "Stop metronome" : "Start metronome"}
-                    aria-label={isMetronomeActive ? "Stop metronome" : "Start metronome"}
-                  >
-                    {isMetronomeActive ? "⏹️" : "▶️"}
-                  </button>
-                </div>
-                    <span
-                      className="song-info-tempo-term"
-                      style={{ fontStyle: "italic", color: "var(--text-secondary)" }}
-                    >
-                      {getTempoTerm(scrollSpeed)}
-                    </span>
-
-                {isMetronomeActive && <div className="song-info-tempo-status">♪ Playing...</div>}
-
-              </div>
-            )}
-
-            {/* 5. Genre - Style Context */}
-            {genre && (
-              <div className="song-info-item">
-                <span className="song-info-label">🎸 Genre</span>
-                <span className="song-info-value">{genre}</span>
-              </div>
-            )}
-            {/* 6. Arrangement Style (baris terpisah) */}
-            {arrangementStyle && (
-              <div className="song-info-item song-info-block" style={{gridColumn: '1 / -1', marginTop: 8}}>
-                <span className="song-info-label">🎷 Aransemen</span>
-                <span className="song-info-value">{arrangementStyle}</span>
-              </div>
-            )}
-            {/* 7. Keyboard Patch (baris terpisah) */}
-            {keyboardPatch && (
-              <div className="song-info-item song-info-block" style={{gridColumn: '1 / -1', marginTop: 4}}>
-                <span className="song-info-label">🎹 Keyboard Patch</span>
-                <span className="song-info-value">{keyboardPatch}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Chord Analyzer Panel - Selalu tampil */}
-      <div className="song-lyrics-analyzer">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "var(--spacing-lg)",
-          }}
-        >
-          <h3 className="song-lyrics-analyzer-title">🎵 Analisis Chord</h3>
-          <button
-            onClick={() => setShowChordAnalyzer(!showChordAnalyzer)}
-            className="btn btn-secondary"
-            style={{ fontSize: "0.85em" }}
-          >
-            {showChordAnalyzer ? "▼" : "▶"}
-          </button>
-        </div>
-        {showChordAnalyzer && (
-          <>
-            <div className="song-lyrics-analyzer-grid">
-              <div className="song-lyrics-analyzer-stat">
-                <div className="song-lyrics-analyzer-stat-label">Total Chord</div>
-                <div className="song-lyrics-analyzer-stat-value">{chordStats.count}</div>
-              </div>
-              <div className="song-lyrics-analyzer-stat">
-                <div className="song-lyrics-analyzer-stat-label">Unique Chord</div>
-                <div className="song-lyrics-analyzer-stat-value">{chordStats.chords.length}</div>
-              </div>
-            </div>
-            <div className="song-lyrics-analyzer-chords">
-              <label className="song-lyrics-analyzer-chords-label">Chord yang Digunakan:</label>
-              <div className="song-lyrics-analyzer-chords-list">
-                {chordStats.chords.length > 0 ? (
-                  chordStats.chords.map((chord) => (
-                    <span key={chord} className="song-lyrics-analyzer-chord-tag">
-                      {transpose !== 0 ? transposeChord(chord, transpose) : chord}
-                    </span>
-                  ))
-                ) : (
-                  <span className="song-lyrics-analyzer-chord-tag song-lyrics-analyzer-chord-empty">Tidak ada chord ditemukan</span>
-                )}
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+      <SongChordsAnalyzer
+        showChordAnalyzer={showChordAnalyzer}
+        setShowChordAnalyzer={setShowChordAnalyzer}
+        chordStats={chordStats}
+        transpose={transpose}
+      />
 
       {/* Lyrics Main Section */}
       <div className="song-lyrics-main">
         <div className="song-lyrics-main-header">
           <h3 className="song-lyrics-main-title">🎤 Lirik & Chord</h3>
-          <div className="song-lyrics-toolbar">
-            {/* 1. Auto Scroll - PRIORITY (LEFT) */}
-            {!isEditingLyrics && (
-              <AutoScrollBar
-                tempo={parseInt(tempo) || 120}
-                active={autoScrollActive}
-                speed={scrollSpeed}
-                onToggle={() => setAutoScrollActive(!autoScrollActive)}
-                onSpeedChange={setScrollSpeed}
-                lyricsDisplayRef={lyricsDisplayRef}
-                currentBeat={currentBeat}
-                setCurrentBeat={setCurrentBeat}
-              />
-            )}
-            {/* Fullscreen Button */}
-            <button
-              className="btn btn-secondary"
-              title="Tampilkan lirik layar penuh"
-              onClick={() => {
-                const el = document.querySelector(".song-lyrics-display");
-                if (el && el.requestFullscreen) {
-                  el.requestFullscreen();
-                } else if (el && el.webkitRequestFullscreen) {
-                  el.webkitRequestFullscreen();
-                } else if (el && el.msRequestFullscreen) {
-                  el.msRequestFullscreen();
-                }
-              }}
-            >
-              🖥️ Fullscreen
-            </button>
-
-            {/* 2. Zoom Controls */}
-            <div className="song-lyrics-zoom-controls">
-              <button
-                onClick={() => setZoom(Math.max(0.7, zoom - 0.1))}
-                className="btn btn-secondary"
-                title="Perkecil"
-              >
-                −
-              </button>
-              <span className="song-lyrics-zoom-display">{(zoom * 100).toFixed(0)}%</span>
-              <button
-                onClick={() => setZoom(Math.min(1.5, zoom + 0.1))}
-                className="btn btn-secondary"
-                title="Perbesar"
-              >
-                +
-              </button>
-              <button onClick={() => setZoom(1)} className="btn btn-secondary" title="Reset">
-                ⟲
-              </button>
-            </div>
-
-            {/* 3. Edit Lirik */}
-            {!isEditingLyrics ? (
-              <>
-                {/* Sembunyikan tombol edit lirik & export saat performanceMode aktif */}
-                {!performanceMode && can(PERMISSIONS.SONG_EDIT) && (
-                  <button
-                    type="button"
-                    onClick={handleEditLyrics}
-                    className="btn btn-primary"
-                    style={{ fontSize: "0.9em" }}
-                  >
-                    ✏️ Edit Lirik
-                  </button>
-                )}
-                {/* 4. Export Menu (RIGHT) */}
-                {!performanceMode && (
-                  <div style={{ position: "relative" }}>
-                    <button
-                      type="button"
-                      onClick={() => setShowExportMenu(!showExportMenu)}
-                      className="btn btn-secondary"
-                      style={{ fontSize: "0.9em" }}
-                    >
-                      📥 Export
-                    </button>
-                    {showExportMenu && (
-                      <div className="song-lyrics-export-menu">
-                        <div className="song-lyrics-export-item" onClick={handleExportText}>
-                          📄 Export ke Text
-                        </div>
-                        <div className="song-lyrics-export-item" onClick={handleExportPDF}>
-                          📑 Print / PDF
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="song-lyrics-edit-actions">
-                <button
-                  type="button"
-                  onClick={handleSaveLyrics}
-                  disabled={savingLyrics}
-                  className="btn"
-                >
-                  {savingLyrics ? "⏳ Menyimpan..." : "✓ Simpan"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCancelEditLyrics}
-                  disabled={savingLyrics}
-                  className="btn btn-secondary"
-                >
-                  ✕ Batal
-                </button>
-              </div>
-            )}
-          </div>
+            <SongChordsLyricsToolbar
+              isEditingLyrics={isEditingLyrics}
+              performanceMode={performanceMode}
+              canEdit={can(PERMISSIONS.SONG_EDIT)}
+              tempo={tempo}
+              autoScrollActive={autoScrollActive}
+              scrollSpeed={scrollSpeed}
+              setAutoScrollActive={setAutoScrollActive}
+              setScrollSpeed={setScrollSpeed}
+              lyricsDisplayRef={lyricsDisplayRef}
+              currentBeat={currentBeat}
+              setCurrentBeat={setCurrentBeat}
+              zoom={zoom}
+              setZoom={setZoom}
+              handleEditLyrics={handleEditLyrics}
+              savingLyrics={savingLyrics}
+              handleSaveLyrics={handleSaveLyrics}
+              handleCancelEditLyrics={handleCancelEditLyrics}
+              showExportMenu={showExportMenu}
+              setShowExportMenu={setShowExportMenu}
+              handleExportText={handleExportText}
+              handleExportPDF={handleExportPDF}
+            />
         </div>
 
         {editError && <div className="song-lyrics-error">{editError}</div>}
@@ -953,55 +616,25 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
             onChange={(e) => setEditedLyrics(e.target.value)}
             className="song-lyrics-textarea"
             autoFocus
-            placeholder="Masukkan lirik dan chord...&#10;Contoh:&#10;[C]Amazing grace how [F]sweet the [C]sound"
+            placeholder="Masukkan lirik dan chord...\nContoh:\n[C]Amazing grace how [F]sweet the [C]sound"
           />
         ) : (
-          <div
-            ref={lyricsDisplayRef}
-            className="song-lyrics-display"
-            style={{ overflowX: 'auto', whiteSpace: 'pre-wrap', maxWidth: '100%' }}
-          >
-            {/* Toolbar autoscroll diganti dengan AutoScrollBar di fullscreen */}
-            <AutoScrollBar
-              tempo={parseInt(tempo) || 120}
-              active={autoScrollActive}
-              speed={scrollSpeed}
-              onToggle={() => setAutoScrollActive(!autoScrollActive)}
-              onSpeedChange={setScrollSpeed}
-              lyricsDisplayRef={lyricsDisplayRef}
-              currentBeat={currentBeat}
-              setCurrentBeat={setCurrentBeat}
-            />
-            {/* Tombol Lihat Partitur (selalu tampil jika ada MusicXML) */}
-            {song?.sheetMusicXml && (
-              <button
-                className="btn btn-secondary"
-                style={{ marginBottom: 16 }}
-                onClick={() => setShowSheetMusic((v) => !v)}
-              >
-                {showSheetMusic ? 'Sembunyikan Partitur' : 'Lihat Partitur'}
-              </button>
-            )}
-            {/* Tampilkan partitur jika diaktifkan */}
-            {showSheetMusic && song?.sheetMusicXml && (
-              <SongSheetMusic sheetMusicXml={song.sheetMusicXml} />
-            )}
-            <ChordDisplay
-              song={song}
-              transpose={transpose}
-              zoom={zoom}
-              onTimestampClick={(seconds) => {
-                if (youtubeRef.current && typeof youtubeRef.current.handleSeek === 'function') {
-                  youtubeRef.current.handleSeek(seconds);
-                }
-              }}
-              onTimestampPause={() => {
-                if (youtubeRef.current && typeof youtubeRef.current.handlePause === 'function') {
-                  youtubeRef.current.handlePause();
-                }
-              }}
-            />
-          </div>
+          <SongChordsLyricsDisplay
+            isEditingLyrics={isEditingLyrics}
+            lyricsDisplayRef={lyricsDisplayRef}
+            song={song}
+            transpose={transpose}
+            zoom={zoom}
+            autoScrollActive={autoScrollActive}
+            scrollSpeed={scrollSpeed}
+            setAutoScrollActive={setAutoScrollActive}
+            setScrollSpeed={setScrollSpeed}
+            currentBeat={currentBeat}
+            setCurrentBeat={setCurrentBeat}
+            showSheetMusic={showSheetMusic}
+            setShowSheetMusic={setShowSheetMusic}
+            youtubeRef={youtubeRef}
+          />
         )}
       </div>
 

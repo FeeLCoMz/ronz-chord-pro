@@ -1,3 +1,66 @@
+/* ========== CUSTOM UTILITY FOR SONGCHORDSPAGE ========== */
+.info-text-margin {
+  margin-bottom: 16px;
+}
+
+.media-section-header-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-small {
+  font-size: 0.9em;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.btn-xsmall {
+  font-size: 0.85em;
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.song-info-compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.song-info-original-key {
+  font-size: 0.95em;
+  color: var(--text-secondary);
+}
+.song-info-original-key-label {
+  font-weight: 500;
+}
+
+.song-info-tempo-term {
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.song-info-block-arrangement {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+.song-info-block-keyboard {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}
+
+.song-lyrics-analyzer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.song-lyrics-export-menu-container {
+  position: relative;
+}
+
+.btn-margin-bottom {
+  margin-bottom: 16px;
+}
 /* ========================================
    PROFILE PAGE STYLES
    ======================================== */
