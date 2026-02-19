@@ -22,7 +22,7 @@ import { cacheSong, getSong as getSongOffline } from '../utils/offlineCache.js';
  * Props:
  *   - song: (optional) data lagu yang diterima dari parent
  */
-export default function SongChordsPage({ song: songProp }) {
+export default function SongChordsPage({ song: songProp, performanceMode = false }) {
   // State untuk toggle tampilan partitur
   const [showSheetMusic, setShowSheetMusic] = useState(false);
   // =========================
@@ -552,7 +552,7 @@ export default function SongChordsPage({ song: songProp }) {
   };
 
   return (
-    <div className="page-container">
+    <div className={`page-container${performanceMode ? ' performance-mode' : ''}`}> {/* Tambah class jika performanceMode */}
       {/* Enhanced Header Section */}
       <div className="song-lyrics-header">
         <button
@@ -566,21 +566,25 @@ export default function SongChordsPage({ song: songProp }) {
         <div className="song-lyrics-info">
           <h1 className="song-lyrics-title">{song.title}</h1>
           {artist && <p className="song-lyrics-artist">{artist}</p>}
-          {song.contributor && (
+          {/* Sembunyikan kontributor saat performanceMode aktif */}
+          {!performanceMode && song.contributor && (
             <p className="song-lyrics-owner">
               Kontributor: <span className="song-lyrics-owner-name">{song.contributor}</span>
             </p>
           )}
         </div>
         <div className="song-lyrics-header-actions">
-          {can(PERMISSIONS.SONG_EDIT) && (
+          {/* Sembunyikan tombol edit & bagikan saat performanceMode aktif */}
+          {!performanceMode && can(PERMISSIONS.SONG_EDIT) && (
             <button onClick={handleEdit} className="btn btn-secondary" title="Edit lagu">
               ✏️ Edit
             </button>
           )}
-          <button onClick={handleShare} className="btn btn-secondary" title="Bagikan lagu">
-            🔗 Bagikan
-          </button>
+          {!performanceMode && (
+            <button onClick={handleShare} className="btn btn-secondary" title="Bagikan lagu">
+              🔗 Bagikan
+            </button>
+          )}
         </div>
       </div>
 
@@ -656,7 +660,7 @@ export default function SongChordsPage({ song: songProp }) {
                 <div className="media-section-body">
                   <TimeMarkers
                     timeMarkers={timeMarkers}
-                    readonly={!can(PERMISSIONS.SONG_EDIT)}
+                    readonly={performanceMode || !can(PERMISSIONS.SONG_EDIT)}
                     onUpdate={handleTimeMarkerUpdate}
                     onSeek={(time, opts) => {
                       if (opts && opts.pause && youtubeRef.current && youtubeRef.current.handlePause) {
@@ -679,7 +683,7 @@ export default function SongChordsPage({ song: songProp }) {
             </div>
           </div>
         )}
-      </div>
+        </div>
 
       {/* 2. Song Info - Compact Horizontal Layout */}
       <div className="song-info-compact">
@@ -940,7 +944,8 @@ export default function SongChordsPage({ song: songProp }) {
             {/* 3. Edit Lirik */}
             {!isEditingLyrics ? (
               <>
-                {can(PERMISSIONS.SONG_EDIT) && (
+                {/* Sembunyikan tombol edit lirik & export saat performanceMode aktif */}
+                {!performanceMode && can(PERMISSIONS.SONG_EDIT) && (
                   <button
                     type="button"
                     onClick={handleEditLyrics}
@@ -951,26 +956,28 @@ export default function SongChordsPage({ song: songProp }) {
                   </button>
                 )}
                 {/* 4. Export Menu (RIGHT) */}
-                <div style={{ position: "relative" }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowExportMenu(!showExportMenu)}
-                    className="btn btn-secondary"
-                    style={{ fontSize: "0.9em" }}
-                  >
-                    📥 Export
-                  </button>
-                  {showExportMenu && (
-                    <div className="song-lyrics-export-menu">
-                      <div className="song-lyrics-export-item" onClick={handleExportText}>
-                        📄 Export ke Text
+                {!performanceMode && (
+                  <div style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowExportMenu(!showExportMenu)}
+                      className="btn btn-secondary"
+                      style={{ fontSize: "0.9em" }}
+                    >
+                      📥 Export
+                    </button>
+                    {showExportMenu && (
+                      <div className="song-lyrics-export-menu">
+                        <div className="song-lyrics-export-item" onClick={handleExportText}>
+                          📄 Export ke Text
+                        </div>
+                        <div className="song-lyrics-export-item" onClick={handleExportPDF}>
+                          📑 Print / PDF
+                        </div>
                       </div>
-                      <div className="song-lyrics-export-item" onClick={handleExportPDF}>
-                        📑 Print / PDF
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
               <div className="song-lyrics-edit-actions">

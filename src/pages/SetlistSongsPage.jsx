@@ -16,7 +16,7 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import * as chordUtils from '../utils/chordUtils.js';
 
 // userBandInfo: bisa array (multi-band) atau object (single band)
-export default function SetlistSongsPage({ setlists, songs, setSetlists, setActiveSetlist, loadingSetlists, userBandInfo }) {
+export default function SetlistSongsPage({ setlists, songs, setSetlists, setActiveSetlist, loadingSetlists, userBandInfo, performanceMode = false }) {
   const { id: setlistId } = useParams();
   const navigate = useNavigate();
   const isLoading = typeof loadingSetlists === 'boolean' ? loadingSetlists : !Array.isArray(setlists);
@@ -450,7 +450,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
   }
 
   return (
-    <div className="page-container">
+    <div className={`page-container${performanceMode ? ' performance-mode' : ''}`}>  {/* Tambah class jika performanceMode */}
       <div className="page-header">
         <div>
           <h1>📋 {setlist.name}</h1>
@@ -467,7 +467,8 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           <p>{setlistSongs.length} lagu di setlist ini</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {canEdit && (
+          {/* Sembunyikan tombol edit/tambah saat performanceMode aktif */}
+          {!performanceMode && canEdit && (
             <button className="btn" onClick={() => setShowAddSong(true)} title="Tambah Lagu ke Setlist">
               <PlusIcon size={22} /> Tambah Lagu
             </button>
@@ -479,7 +480,8 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
       </div>
 
       {/* Filter dan Search Bar */}
-      <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      {!performanceMode && (
+        <div className="filter-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* Search Input */}
         <input
           type="text"
@@ -549,7 +551,8 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
             </button>
           )}
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Song List dengan drag-and-drop */}
       {filteredSongs.length === 0 ? (
@@ -557,7 +560,7 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
           <p>
             {hasActiveFilters ? 'Tidak ada lagu yang cocok dengan filter' : 'Setlist ini belum berisi lagu'}
           </p>
-          {!hasActiveFilters && setlistSongs.length === 0 && (
+          {!performanceMode && !hasActiveFilters && setlistSongs.length === 0 && (
             <button className="btn" onClick={() => setShowAddSong(true)} style={{ marginTop: '12px' }}>
               <PlusIcon size={18} /> Tambah Lagu Pertama
             </button>
@@ -650,37 +653,39 @@ export default function SetlistSongsPage({ setlists, songs, setSetlists, setActi
                 </div>
 
                 {/* Actions */}
-                <div
-                  className="song-actions"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {canEdit && (
-                    <button
-                      onClick={() => openEditSong(song.id)}
-                      className="btn"
-                      style={{ padding: '6px 12px', fontSize: '0.85em' }}
-                      title="Edit detail lagu di setlist"
-                    >
-                      <EditIcon size={16} />
-                    </button>
-                  )}
-                  {canEdit && (
-                    <button
-                      onClick={() => handleDeleteSongFromSetlist(song.id)}
-                      className="btn"
-                      style={{
-                        padding: '6px 12px',
-                        fontSize: '0.85em',
-                        background: '#dc2626',
-                        borderColor: '#b91c1c',
-                        color: '#fff'
-                      }}
-                      title="Hapus dari setlist"
-                    >
-                      <DeleteIcon size={16} />
-                    </button>
-                  )}
-                </div>
+                {!performanceMode && (
+                  <div
+                    className="song-actions"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {canEdit && (
+                      <button
+                        onClick={() => openEditSong(song.id)}
+                        className="btn"
+                        style={{ padding: '6px 12px', fontSize: '0.85em' }}
+                        title="Edit detail lagu di setlist"
+                      >
+                        <EditIcon size={16} />
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button
+                        onClick={() => handleDeleteSongFromSetlist(song.id)}
+                        className="btn"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: '0.85em',
+                          background: '#dc2626',
+                          borderColor: '#b91c1c',
+                          color: '#fff'
+                        }}
+                        title="Hapus dari setlist"
+                      >
+                        <DeleteIcon size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

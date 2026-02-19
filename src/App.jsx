@@ -342,7 +342,7 @@ function AppContent() {
               />
               <Route
                 path="/songs/view/:id"
-                element={<SongLyricsRoute songs={songs} activeSetlist={activeSetlist} />}
+                element={<SongLyricsRoute songs={songs} activeSetlist={activeSetlist} performanceMode={performanceMode} />}
               />
               <Route
                 path="/karaoke/:id"
@@ -368,12 +368,13 @@ function AppContent() {
                     setSetlists={setSetlists}
                     setLoadingSetlists={setLoadingSetlists}
                     userBandInfo={userBandInfo}
+                    performanceMode={performanceMode}
                   />
                 }
               />
               <Route
                 path="/setlists/:setlistId/songs/:id"
-                element={<SongLyricsRoute songs={songs} activeSetlist={activeSetlist} />}
+                element={<SongLyricsRoute songs={songs} activeSetlist={activeSetlist} performanceMode={performanceMode} />}
               />
               <Route
                 path="/setlists"
@@ -447,10 +448,10 @@ function EditSongRoute({ onSongUpdated }) {
 }
 
 // SongLyricsRoute component
-function SongLyricsRoute({ songs, activeSetlist }) {
+function SongLyricsRoute({ songs, activeSetlist, performanceMode }) {
   const { id } = useParams();
   const song = Array.isArray(songs) ? songs.find((s) => String(s.id) === String(id)) : null;
-  return <SongChordsPage song={song} activeSetlist={activeSetlist} />;
+  return <SongChordsPage song={song} activeSetlist={activeSetlist} performanceMode={performanceMode} />;
 }
 
 export default App;
