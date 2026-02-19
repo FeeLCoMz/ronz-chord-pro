@@ -2,9 +2,49 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { trackEvent, trackPageView } from '../utils/analyticsUtil.js';
 import * as apiClient from '../apiClient.js';
+import { generateAuditReport } from '../utils/auditLogger.js';
 
 
 export default function ProfilePage() {
+    const [activityStats, setActivityStats] = useState(null);
+    const [activityLoading, setActivityLoading] = useState(true);
+    React.useEffect(() => {
+      async function fetchActivity() {
+        setActivityLoading(true);
+        try {
+          // Ambil audit log user dari API (mock: gunakan AuditLogPage logic)
+          const logs = [];
+          // TODO: Ganti dengan API call ke audit log user jika tersedia
+          // Sementara, gunakan event login, profile update, password change
+          if (profile) {
+            logs.push({
+              id: 1,
+              action: 'USER_LOGIN',
+              category: 'USER',
+              severity: 'low',
+              userId: profile.id,
+              status: 'success',
+              createdAt: profile.createdAt || new Date().toISOString(),
+            });
+            logs.push({
+              id: 2,
+              action: 'PROFILE_UPDATE',
+              category: 'USER',
+              severity: 'medium',
+              userId: profile.id,
+              status: 'success',
+              createdAt: profile.updatedAt || new Date().toISOString(),
+            });
+          }
+          setActivityStats(generateAuditReport(logs));
+        } catch (e) {
+          setActivityStats(null);
+        } finally {
+          setActivityLoading(false);
+        }
+      }
+      fetchActivity();
+    }, [profile]);
   const { user, logout } = useAuth();
   const [showEdit, setShowEdit] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -227,6 +267,43 @@ export default function ProfilePage() {
           <button className="btn btn-secondary" type="button" onClick={() => setShowPassword(true)}>Ubah Password</button>
           <button className="btn" type="button" onClick={handleLogout}>Logout</button>
         </div>
+      </div>
+      {/* Statistik Aktivitas User */}
+      <div className="card" style={{ marginTop: 24 }}>
+        <h2>Statistik Aktivitas</h2>
+        {activityLoading ? (
+          <div>Loading...</div>
+        ) : activityStats ? (
+          <div style={{ display: 'flex', gap: 24 }}>
+            <div>
+              <strong>Total Event:</strong> {activityStats.totalEvents}
+              <br />
+              <strong>Hari ini:</strong> {activityStats.timeline.today}
+              <br />
+              <strong>Minggu ini:</strong> {activityStats.timeline.thisWeek}
+              <br />
+              <strong>Bulan ini:</strong> {activityStats.timeline.thisMonth}
+            </div>
+            <div>
+              <strong>By Category:</strong>
+              <ul>
+                {Object.entries(activityStats.byCategory || {}).map(([cat, count]) => (
+                  <li key={cat}>{cat}: {count}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <strong>By Severity:</strong>
+              <ul>
+                {Object.entries(activityStats.bySeverity || {}).map(([sev, count]) => (
+                  <li key={sev}>{sev}: {count}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ) : (
+          <div>Tidak ada data aktivitas.</div>
+        )}
       </div>
       {showEdit && <EditProfileModal />}
       {showPassword && <ChangePasswordModal />}
