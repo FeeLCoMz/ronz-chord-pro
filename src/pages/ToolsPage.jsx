@@ -4,7 +4,20 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 // No permission check needed, just check user.role === 'owner'
 
 export default function ToolsPage() {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
+  React.useEffect(() => {
+    async function syncUser() {
+      if (!user || user.role !== 'owner') {
+        try {
+          const res = await apiClient.getCurrentUser();
+          if (res && res.user && res.user.role === 'owner') {
+            login(localStorage.getItem('authToken'), res.user);
+          }
+        } catch {}
+      }
+    }
+    syncUser();
+  }, []);
 
   if (!user || user.role !== 'owner') {
     return (

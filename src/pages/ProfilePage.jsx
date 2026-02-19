@@ -12,7 +12,7 @@ export default function ProfilePage() {
     const [showDelete, setShowDelete] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
-  const { user, logout } = useAuth();
+  const { user, logout, login } = useAuth();
   const [profile, setProfile] = useState(user);
   const [activityStats, setActivityStats] = useState(null);
   const [activityLoading, setActivityLoading] = useState(true);
@@ -159,6 +159,7 @@ export default function ProfilePage() {
         // Ambil ulang profil terbaru
         const res = await apiClient.getCurrentUser();
         setProfile(res.user || profile);
+        if (res.user) login(authUtils.getToken(), res.user);
         setSuccess('Profil berhasil diperbarui');
         trackEvent('profile_update', { email: profile.email });
         setTimeout(() => setShowEdit(false), 1200);

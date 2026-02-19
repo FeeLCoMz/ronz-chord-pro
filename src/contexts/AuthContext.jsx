@@ -14,12 +14,12 @@ export function AuthProvider({ children }) {
     const savedUser = authUtils.getUser();
     const token = authUtils.getToken();
     if (savedUser && token) {
-      // Fetch latest profile from API
       apiClient.getCurrentUser()
         .then(res => {
           if (res && res.user) {
-            setUser(res.user);
-            authUtils.saveUser(res.user);
+            const userWithRole = { ...res.user, role: res.user.role || savedUser.role || 'member' };
+            setUser(userWithRole);
+            authUtils.saveUser(userWithRole);
           } else {
             setUser(savedUser);
           }
@@ -35,8 +35,9 @@ export function AuthProvider({ children }) {
 
   const login = (token, userData) => {
     authUtils.saveToken(token);
-    authUtils.saveUser(userData);
-    setUser(userData);
+    const userWithRole = { ...userData, role: userData.role || 'member' };
+    authUtils.saveUser(userWithRole);
+    setUser(userWithRole);
     setError(null);
   };
 
