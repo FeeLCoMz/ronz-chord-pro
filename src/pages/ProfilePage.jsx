@@ -176,8 +176,16 @@ export default function ProfilePage() {
       </div>
       <div className="card profile-card">
         <div className="profile-avatar">
-          {/* Avatar placeholder, ganti dengan profile.profilePicture jika ada */}
-          <div className="avatar-circle">{profile.displayName ? profile.displayName[0].toUpperCase() : '?'}</div>
+          {profile.profilePicture ? (
+            <img
+              src={profile.profilePicture}
+              alt={profile.displayName || 'Avatar'}
+              className="avatar-circle"
+              style={{ objectFit: 'cover', width: 80, height: 80, borderRadius: '50%' }}
+            />
+          ) : (
+            <div className="avatar-circle">{profile.displayName ? profile.displayName[0].toUpperCase() : '?'}</div>
+          )}
         </div>
         <div className="profile-info">
           <div className="profile-row">
