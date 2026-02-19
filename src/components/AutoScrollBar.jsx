@@ -7,7 +7,7 @@ import React, { useRef, useEffect, useState } from 'react';
  * - tempo: number (BPM default, default 80)
  * - onScrollChange: function (callback ketika scroll speed berubah, optional)
  */
-export default function AutoScrollBar({ tempo = 80, onScrollChange }) {
+export default function AutoScrollBar({ tempo = 120, onScrollChange, lyricsDisplayRef }) {
   const [scrolling, setScrolling] = useState(false);
   const [speed, setSpeed] = useState(tempo);
   const [beat, setBeat] = useState(0);
@@ -24,35 +24,38 @@ export default function AutoScrollBar({ tempo = 80, onScrollChange }) {
     if (scrolling) {
       beatTimeRef.current = performance.now();
       barBeatRef.current = 0;
-      
+
       const scrollStep = () => {
         const now = performance.now();
-        
+
         // Metronome beat
         if (now - beatTimeRef.current > 60000 / speed) {
           setBeat(b => (b + 1) % 4);
           beatTimeRef.current = now;
           barBeatRef.current += 1;
-          
+
           if (barBeatRef.current >= 4) {
-            window.scrollBy({ top: 50, behavior: 'smooth' });
+            // Scroll the lyrics display element if ref is provided
+            if (lyricsDisplayRef && lyricsDisplayRef.current) {
+              lyricsDisplayRef.current.scrollBy({ top: 50, behavior: 'smooth' });
+            }
             barBeatRef.current = 0;
           }
         }
-        
+
         if (onScrollChange) onScrollChange(speed);
         frameRef.current = requestAnimationFrame(scrollStep);
       };
-      
+
       frameRef.current = requestAnimationFrame(scrollStep);
     } else {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
     }
-    
+
     return () => {
       if (frameRef.current) cancelAnimationFrame(frameRef.current);
     };
-  }, [scrolling, speed, onScrollChange]);
+  }, [scrolling, speed, onScrollChange, lyricsDisplayRef]);
 
   return (
     <div className="auto-scroll-bar">
@@ -67,7 +70,7 @@ export default function AutoScrollBar({ tempo = 80, onScrollChange }) {
             {scrolling ? '⏸️' : '▶️'}
           </span>
           <span className="auto-scroll-text">
-            {scrolling ? 'Scrolling' : 'Start'}
+            {scrolling ? 'Scrolling' : 'Autoscroll'}
           </span>
         </button>
         

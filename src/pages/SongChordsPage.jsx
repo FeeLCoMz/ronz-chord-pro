@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import AutoScrollBar from '../components/AutoScrollBar.jsx';
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import ChordDisplay from "../components/ChordDisplay.jsx";
 import SongSheetMusic from "../components/SongSheetMusic.jsx";
@@ -143,36 +144,7 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
       setScrollSpeed(parseInt(tempo) || 120);
     }
   }, [tempo]);
-
-  // Auto Scroll effect
-  useEffect(() => {
-    if (!autoScrollActive) {
-      setCurrentBeat(0);
-      return;
-    }
-
-    const beatInterval = (60 / scrollSpeed) * 1000; // Convert BPM to milliseconds
-    const fourBeatInterval = beatInterval * 4; // Every 4 beats
-    const lineHeight = 24; // pixels per line (approximately)
-    let beatCounter = 0;
-
-    const scrollInterval = setInterval(() => {
-      beatCounter++;
-      setCurrentBeat((beatCounter - 1) % 4);
-
-      // Scroll every 4 beats
-      if (beatCounter % 4 === 0) {
-        if (lyricsDisplayRef.current) {
-          lyricsDisplayRef.current.scrollBy({
-            top: lineHeight,
-            behavior: "smooth",
-          });
-        }
-      }
-    }, beatInterval);
-
-    return () => clearInterval(scrollInterval);
-  }, [autoScrollActive, scrollSpeed]);
+  // (Efek autoscroll dipindah ke komponen AutoScrollBar)
 
   // Metronome effect - Web Audio API
   useEffect(() => {
@@ -853,53 +825,16 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
           <div className="song-lyrics-toolbar">
             {/* 1. Auto Scroll - PRIORITY (LEFT) */}
             {!isEditingLyrics && (
-              <div
-                className="autoscroll-controls"
-                style={{ display: "flex", alignItems: "center", gap: 12 }}
-              >
-                <button
-                  onClick={() => setAutoScrollActive(!autoScrollActive)}
-                  className={`autoscroll-toggle ${autoScrollActive ? "active" : ""}`}
-                  title={autoScrollActive ? "Stop auto scroll" : "Start auto scroll"}
-                >
-                  {autoScrollActive ? (
-                    <>
-                      <span>⏹️</span>
-                      <span>Stop Scroll</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>📜</span>
-                      <span>Auto Scroll</span>
-                    </>
-                  )}
-                </button>
-                {autoScrollActive && (
-                  <>
-                    <div className="autoscroll-speed">
-                      <label htmlFor="scroll-speed" className="autoscroll-speed-label">
-                        BPM:
-                      </label>
-                      <input
-                        id="scroll-speed"
-                        type="number"
-                        min="40"
-                        max="240"
-                        value={scrollSpeed}
-                        onChange={(e) => setScrollSpeed(parseInt(e.target.value) || 120)}
-                        className="autoscroll-speed-input"
-                      />
-                    </div>
-                    <div className="autoscroll-beats">
-                      {[0, 1, 2, 3].map((i) => (
-                        <span key={i} className={`beat-dot ${currentBeat === i ? "active" : ""}`}>
-                          ●
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
+              <AutoScrollBar
+                tempo={parseInt(tempo) || 120}
+                active={autoScrollActive}
+                speed={scrollSpeed}
+                onToggle={() => setAutoScrollActive(!autoScrollActive)}
+                onSpeedChange={setScrollSpeed}
+                lyricsDisplayRef={lyricsDisplayRef}
+                currentBeat={currentBeat}
+                setCurrentBeat={setCurrentBeat}
+              />
             )}
             {/* Fullscreen Button */}
             <button
@@ -1025,47 +960,17 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
             className="song-lyrics-display"
             style={{ overflowX: 'auto', whiteSpace: 'pre-wrap', maxWidth: '100%' }}
           >
-            {/* Toolbar autoscroll tetap tampil di fullscreen */}
-            <div className="autoscroll-toolbar-fullscreen" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <button
-                onClick={() => setAutoScrollActive(!autoScrollActive)}
-                className={`autoscroll-toggle ${autoScrollActive ? 'active' : ''}`}
-                title={autoScrollActive ? 'Stop auto scroll' : 'Start auto scroll'}
-              >
-                {autoScrollActive ? (
-                  <>
-                    <span>⏹️</span>
-                    <span>Stop Scroll</span>
-                  </>
-                ) : (
-                  <>
-                    <span>📜</span>
-                    <span>Auto Scroll</span>
-                  </>
-                )}
-              </button>
-              {autoScrollActive && (
-                <>
-                  <div className="autoscroll-speed">
-                    <label htmlFor="scroll-speed-fullscreen" className="autoscroll-speed-label">BPM:</label>
-                    <input
-                      id="scroll-speed-fullscreen"
-                      type="number"
-                      min="40"
-                      max="240"
-                      value={scrollSpeed}
-                      onChange={(e) => setScrollSpeed(parseInt(e.target.value) || 120)}
-                      className="autoscroll-speed-input"
-                    />
-                  </div>
-                  <div className="autoscroll-beats">
-                    {[0, 1, 2, 3].map((i) => (
-                      <span key={i} className={`beat-dot ${currentBeat === i ? 'active' : ''}`}>●</span>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            {/* Toolbar autoscroll diganti dengan AutoScrollBar di fullscreen */}
+            <AutoScrollBar
+              tempo={parseInt(tempo) || 120}
+              active={autoScrollActive}
+              speed={scrollSpeed}
+              onToggle={() => setAutoScrollActive(!autoScrollActive)}
+              onSpeedChange={setScrollSpeed}
+              lyricsDisplayRef={lyricsDisplayRef}
+              currentBeat={currentBeat}
+              setCurrentBeat={setCurrentBeat}
+            />
             {/* Tombol Lihat Partitur (selalu tampil jika ada MusicXML) */}
             {song?.sheetMusicXml && (
               <button
@@ -1112,14 +1017,14 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
           const navNext = idx < totalSongs - 1 && idx >= 0 ? songsArr[idx + 1] : null;
           const handlePrev = () => {
             if (navPrev) {
-              navigate(`/songs/view/${navPrev.id || navPrev._id}`, {
+              navigate(`/setlists/${setlistId}/songs/${navPrev.id || navPrev._id}`, {
                 state: { setlistId, setlist: setlistData, setlistSong: navPrev },
               });
             }
           };
           const handleNext = () => {
             if (navNext) {
-              navigate(`/songs/view/${navNext.id || navNext._id}`, {
+              navigate(`/setlists/${setlistId}/songs/${navNext.id || navNext._id}`, {
                 state: { setlistId, setlist: setlistData, setlistSong: navNext },
               });
             }

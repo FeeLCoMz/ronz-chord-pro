@@ -293,14 +293,12 @@ export default function SetlistPage({
                   <h3 className="setlist-title">
                     {setlist.name}
                   </h3>
-                  {!isPerformanceMode && (
                     <div className="setlist-meta">
                       {setlist.description && <span>{setlist.description}</span>}
                       {setlist.bandName && <span>🎸 {setlist.bandName}</span>}
                       {setlist.userName && <span>👤 {setlist.userName}</span>}
                       <span>🎵 {setlist.songs?.length || 0} lagu</span>
                     </div>
-                  )}
                 </div>
 
                 {/* Actions */}

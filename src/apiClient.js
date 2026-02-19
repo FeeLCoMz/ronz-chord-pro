@@ -1,3 +1,32 @@
+// Update user profile
+export async function updateProfile(profileData) {
+  const res = await fetch(`${API_BASE}/auth/me`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify(profileData)
+  });
+  if (!res.ok) {
+    let err;
+    try { err = await res.json(); } catch {}
+    throw new Error(err?.error || 'Failed to update profile');
+  }
+  return await res.json();
+}
+
+// Change password
+export async function changePassword(oldPassword, newPassword) {
+  const res = await fetch(`${API_BASE}/auth/change-password`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ oldPassword, newPassword })
+  });
+  if (!res.ok) {
+    let err;
+    try { err = await res.json(); } catch {}
+    throw new Error(err?.error || 'Failed to change password');
+  }
+  return await res.json();
+}
 // Tools (Owner) API
 export async function backupDatabase() {
   const res = await fetch(`${API_BASE}/tools/backup`, {

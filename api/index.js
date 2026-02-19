@@ -103,8 +103,21 @@ app.post('/api/auth/login',
   }
 );
 
+
+// GET profile
 app.get('/api/auth/me', verifyToken, (req, res, next) => {
   Promise.resolve(authMeHandler(req, res)).catch(next);
+});
+
+// UPDATE profile
+app.put('/api/auth/me', verifyToken, (req, res, next) => {
+  Promise.resolve(authMeHandler(req, res)).catch(next);
+});
+
+// Change password
+import changePasswordHandler from './auth/change-password.js';
+app.post('/api/auth/change-password', verifyToken, (req, res, next) => {
+  Promise.resolve(changePasswordHandler(req, res)).catch(next);
 });
 
 app.post('/api/auth/forgot-password',

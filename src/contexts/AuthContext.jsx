@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import * as authUtils from '../utils/auth.js';
+import * as apiClient from '../apiClient.js';
 
 export const AuthContext = createContext();
 
@@ -11,10 +12,25 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Check if user is already logged in on mount
     const savedUser = authUtils.getUser();
-    if (savedUser) {
-      setUser(savedUser);
+    const token = authUtils.getToken();
+    if (savedUser && token) {
+      // Fetch latest profile from API
+      apiClient.getCurrentUser()
+        .then(res => {
+          if (res && res.user) {
+            setUser(res.user);
+            authUtils.saveUser(res.user);
+          } else {
+            setUser(savedUser);
+          }
+        })
+        .catch(() => {
+          setUser(savedUser);
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = (token, userData) => {

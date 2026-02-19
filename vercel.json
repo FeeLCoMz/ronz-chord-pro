@@ -11,6 +11,10 @@
       "dest": "/api/auth/index.js"
     },
     {
+      "src": "/api/auth/change-password",
+      "dest": "/api/auth/change-password.js"
+    },
+    {
       "src": "/api/bands/([^/]+)/members(?:/([^/]+))?",
       "dest": "/api/bands/members.js?id=$1&userId=$2"
     },
