@@ -285,9 +285,7 @@
 .ai-autofill-cancel:hover {
   background: var(--border-color);
 }
-.ai-autofill-apply {
-  /* Inherit .btn-primary */
-}
+
 /* ========================================
    CHORD LINKS PANEL (ChordLinks.jsx)
    ======================================== */

@@ -40,7 +40,7 @@ export default function SetlistPage({
   // Filter & Sort States
   const [search, setSearch] = React.useState('');
   const [filterBand, setFilterBand] = React.useState('all');
-  const [sortBy, setSortBy] = React.useState('created');
+  const [sortBy, setSortBy] = React.useState('updated');
   const [sortOrder, setSortOrder] = React.useState('desc');
   
   // Update page meta tags on mount
@@ -123,6 +123,10 @@ export default function SetlistPage({
         case 'created':
           aVal = new Date(a.createdAt || 0).getTime();
           bVal = new Date(b.createdAt || 0).getTime();
+          break;
+        case 'updated':
+          aVal = new Date(a.updatedAt || a.createdAt || 0).getTime();
+          bVal = new Date(b.updatedAt || b.createdAt || 0).getTime();
           break;
         default:
           return 0;
@@ -232,7 +236,8 @@ export default function SetlistPage({
               <option value="name">Urutkan: Nama</option>
               <option value="band">Urutkan: Band</option>
               <option value="songs">Urutkan: Jumlah Lagu</option>
-              <option value="created">Urutkan: Tanggal</option>
+              <option value="created">Urutkan: Tanggal Dibuat</option>
+              <option value="updated">Urutkan: Terakhir Diupdate</option>
             </select>
 
             <button
