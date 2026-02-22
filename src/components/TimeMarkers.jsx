@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import ExpandButton from './ExpandButton';
 
 export default function TimeMarkers({
   timeMarkers = [],
@@ -9,8 +8,7 @@ export default function TimeMarkers({
   readonly = false,
   onUpdate,
   getCurrentYouTubeTime // function: returns current time in seconds from YouTube player
-}) {
-  const [isExpanded, setIsExpanded] = useState(false);
+}) {  
   const [editingId, setEditingId] = useState(null);
   const [editTime, setEditTime] = useState('');
   const [editLabel, setEditLabel] = useState('');

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import SongChordsLyricsDisplay from '../components/SongChordsLyricsDisplay.jsx';
 import SongChordsAnalyzer from '../components/SongChordsAnalyzer.jsx';
 import SongChordsLyricsToolbar from '../components/SongChordsLyricsToolbar.jsx';
+import SongLyricsMainSection from '../components/SongLyricsMainSection.jsx';
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import SetlistSongNavigator from "../components/SetlistSongNavigator.jsx";
 import SongChordsHeader from '../components/SongChordsHeader.jsx';
@@ -12,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext.jsx';
 import { usePermission } from '../hooks/usePermission.js';
 import { PERMISSIONS } from '../utils/permissionUtils.js';
 import { cacheSong, getSong as getSongOffline } from '../utils/offlineCache.js';
+import { useSongFetch } from '../hooks/useSongFetch.js';
 
 /**
  * SongChordsPage
@@ -43,11 +45,9 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
   const { can } = usePermission(bandId, userBandInfo);
 
   // =========================
-  // 3. State: Data Lagu
+  // 3. State: Data Lagu (via custom hook)
   // =========================
-  const [fetchedSong, setFetchedSong] = useState(null); // Data lagu hasil fetch
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { song: fetchedSong, loading, error, setSong: setFetchedSong } = useSongFetch(id);
 
   // =========================
   // 4. State: Setlist Context
@@ -106,11 +106,12 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
   // Share state
   const [shareMessage, setShareMessage] = useState("");
 
-  // Media panel collapse state
-  const [mediaPanelExpanded, setMediaPanelExpanded] = useState(true);
 
-  // State untuk menampilkan/menyembunyikan time marker panel
-  const [showTimeMarkers, setShowTimeMarkers] = useState(true);
+  // Media panel collapse state (default: collapsed)
+  const [mediaPanelExpanded, setMediaPanelExpanded] = useState(false);
+
+  // State untuk menampilkan/menyembunyikan time marker panel (default: hidden)
+  const [showTimeMarkers, setShowTimeMarkers] = useState(false);
 
   // Metronome state for quick access
   const [isMetronomeActive, setIsMetronomeActive] = useState(false);
@@ -188,41 +189,7 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
     return () => clearInterval(scheduler);
   }, [isMetronomeActive, tempo]);
 
-  // Always fetch song data from API when ID changes
-  useEffect(() => {
-    if (!id) return;
-    setFetchedSong(null);
-    setLoading(true);
-    setError(null);
-    fetch(`/api/songs/${id}`, {
-      headers: getAuthHeader(),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Gagal memuat lagu");
-        return res.json();
-      })
-      .then((data) => {
-        setFetchedSong(data);
-        setLoading(false);
-        // Simpan ke cache offline
-        cacheSong(data).catch(() => {});
-      })
-      .catch(async (err) => {
-        // Jika offline, coba ambil dari cache
-        try {
-          const offlineSong = await getSongOffline(id);
-          if (offlineSong) {
-            setFetchedSong(offlineSong);
-            setError("[Offline] Data dari cache");
-          } else {
-            setError("Gagal memuat lagu: " + err.message);
-          }
-        } catch (e) {
-          setError("Gagal memuat lagu: " + err.message);
-        }
-        setLoading(false);
-      });
-  }, [id]);
+  // ...existing code...
 
     // Analyze chords when lyrics change
   useEffect(() => {
@@ -525,26 +492,12 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
     <div className={`page-container${performanceMode ? ' performance-mode' : ''}`}> {/* Tambah class jika performanceMode */}
       <SongChordsHeader
         song={song}
-        artist={artist}
         performanceMode={performanceMode}
         canEdit={can(PERMISSIONS.SONG_EDIT)}
         onEdit={handleEdit}
         onShare={handleShare}
         shareMessage={shareMessage}
         onBack={handleBack}
-      />
-
-      <SongChordsMediaPanel
-        mediaPanelExpanded={mediaPanelExpanded}
-        setMediaPanelExpanded={setMediaPanelExpanded}
-        youtubeId={youtubeId}
-        youtubeRef={youtubeRef}
-        timeMarkers={timeMarkers}
-        showTimeMarkers={showTimeMarkers}
-        setShowTimeMarkers={setShowTimeMarkers}
-        performanceMode={performanceMode}
-        canEdit={can(PERMISSIONS.SONG_EDIT)}
-        handleTimeMarkerUpdate={handleTimeMarkerUpdate}
       />
 
       <SongChordsInfo
@@ -563,6 +516,23 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
         keyboardPatch={keyboardPatch}
         showSongInfo={showSongInfo}
         setShowSongInfo={setShowSongInfo}
+        title={song.title}
+        artist={artist}
+        contributor={song.contributor}
+        performanceMode={performanceMode}
+      />
+
+      <SongChordsMediaPanel
+        mediaPanelExpanded={mediaPanelExpanded}
+        setMediaPanelExpanded={setMediaPanelExpanded}
+        youtubeId={youtubeId}
+        youtubeRef={youtubeRef}
+        timeMarkers={timeMarkers}
+        showTimeMarkers={showTimeMarkers}
+        setShowTimeMarkers={setShowTimeMarkers}
+        performanceMode={performanceMode}
+        canEdit={can(PERMISSIONS.SONG_EDIT)}
+        handleTimeMarkerUpdate={handleTimeMarkerUpdate}
       />
 
       <SongChordsAnalyzer
@@ -573,70 +543,37 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
       />
 
       {/* Lyrics Main Section */}
-      <div className="song-lyrics-main">
-        <div className="song-lyrics-main-header">
-          <h3 className="song-lyrics-main-title">🎤 Lirik & Chord</h3>
-            <SongChordsLyricsToolbar
-              isEditingLyrics={isEditingLyrics}
-              performanceMode={performanceMode}
-              canEdit={can(PERMISSIONS.SONG_EDIT)}
-              tempo={tempo}
-              autoScrollActive={autoScrollActive}
-              scrollSpeed={scrollSpeed}
-              setAutoScrollActive={setAutoScrollActive}
-              setScrollSpeed={setScrollSpeed}
-              lyricsDisplayRef={lyricsDisplayRef}
-              currentBeat={currentBeat}
-              setCurrentBeat={setCurrentBeat}
-              zoom={zoom}
-              setZoom={setZoom}
-              handleEditLyrics={handleEditLyrics}
-              savingLyrics={savingLyrics}
-              handleSaveLyrics={handleSaveLyrics}
-              handleCancelEditLyrics={handleCancelEditLyrics}
-              showExportMenu={showExportMenu}
-              setShowExportMenu={setShowExportMenu}
-              handleExportText={handleExportText}
-              handleExportPDF={handleExportPDF}
-            />
-        </div>
-
-        {editError && <div className="song-lyrics-error">{editError}</div>}
-
-        {isEditingLyrics && (
-          <div className="song-lyrics-tips">
-            💡 Tips: Tekan <kbd>Ctrl+S</kbd> untuk simpan, <kbd>Esc</kbd> untuk batal
-          </div>
-        )}
-
-        {isEditingLyrics ? (
-          <textarea
-            ref={lyricsDisplayRef}
-            value={editedLyrics}
-            onChange={(e) => setEditedLyrics(e.target.value)}
-            className="song-lyrics-textarea"
-            autoFocus
-            placeholder="Masukkan lirik dan chord...\nContoh:\n[C]Amazing grace how [F]sweet the [C]sound"
-          />
-        ) : (
-          <SongChordsLyricsDisplay
-            isEditingLyrics={isEditingLyrics}
-            lyricsDisplayRef={lyricsDisplayRef}
-            song={song}
-            transpose={transpose}
-            zoom={zoom}
-            autoScrollActive={autoScrollActive}
-            scrollSpeed={scrollSpeed}
-            setAutoScrollActive={setAutoScrollActive}
-            setScrollSpeed={setScrollSpeed}
-            currentBeat={currentBeat}
-            setCurrentBeat={setCurrentBeat}
-            showSheetMusic={showSheetMusic}
-            setShowSheetMusic={setShowSheetMusic}
-            youtubeRef={youtubeRef}
-          />
-        )}
-      </div>
+      <SongLyricsMainSection
+        isEditingLyrics={isEditingLyrics}
+        lyricsDisplayRef={lyricsDisplayRef}
+        editedLyrics={editedLyrics}
+        setEditedLyrics={setEditedLyrics}
+        editError={editError}
+        handleEditLyrics={handleEditLyrics}
+        savingLyrics={savingLyrics}
+        handleSaveLyrics={handleSaveLyrics}
+        handleCancelEditLyrics={handleCancelEditLyrics}
+        showExportMenu={showExportMenu}
+        setShowExportMenu={setShowExportMenu}
+        handleExportText={handleExportText}
+        handleExportPDF={handleExportPDF}
+        tempo={tempo}
+        autoScrollActive={autoScrollActive}
+        scrollSpeed={scrollSpeed}
+        setAutoScrollActive={setAutoScrollActive}
+        setScrollSpeed={setScrollSpeed}
+        currentBeat={currentBeat}
+        setCurrentBeat={setCurrentBeat}
+        zoom={zoom}
+        setZoom={setZoom}
+        performanceMode={performanceMode}
+        canEdit={can(PERMISSIONS.SONG_EDIT)}
+        song={song}
+        transpose={transpose}
+        showSheetMusic={showSheetMusic}
+        setShowSheetMusic={setShowSheetMusic}
+        youtubeRef={youtubeRef}
+      />
 
       {/* Setlist Navigation (if in setlist context) */}
       {setlistId &&

@@ -1,6 +1,7 @@
 import React from "react";
 import YouTubeViewer from "./YouTubeViewer.jsx";
 import TimeMarkers from "./TimeMarkers.jsx";
+import ExpandButton from "./ExpandButton.jsx";
 
 /**
  * SongChordsMediaPanel
@@ -19,22 +20,16 @@ export default function SongChordsMediaPanel({
   handleTimeMarkerUpdate,
 }) {
   return (
-    <div className="media-panel">
+    <div className="song-panel">
       <div className="media-panel-header">
         <div className="media-panel-header-content">
-          <div>
-            <h3 className="media-panel-title">
-              <span className="media-panel-icon">📺</span>
-              Video & Time Markers
-            </h3>
-          </div>
-          <button
-            className="media-panel-toggle"
-            onClick={() => setMediaPanelExpanded(!mediaPanelExpanded)}
-            aria-label={mediaPanelExpanded ? "Sembunyikan panel" : "Tampilkan panel"}
-          >
-            {mediaPanelExpanded ? "▲" : "▶"}
-          </button>
+          <ExpandButton
+            isExpanded={mediaPanelExpanded}
+            setIsExpanded={setMediaPanelExpanded}
+            icon="📺"
+            label="Panel Media"
+            ariaLabel={mediaPanelExpanded ? "Sembunyikan panel" : "Tampilkan panel"}
+          />
         </div>
       </div>
       {mediaPanelExpanded && (
@@ -67,14 +62,14 @@ export default function SongChordsMediaPanel({
                   <span className="media-section-badge">{timeMarkers.length}</span>
                 )}
               </div>
-              <button
-                className="btn btn-secondary btn-small"
-                onClick={() => setShowTimeMarkers(!showTimeMarkers)}
-                aria-label={showTimeMarkers ? "Sembunyikan time marker" : "Tampilkan time marker"}
-                title={showTimeMarkers ? "Sembunyikan time marker" : "Tampilkan time marker"}
-              >
-                {showTimeMarkers ? "▼" : "▶"}
-              </button>
+              <ExpandButton
+                isExpanded={showTimeMarkers}
+                setIsExpanded={setShowTimeMarkers}
+                icon="⏱️"
+                label="Time Marker"
+                badge={timeMarkers.length > 0 ? timeMarkers.length : null}
+                ariaLabel={showTimeMarkers ? "Sembunyikan time marker" : "Tampilkan time marker"}
+              />
             </div>
             {showTimeMarkers && (
               <div className="media-section-body">

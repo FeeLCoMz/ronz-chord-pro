@@ -1,3 +1,25 @@
+.song-lyrics-header-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.song-panel {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .song-panel {
+    padding: 16px 8px;
+    margin-bottom: 16px;
+  }
+}
 /* ========================================
    SETLIST SONG NAVIGATOR COMPONENT
    ======================================== */
@@ -53,16 +75,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.btn-small {
-  font-size: 0.9em;
-  padding: var(--spacing-sm) var(--spacing-md);
-}
-
-.btn-xsmall {
-  font-size: 0.85em;
-  padding: var(--spacing-xs) var(--spacing-sm);
 }
 
 .song-info-compact-header {
@@ -1219,65 +1231,81 @@ kbd {
 /* ========================================
    EXPAND BUTTON COMPONENT
    ======================================== */
+
 .expand-button {
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--secondary-bg);
+  padding: 8px 16px;
+  background: var(--card-bg);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all var(--transition-fast);
+  transition: background var(--transition), box-shadow var(--transition);
   text-align: left;
+  box-shadow: var(--shadow-xs);
 }
+
 
 .expand-button:hover:not(:disabled) {
-  background: var(--border-color);
-  box-shadow: var(--shadow-sm);
+  background: var(--primary-bg);
+  box-shadow: var(--shadow-md);
 }
+
 
 .expand-button:active:not(:disabled) {
-  transform: translateY(1px);
+  background: var(--primary-accent);
+  color: #fff;
 }
 
+
 .expand-button:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
+
 .expand-button.expanded {
-  margin-bottom: var(--spacing-lg);
+  background: var(--primary-bg);
+  box-shadow: var(--shadow-md);
 }
+
 
 .expand-button-left {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 8px;
 }
 
+
 .expand-button-left > span:first-child {
-  min-width: 16px;
+  min-width: 24px;
+  font-size: 1.25em;
   text-align: center;
 }
+
 
 .expand-button-badge {
   display: inline-block;
   background: var(--primary-accent);
-  color: white;
+  color: #fff;
   padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.85em;
+  border-radius: 16px;
+  font-size: 0.9em;
   font-weight: 700;
+  margin-left: 8px;
   white-space: nowrap;
+  box-shadow: var(--shadow-xs);
 }
+
 
 .expand-button-right {
   flex-shrink: 0;
+  margin-left: 12px;
 }
 
 /* In-place editing styles */
@@ -5047,6 +5075,7 @@ body.dark-mode .song-lyrics-error {
 @media (max-width: 480px) {
   .song-lyrics-header {
     padding: var(--spacing-md) var(--spacing-md);
+    margin-bottom: var(--spacing-md);
   }
   
   .song-lyrics-title {

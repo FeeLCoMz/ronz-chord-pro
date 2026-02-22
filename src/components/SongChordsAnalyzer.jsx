@@ -1,5 +1,6 @@
 import React from "react";
 import { transposeChord } from "../utils/chordUtils.js";
+import ExpandButton from "./ExpandButton.jsx";
 
 /**
  * SongChordsAnalyzer
@@ -12,15 +13,15 @@ export default function SongChordsAnalyzer({
   transpose
 }) {
   return (
-    <div className="song-lyrics-analyzer">
+    <div className="song-panel">
       <div className="song-lyrics-analyzer-header">
-        <h3 className="song-lyrics-analyzer-title">🎵 Analisis Chord</h3>
-        <button
-          onClick={() => setShowChordAnalyzer(!showChordAnalyzer)}
-          className="btn btn-secondary btn-xsmall"
-        >
-          {showChordAnalyzer ? "▼" : "▶"}
-        </button>
+        <ExpandButton
+          isExpanded={showChordAnalyzer}
+          setIsExpanded={setShowChordAnalyzer}
+          icon="🎵"
+          label="Analisis Chord"
+          ariaLabel={showChordAnalyzer ? "Sembunyikan analisis chord" : "Tampilkan analisis chord"}
+        />
       </div>
       {showChordAnalyzer && (
         <>

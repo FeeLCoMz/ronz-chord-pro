@@ -1,5 +1,6 @@
 import React from "react";
 import TransposeKeyControl from "./TransposeKeyControl.jsx";
+import ExpandButton from "./ExpandButton.jsx";
 
 /**
  * SongChordsInfo
@@ -22,33 +23,54 @@ export default function SongChordsInfo({
   arrangementStyle,
   keyboardPatch,
   showSongInfo,
-  setShowSongInfo
+  setShowSongInfo,
+  title,
+  artist,
+  contributor,
+  performanceMode
 }) {
   return (
-    <div className="song-info-compact">
+    <div className="song-panel">
       <div className="song-info-compact-header">
-        <h3 className="song-info-compact-title">📋 Info Lagu</h3>
-        <button
-          className="btn btn-secondary btn-small"
-          onClick={() => setShowSongInfo(!showSongInfo)}
-          aria-label={showSongInfo ? 'Sembunyikan info lagu' : 'Tampilkan info lagu'}
-          title={showSongInfo ? 'Sembunyikan info lagu' : 'Tampilkan info lagu'}
-        >
-          {showSongInfo ? '▼' : '▶'}
-        </button>
+        <ExpandButton
+          isExpanded={showSongInfo}
+          setIsExpanded={setShowSongInfo}
+          icon="📋"
+          label="Info Lagu"
+          ariaLabel={showSongInfo ? 'Sembunyikan info lagu' : 'Tampilkan info lagu'}
+        />
       </div>
       {showSongInfo && (
         <div className="song-info-compact-grid">
-           {(originalKey || targetKey) && (
-             <div className="song-info-item song-info-priority song-info-key">
-               <span className="song-info-label">🎹 Key</span>
-               <TransposeKeyControl
-                 originalKey={originalKey}
-                 targetKey={targetKey}
-                 transpose={transpose}
-                 onTransposeChange={setTranspose}
-               />
-             </div>
+          {/* Judul, artis, kontributor */}
+          {title && (
+            <div className="song-info-item song-info-title">
+              <span className="song-info-label">Judul</span>
+              <span className="song-info-value song-info-title-value">{title}</span>
+            </div>
+          )}
+          {artist && (
+            <div className="song-info-item song-info-artist">
+              <span className="song-info-label">Artis</span>
+              <span className="song-info-value song-info-artist-value">{artist}</span>
+            </div>
+          )}
+          {!performanceMode && contributor && (
+            <div className="song-info-item song-info-contributor">
+              <span className="song-info-label">Kontributor</span>
+              <span className="song-info-value song-info-contributor-value">{contributor}</span>
+            </div>
+          )}
+          {(originalKey || targetKey) && (
+            <div className="song-info-item song-info-priority song-info-key">
+              <span className="song-info-label">🎹 Key</span>
+              <TransposeKeyControl
+                originalKey={originalKey}
+                targetKey={targetKey}
+                transpose={transpose}
+                onTransposeChange={setTranspose}
+              />
+            </div>
            )}
           {timeSignature && (
             <div className="song-info-item">

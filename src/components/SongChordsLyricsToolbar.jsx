@@ -126,7 +126,7 @@ export default function SongChordsLyricsToolbar({
               <button
                 type="button"
                 onClick={() => setShowExportMenu(!showExportMenu)}
-                className="btn btn-secondary btn-small"
+                className="btn btn-secondary"
               >
                 📥 Export
               </button>
