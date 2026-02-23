@@ -2,7 +2,6 @@ import ToolsPage from "./pages/ToolsPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import PracticeSessionDetailPage from "./pages/PracticeSessionDetailPage.jsx";
 import GigDetailPage from "./pages/GigDetailPage.jsx";
-import KaraokeSongSearch from "./components/KaraokeSongSearch.jsx";
 import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 // import PerformanceModePage from './pages/PerformanceModePage.jsx';
 import { Routes, Route, useNavigate, useParams, useLocation, Navigate } from "react-router-dom";
@@ -102,8 +101,7 @@ function AppContent() {
     return "dark";
   });
 
-  const [activeSetlist, setActiveSetlist] = useState(null);
-  const [addSongSearch, setAddSongSearch] = useState("");
+  const [activeSetlist, setActiveSetlist] = useState(null);  
 
   // Performance Mode state
   const [performanceMode, setPerformanceMode] = useState(() => {
@@ -347,16 +345,7 @@ function AppContent() {
               />
               <Route
                 path="/karaoke/:id"
-                element={
-                  <>
-                    <div
-                      style={{ display: "flex", justifyContent: "center", margin: "24px 0 0 0" }}
-                    >
-                      <KaraokeSongSearch songs={songs} />
-                    </div>
-                    <SongLyricsPage />
-                  </>
-                }
+                element={<SongLyricsPage />}
               />
               <Route
                 path="/setlists/:id"

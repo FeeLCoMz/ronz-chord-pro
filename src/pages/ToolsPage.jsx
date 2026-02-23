@@ -37,6 +37,46 @@ export default function ToolsPage() {
   const [backupError, setBackupError] = useState(null);
   const [backupSuccess, setBackupSuccess] = useState(null);
   const fileInputRef = useRef();
+  const sqlInputRef = useRef();
+  const [restoring, setRestoring] = useState(false);
+  const [restoreError, setRestoreError] = useState(null);
+  const [restoreSuccess, setRestoreSuccess] = useState(null);
+  // Restore SQL handler
+  const handleRestore = async (e) => {
+    setRestoreError(null);
+    setRestoreSuccess(null);
+    setRestoring(true);
+    const file = e.target.files[0];
+    if (!file) { setRestoring(false); return; }
+    try {
+      const sql = await file.text();
+      if (!sql || !sql.trim()) {
+        setRestoreError('Restore gagal: File SQL kosong atau tidak terbaca.');
+        setRestoring(false);
+        sqlInputRef.current.value = '';
+        return;
+      }
+      // Debug: tampilkan preview isi file SQL jika error
+      if (sql.length < 1000) {
+        setRestoreSuccess('Preview file SQL:\n' + sql.slice(0, 500));
+      }
+      const res = await fetch('/api/tools/restore', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + localStorage.getItem('authToken'),
+        },
+        body: JSON.stringify({ sql }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || 'Restore gagal');
+      setRestoreSuccess('Restore database berhasil!');
+    } catch (err) {
+      setRestoreError('Restore gagal: ' + (err.message || err));
+    }
+    setRestoring(false);
+    sqlInputRef.current.value = '';
+  };
 
   // State for Gemini models
   const [models, setModels] = useState(null);
@@ -125,6 +165,14 @@ export default function ToolsPage() {
         <h1>Tools Owner</h1>
       </div>
       <div className="card tools-grid">
+                <div className="tool-card">
+                  <h2>Restore Database SQL</h2>
+                  <p>Restore database dari file SQL backup. <b>Seluruh data lama akan dihapus!</b></p>
+                  <input type="file" accept=".sql,text/sql" style={{ display: 'none' }} ref={sqlInputRef} onChange={handleRestore} disabled={restoring} />
+                  <button className="btn btn-primary" onClick={() => sqlInputRef.current && sqlInputRef.current.click()} disabled={restoring}>{restoring ? 'Restoring...' : 'Restore SQL'}</button>
+                  {restoreError && <div style={{ color: 'red', marginTop: 8 }}>{restoreError}</div>}
+                  {restoreSuccess && <div style={{ color: 'green', marginTop: 8 }}>{restoreSuccess}</div>}
+                </div>
         <div className="tool-card">
           <h2>Export Data</h2>
           <p>Ekspor seluruh data aplikasi ke file JSON untuk backup atau migrasi.</p>

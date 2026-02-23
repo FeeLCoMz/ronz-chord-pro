@@ -17,8 +17,15 @@ export default async function handler(req, res) {
     );
     const tables = tablesRes.rows;
 
-    // 2. Collect CREATE TABLE statements
-    const createTableStmts = tables.map(row => row.sql).filter(Boolean);
+    // 2. Collect CREATE TABLE statements, pastikan diakhiri ;
+    const createTableStmts = tables
+      .map(row => row.sql)
+      .filter(Boolean)
+      .map(stmt => {
+        // Patch: pastikan CREATE TABLE pakai IF NOT EXISTS
+        let patched = stmt.replace(/^CREATE TABLE(?! IF NOT EXISTS)/i, 'CREATE TABLE IF NOT EXISTS');
+        return patched.trim().endsWith(';') ? patched.trim() : patched.trim() + ';';
+      });
 
     // 3. Collect INSERT statements for each table
     const insertStmts = [];
@@ -35,7 +42,7 @@ export default async function handler(req, res) {
               : `'${String(val).replace(/'/g, "''")}'`
           )
           .join(', ');
-        insertStmts.push(`INSERT INTO "${name}" (${columns}) VALUES (${values});`);
+        insertStmts.push(`INSERT OR REPLACE INTO "${name}" (${columns}) VALUES (${values});`);
       }
     }
 

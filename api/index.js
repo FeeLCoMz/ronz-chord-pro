@@ -33,6 +33,7 @@ import auth2FAVerifyHandler from './auth/2fa-verify.js';
 // Tools handler (export/import)
 import toolsHandler from './tools/index.js';
 import toolsBackupHandler from './tools/backup.js';
+import toolsRestoreHandler from './tools/restore.js';
 import userAuditLogsHandler from './auth/user-audit-logs.js';
 
 // --- Env setup ---
@@ -46,26 +47,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 // --- Express app setup ---
 const app = express();
 app.use(cors());
-
+app.use(express.json({ limit: '100mb' }));
 
 // Backup SQL route (must be before /api/tools catch-all)
 app.use('/api/tools/backup', verifyToken, (req, res, next) => {
   Promise.resolve(toolsBackupHandler(req, res)).catch(next);
 });
 
+// Restore SQL route
+app.use('/api/tools/restore', verifyToken, (req, res, next) => {
+  Promise.resolve(toolsRestoreHandler(req, res)).catch(next);
+});
+
 // Tools API (export/import data)
 app.use('/api/tools', verifyToken, (req, res, next) => {
   Promise.resolve(toolsHandler(req, res)).catch(next);
-});
-
-
-// Exclude /api/ai from JSON parser since it handles multipart form data
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api/ai')) {
-    next();
-  } else {
-    express.json({ limit: '100mb' })(req, res, next);
-  }
 });
 
 // --- JWT Middleware ---

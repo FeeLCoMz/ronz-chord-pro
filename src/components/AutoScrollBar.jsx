@@ -37,7 +37,12 @@ export default function AutoScrollBar({ tempo = 120, onScrollChange, lyricsDispl
           if (barBeatRef.current >= 4) {
             // Scroll the lyrics display element if ref is provided
             if (lyricsDisplayRef && lyricsDisplayRef.current) {
-              lyricsDisplayRef.current.scrollBy({ top: 50, behavior: 'smooth' });
+              // Jika ref adalah root halaman, scroll window
+              if (lyricsDisplayRef.current === document.body || lyricsDisplayRef.current.classList.contains('karaoke-lyrics-page')) {
+                window.scrollBy({ top: 50, behavior: 'smooth' });
+              } else {
+                lyricsDisplayRef.current.scrollBy({ top: 50, behavior: 'smooth' });
+              }
             }
             barBeatRef.current = 0;
           }
