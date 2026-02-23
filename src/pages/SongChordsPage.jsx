@@ -14,6 +14,9 @@ import { usePermission } from '../hooks/usePermission.js';
 import { PERMISSIONS } from '../utils/permissionUtils.js';
 import { cacheSong, getSong as getSongOffline } from '../utils/offlineCache.js';
 import { useSongFetch } from '../hooks/useSongFetch.js';
+import { handleExportText, handleExportPDF, handleShare } from '../utils/songHandlers.js';
+import useMetronome from '../hooks/useMetronome.js';
+import useChordStats from '../hooks/useChordStats.js';
 
 /**
  * SongChordsPage
@@ -95,7 +98,7 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
 
   // Chord Analyzer state
   const [showChordAnalyzer, setShowChordAnalyzer] = useState(false);
-  const [chordStats, setChordStats] = useState({ chords: [], count: 0 });
+  const chordStats = useChordStats(song?.lyrics);
 
   // Export menu state
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -114,22 +117,11 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
   const [showTimeMarkers, setShowTimeMarkers] = useState(false);
 
   // Metronome state for quick access
-  const [isMetronomeActive, setIsMetronomeActive] = useState(false);
-  const audioContextRef = useRef(null);
+  const [isMetronomeActive, setIsMetronomeActive] = useMetronome(false, tempo);
+  const audioContextRef = useRef(null); // (optional: can be removed if not used elsewhere)
   const youtubeRef = useRef(null);
 
-  // Initialize AudioContext lazily (only when needed)
-  const getAudioContext = () => {
-    if (!audioContextRef.current) {
-      try {
-        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      } catch (err) {
-        console.error("Failed to create AudioContext:", err);
-        return null;
-      }
-    }
-    return audioContextRef.current;
-  };
+  // AudioContext logic now handled by useMetronome
 
   // Auto Scroll state
   const [autoScrollActive, setAutoScrollActive] = useState(false);
@@ -145,139 +137,14 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
   }, [tempo]);
   // (Efek autoscroll dipindah ke komponen AutoScrollBar)
 
-  // Metronome effect - Web Audio API
-  useEffect(() => {
-    if (!isMetronomeActive || !tempo) return;
-
-    const audioContext = getAudioContext();
-    if (!audioContext) {
-      setIsMetronomeActive(false);
-      return;
-    }
-
-    // Resume AudioContext if suspended (required by browsers)
-    if (audioContext.state === "suspended") {
-      audioContext.resume().catch((err) => console.error("Failed to resume AudioContext:", err));
-    }
-
-    const currentTempo = parseInt(tempo) || 120;
-    const beatDuration = 60 / currentTempo;
-    const noteLength = 0.1;
-    let nextNoteTime = audioContext.currentTime;
-    let beatCount = 0;
-
-    const playBeat = () => {
-      const osc = audioContext.createOscillator();
-      const env = audioContext.createGain();
-      osc.frequency.value = beatCount % 4 === 0 ? 800 : 400;
-      osc.connect(env);
-      env.connect(audioContext.destination);
-      env.gain.setValueAtTime(0.3, audioContext.currentTime);
-      env.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + noteLength);
-      osc.start(audioContext.currentTime);
-      osc.stop(audioContext.currentTime + noteLength);
-      beatCount++;
-    };
-
-    const scheduler = setInterval(() => {
-      if (nextNoteTime <= audioContext.currentTime + 0.1) {
-        playBeat();
-        nextNoteTime += beatDuration;
-      }
-    }, 10);
-
-    return () => clearInterval(scheduler);
-  }, [isMetronomeActive, tempo]);
+  // Metronome effect now handled by useMetronome hook
 
   // ...existing code...
 
     // Analyze chords when lyrics change
-  useEffect(() => {
-    if (!song?.lyrics) {
-      setChordStats({ chords: [], count: 0 });
-      return;
-    }
+  // ChordStats logic now handled by useChordStats hook
 
-    // Regex untuk mendeteksi chord dengan atau tanpa braket
-    // 1. [C], [Am7], dst (bracketed)
-    // 2. C, Am7, F#m, Bbmaj7, dst (tanpa braket, di baris chord)
-    // Deteksi baris chord: minimal 2-3 token yang cocok pola chord
-    const bracketed = /\[([A-G][b#]?(?:m|maj|min|dim|aug)?(?:7|9|11|13)?(?:sus\d)?(?:\/[A-G][b#]?)?)\]/g;
-    const plain = /\b([A-G][b#]?(?:m|maj|min|dim|aug)?(?:7|9|11|13)?(?:sus\d)?(?:\/[A-G][b#]?)?)\b/g;
-
-    // Ambil semua chord dalam braket
-    const matchesBracketed = Array.from(song.lyrics.matchAll(bracketed)).map(m => m[1]);
-
-    // Ambil juga baris yang kemungkinan baris chord (bukan lirik)
-    const lines = song.lyrics.split(/\r?\n/);
-    let matchesPlain = [];
-    for (const line of lines) {
-      // Skip jika baris sudah mengandung braket
-      if (bracketed.test(line)) continue;
-      // Ambil semua token yang cocok pola chord
-      const tokens = Array.from(line.matchAll(plain)).map(m => m[1]);
-      // Jika baris punya >=2 token chord, anggap baris chord
-      if (tokens.length >= 2) {
-        matchesPlain.push(...tokens);
-      }
-    }
-    const chordArray = [...matchesBracketed, ...matchesPlain];
-    const uniqueChords = [...new Set(chordArray)].sort();
-
-    setChordStats({
-      chords: uniqueChords,
-      count: chordArray.length,
-    });
-  }, [song?.lyrics]);
-
-  // Handle export to text
-  const handleExportText = () => {
-    if (!song) return;
-
-    const content = `${song.title}\nArtist: ${artist}\nKey: ${key}\n${originalKey ? `Original Key: ${originalKey}\n` : ''}Tempo: ${tempo} BPM\n\n${lyricsClean}`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${song.title}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    setShowExportMenu(false);
-  };
-
-  // Handle export to PDF (simple version)
-  const handleExportPDF = () => {
-    if (!song) return;
-
-    const content = `
-<html>
-<head>
-  <title>${song.title}</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
-    h1 { color: #333; }
-    .meta { color: #666; margin: 20px 0; }
-    .lyrics { white-space: pre-wrap; font-family: monospace; }
-  </style>
-</head>
-<body>
-  <h1>${song.title}</h1>
-  <div class="meta">
-    <p><strong>Artist:</strong> ${artist}</p>
-    <p><strong>Key:</strong> ${key}</p>
-    <p><strong>Tempo:</strong> ${tempo} BPM</p>
-  </div>
-  <div class="lyrics">${lyricsClean}</div>
-</body>
-</html>
-    `;
-
-    const printWindow = window.open("", "", "height=400,width=600");
-    printWindow.document.write(content);
-    printWindow.document.close();
-    printWindow.print();
-    setShowExportMenu(false);
-  };
+  // Handler export & share di utils/songHandlers.js
 
   // Handle time marker updates
   const handleTimeMarkerUpdate = async (updatedMarkers) => {
@@ -318,21 +185,7 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
   };
 
   // Handle lyrics save
-  const handleShare = () => {
-    const shareUrl = window.location.href;
-    if (navigator.share) {
-      navigator.share({
-        title: song.title,
-        text: `Check out this song: ${song.title} by ${artist}`,
-        url: shareUrl,
-      });
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(shareUrl);
-      setShareMessage("Link copied to clipboard!");
-      setTimeout(() => setShareMessage(""), 2000);
-    }
-  };
+  // Handler export & share di utils/songHandlers.js
 
   // Keyboard shortcut for saving lyrics (Ctrl+S / Cmd+S)
   // MUST be before any conditional returns
@@ -495,7 +348,7 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
         performanceMode={performanceMode}
         canEdit={can(PERMISSIONS.SONG_EDIT)}
         onEdit={handleEdit}
-        onShare={handleShare}
+        onShare={() => handleShare(song, artist, setShareMessage)}
         shareMessage={shareMessage}
         onBack={handleBack}
       />
@@ -555,8 +408,8 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
         handleCancelEditLyrics={handleCancelEditLyrics}
         showExportMenu={showExportMenu}
         setShowExportMenu={setShowExportMenu}
-        handleExportText={handleExportText}
-        handleExportPDF={handleExportPDF}
+        handleExportText={() => handleExportText(song, artist, key, originalKey, tempo, lyricsClean, setShowExportMenu)}
+        handleExportPDF={() => handleExportPDF(song, artist, key, originalKey, tempo, lyricsClean, setShowExportMenu)}
         tempo={tempo}
         autoScrollActive={autoScrollActive}
         scrollSpeed={scrollSpeed}
@@ -573,6 +426,7 @@ export default function SongChordsPage({ song: songProp, performanceMode = false
         showSheetMusic={showSheetMusic}
         setShowSheetMusic={setShowSheetMusic}
         youtubeRef={youtubeRef}
+        loading={loading}
       />
 
       {/* Setlist Navigation (if in setlist context) */}

@@ -39,7 +39,8 @@ export default function SongLyricsMainSection({
   transpose,
   showSheetMusic,
   setShowSheetMusic,
-  youtubeRef
+  youtubeRef,
+  loading = false
 }) {
   // Expand/collapse state for lyrics panel
   const [lyricsPanelExpanded, setLyricsPanelExpanded] = useState(true);
@@ -85,7 +86,15 @@ export default function SongLyricsMainSection({
         <>
           <SongLyricsError error={editError} />
           <SongLyricsTips isEditing={isEditingLyrics} />
-          {isEditingLyrics ? (
+          {loading ? (
+            <div className="lyrics-loading-skeleton">
+              <div className="skeleton-line" style={{ width: '80%' }} />
+              <div className="skeleton-line" style={{ width: '90%' }} />
+              <div className="skeleton-line" style={{ width: '70%' }} />
+              <div className="skeleton-line" style={{ width: '60%' }} />
+              <div className="skeleton-line" style={{ width: '85%' }} />
+            </div>
+          ) : isEditingLyrics ? (
             <SongLyricsTextarea
               lyricsDisplayRef={lyricsDisplayRef}
               editedLyrics={editedLyrics}
