@@ -3,7 +3,6 @@ import ProfilePage from "./pages/ProfilePage.jsx";
 import PracticeSessionDetailPage from "./pages/PracticeSessionDetailPage.jsx";
 import GigDetailPage from "./pages/GigDetailPage.jsx";
 import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
-// import PerformanceModePage from './pages/PerformanceModePage.jsx';
 import { Routes, Route, useNavigate, useParams, useLocation, Navigate } from "react-router-dom";
 
 // Eager load critical pages
