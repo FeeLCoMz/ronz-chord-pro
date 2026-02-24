@@ -33,18 +33,10 @@ const SongLyricsPage = lazy(() => import("./pages/SongLyricsPage.jsx"));
 // Loading fallback component
 function PageLoader() {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        background: "var(--primary-bg)",
-      }}
-    >
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: "3em", marginBottom: "16px" }}>⏳</div>
-        <p style={{ color: "var(--text-muted)", fontSize: "1em" }}>Memuat...</p>
+    <div className="page-loader">
+      <div className="page-loader-center">
+        <div className="page-loader-icon">⏳</div>
+        <p className="page-loader-text">Memuat...</p>
       </div>
     </div>
   );
@@ -162,16 +154,7 @@ function AppContent() {
   // CONDITIONAL LOGIC AFTER ALL HOOKS
   if (isLoading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-        }}
-      >
-        Loading...
-      </div>
+      <div className="main-loading">Loading...</div>
     );
   }
 
@@ -237,7 +220,7 @@ function AppContent() {
               ☰
             </button>
             <h1 className="header-title">Ruang Performer</h1>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="header-actions">
               <button
                 className={`btn btn-secondary ${theme === "dark" ? "dark" : "light"}`}
                 onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}

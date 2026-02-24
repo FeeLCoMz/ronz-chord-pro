@@ -1,3 +1,35 @@
+/* =============================
+   Loader & Header Utility Styles
+   ============================= */
+.page-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--primary-bg);
+}
+.page-loader-center {
+  text-align: center;
+}
+.page-loader-icon {
+  font-size: 3em;
+  margin-bottom: 16px;
+}
+.page-loader-text {
+  color: var(--text-muted);
+  font-size: 1em;
+}
+.main-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .song-lyrics-header-row {
   display: flex;
   align-items: center;
