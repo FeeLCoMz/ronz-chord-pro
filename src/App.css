@@ -1,3 +1,172 @@
+/* ===== PROFILE PAGE MODERN LAYOUT ===== */
+.profile-main-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .profile-main-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+}
+.profile-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 24px;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .profile-info {
+    grid-template-columns: 1fr;
+    gap: 6px 0;
+  }
+}
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1em;
+}
+.profile-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ===== Statistik Card ===== */
+.statistik-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 8px;
+}
+.statistik-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--primary-bg);
+  border-radius: 10px;
+  padding: 10px 18px;
+  min-width: 140px;
+  box-shadow: var(--shadow-xs);
+}
+.statistik-icon {
+  font-size: 1.5em;
+}
+.statistik-label {
+  font-size: 0.95em;
+  color: var(--text-secondary);
+}
+.statistik-value {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 1.1em;
+}
+.statistik-badge {
+  display: inline-block;
+  background: var(--primary-accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-size: 0.92em;
+  margin-right: 6px;
+  margin-bottom: 2px;
+}
+
+/* ===== Audit Log Table ===== */
+.auditlog-table {
+  width: 100%;
+  margin-top: 8px;
+}
+.auditlog-header, .auditlog-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.5fr 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+}
+.auditlog-header {
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+.auditlog-row {
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.98em;
+}
+.auditlog-severity.badge-severity-low {
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+.auditlog-severity.badge-severity-medium {
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+.auditlog-severity.badge-severity-high {
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+.auditlog-status.badge-status-success {
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+.auditlog-status.badge-status-failed {
+  background: #fee2e2;
+  color: #991b1b;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-weight: 600;
+}
+
+/* ===== Modal Improvements ===== */
+.modal {
+  max-width: 420px;
+  width: 100%;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 32px 24px;
+  margin: 0 auto;
+  position: relative;
+}
+.danger-modal {
+  border: 2px solid #ef4444;
+}
+@media (max-width: 600px) {
+  .modal {
+    max-width: 98vw;
+    padding: 18px 6px;
+  }
+}
+
+/* ===== Spinner Loader ===== */
+.spinner {
+  border: 4px solid #eee;
+  border-top: 4px solid var(--primary-accent);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  animation: spin 1s linear infinite;
+  margin: 16px auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 /* =============================
    Loader & Header Utility Styles
    ============================= */
@@ -155,7 +324,7 @@
    PROFILE PAGE STYLES
    ======================================== */
 .profile-card {
-  max-width: 420px;
+  /* max-width removed */
   margin: 0 auto;
   padding: var(--spacing-2xl) var(--spacing-xl);
   background: var(--card-bg);
@@ -166,6 +335,57 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-xl);
+}
+
+@media (max-width: 768px) {
+  .profile-card {
+    /* max-width removed */
+    padding: var(--spacing-lg) var(--spacing-md);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    gap: var(--spacing-lg);
+  }
+  .profile-avatar {
+    margin-bottom: var(--spacing-md);
+  }
+  .profile-info {
+    gap: var(--spacing-sm);
+    font-size: 0.98em;
+  }
+  .profile-row {
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 1em;
+    padding: 6px 0;
+    gap: 2px;
+  }
+  .profile-actions {
+    /* Responsive grid untuk tombol aksi profil */
+    .profile-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .profile-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+    width: 100%;
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+  .profile-actions button {
+    width: 100%;
+    min-width: 0;
+  }
+}
 }
 
 .profile-avatar {

@@ -1,37 +1,57 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext.jsx';
-import { trackEvent, trackPageView } from '../utils/analyticsUtil.js';
-import * as apiClient from '../apiClient.js';
-import { generateAuditReport } from '../utils/auditLogger.js';
-
+import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext.jsx";
+import { trackEvent, trackPageView } from "../utils/analyticsUtil.js";
+import * as apiClient from "../apiClient.js";
+import { generateAuditReport } from "../utils/auditLogger.js";
+import * as authUtils from '../utils/auth.js';
 
 export default function ProfilePage() {
-      const [auditLogs, setAuditLogs] = useState([]);
-      const [auditLoading, setAuditLoading] = useState(true);
-      const [auditError, setAuditError] = useState('');
-    const [showDelete, setShowDelete] = useState(false);
-    const [deleteLoading, setDeleteLoading] = useState(false);
-    const [deleteError, setDeleteError] = useState('');
-  const { user, logout, login } = useAuth();
-  const [profile, setProfile] = useState(user);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLoading, setAuditLoading] = useState(true);
+  const [auditError, setAuditError] = useState("");
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const { user, logout, login, isLoading: authLoading } = useAuth();
+  const [profile, setProfile] = useState(null);
   const [activityStats, setActivityStats] = useState(null);
   const [activityLoading, setActivityLoading] = useState(true);
-  const [showEdit, setShowEdit] = useState(false);
+    const [showEdit, setShowEdit] = useState(false);
+    const [editModalKey, setEditModalKey] = useState(0); // for force remount
   const [showPassword, setShowPassword] = useState(false);
 
   React.useEffect(() => {
-    trackPageView('/profile', 'Profil Akun');
+    trackPageView("/profile", "Profil Akun");
   }, []);
+
+  // Selalu ambil profil user terbaru dari API jika user berubah
+  React.useEffect(() => {
+    async function fetchProfile() {
+      if (!user) {
+        setProfile(null);
+        return;
+      }
+      try {
+        const res = await apiClient.getCurrentUser();
+        // Pastikan role tidak hilang jika API tidak mengembalikan role
+        const merged = res.user ? { ...res.user, role: res.user.role || user.role } : user;
+        setProfile(merged);
+      } catch {
+        setProfile(user); // fallback ke context jika gagal
+      }
+    }
+    fetchProfile();
+  }, [user]);
 
   React.useEffect(() => {
     async function fetchAuditLogs() {
       setAuditLoading(true);
-      setAuditError('');
+      setAuditError("");
       try {
         const logs = await apiClient.getUserAuditLogs();
         setAuditLogs(logs);
       } catch (e) {
-        setAuditError(e.message || 'Gagal mengambil audit log');
+        setAuditError(e.message || "Gagal mengambil audit log");
       } finally {
         setAuditLoading(false);
       }
@@ -50,20 +70,20 @@ export default function ProfilePage() {
         if (profile) {
           logs.push({
             id: 1,
-            action: 'USER_LOGIN',
-            category: 'USER',
-            severity: 'low',
+            action: "USER_LOGIN",
+            category: "USER",
+            severity: "low",
             userId: profile.id,
-            status: 'success',
+            status: "success",
             createdAt: profile.createdAt || new Date().toISOString(),
           });
           logs.push({
             id: 2,
-            action: 'PROFILE_UPDATE',
-            category: 'USER',
-            severity: 'medium',
+            action: "PROFILE_UPDATE",
+            category: "USER",
+            severity: "medium",
             userId: profile.id,
-            status: 'success',
+            status: "success",
             createdAt: profile.updatedAt || new Date().toISOString(),
           });
         }
@@ -77,6 +97,15 @@ export default function ProfilePage() {
     fetchActivity();
   }, [profile]);
 
+  if (authLoading || profile === null) {
+    return (
+      <div className="page-container">
+        <div className="card" style={{ textAlign: 'center', padding: 40 }}>
+          <div className="spinner" aria-label="Memuat profil..." />
+        </div>
+      </div>
+    );
+  }
   if (!profile) {
     return (
       <div className="page-container">
@@ -90,20 +119,20 @@ export default function ProfilePage() {
 
   // Handler for logout
   const handleLogout = () => {
-    trackEvent('logout', { email: user.email });
+    trackEvent("logout", { email: user.email });
     logout();
   };
 
   // Handler for delete account
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
-    setDeleteError('');
+    setDeleteError("");
     try {
       await apiClient.deleteAccount();
-      trackEvent('account_delete', { email: profile.email });
+      trackEvent("account_delete", { email: profile.email });
       logout();
     } catch (err) {
-      setDeleteError(err.message || 'Gagal menghapus akun');
+      setDeleteError(err.message || "Gagal menghapus akun");
     } finally {
       setDeleteLoading(false);
     }
@@ -112,57 +141,75 @@ export default function ProfilePage() {
   // Modal konfirmasi hapus akun
   const DeleteAccountModal = () => (
     <div className="modal-overlay" onClick={() => setShowDelete(false)}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
+      <div className="modal danger-modal" onClick={(e) => e.stopPropagation()}>
         <h2>Konfirmasi Hapus Akun</h2>
-        <p style={{ color: '#ef4444', marginBottom: 16 }}>
-          Apakah Anda yakin ingin menghapus akun? Semua data Anda akan hilang dan tidak bisa dikembalikan.
+        <p style={{ color: "#ef4444", marginBottom: 16 }}>
+          Apakah Anda yakin ingin menghapus akun? Semua data Anda akan hilang dan tidak bisa
+          dikembalikan.
         </p>
         {deleteError && <div className="error-text">{deleteError}</div>}
-        <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-          <button className="btn btn-danger" type="button" onClick={handleDeleteAccount} disabled={deleteLoading}>
-            {deleteLoading ? 'Menghapus...' : 'Hapus Akun'}
+        <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+          <button
+            className="btn btn-danger"
+            type="button"
+            onClick={handleDeleteAccount}
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? "Menghapus..." : "Hapus Akun"}
           </button>
-          <button className="btn" type="button" onClick={() => setShowDelete(false)} disabled={deleteLoading}>Batal</button>
+          <button
+            className="btn"
+            type="button"
+            onClick={() => setShowDelete(false)}
+            disabled={deleteLoading}
+          >
+            Batal
+          </button>
         </div>
       </div>
     </div>
   );
 
-
   // Edit Profile Modal
   const EditProfileModal = () => {
     const [form, setForm] = useState({
-      displayName: profile.displayName || '',
-      bio: profile.bio || '',
-      instrument: profile.instrument || '',
-      experience: profile.experience || '',
-      location: profile.location || '',
-      genres: Array.isArray(profile.genres) ? profile.genres.join(', ') : (profile.genres || ''),
+      displayName: profile.displayName || "",
+      bio: profile.bio || "",
+      instrument: profile.instrument || "",
+      experience: profile.experience || "",
+      location: profile.location || "",
+      genres: Array.isArray(profile.genres) ? profile.genres.join(", ") : profile.genres || "",
     });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
-    const handleChange = e => {
+    const handleChange = (e) => {
       setForm({ ...form, [e.target.name]: e.target.value });
-      setError('');
-      setSuccess('');
+      setError("");
+      setSuccess("");
     };
 
-    const handleSubmit = async e => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
-      setError('');
-      setSuccess('');
-      try {
-        await apiClient.updateProfile(form);
-        // Ambil ulang profil terbaru
-        const res = await apiClient.getCurrentUser();
-        setProfile(res.user || profile);
-        if (res.user) login(authUtils.getToken(), res.user);
-        setSuccess('Profil berhasil diperbarui');
-        trackEvent('profile_update', { email: profile.email });
-        setTimeout(() => setShowEdit(false), 1200);
+      setError("");
+      setSuccess("");
+        try {
+          // Kirim genres sebagai array jika diisi string
+          const submitData = {
+            ...form,
+            genres: typeof form.genres === 'string' ? form.genres.split(',').map(g => g.trim()).filter(Boolean) : form.genres
+          };
+          await apiClient.updateProfile(submitData);
+          // Ambil ulang profil terbaru
+          const res = await apiClient.getCurrentUser();
+          const merged = res.user ? { ...res.user, role: res.user.role || profile.role } : profile;
+          setProfile(merged);
+          if (res.user) login(authUtils.getToken(), merged);
+          trackEvent("profile_update", { email: profile.email });
+          setShowEdit(false); // close modal immediately
+          setEditModalKey(k => k+1); // force remount for clean state
       } catch (err) {
         setError(err.message);
       } finally {
@@ -171,33 +218,79 @@ export default function ProfilePage() {
     };
 
     return (
-      <div className="modal-overlay" onClick={() => setShowEdit(false)}>
-        <div className="modal" onClick={e => e.stopPropagation()}>
+      <div className="modal-overlay" onClick={() => { setShowEdit(false); setEditModalKey(k => k+1); }}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
           <h2>Edit Profil</h2>
           <form onSubmit={handleSubmit} className="modal-form">
-            <label>Nama Tampilan
-              <input className="modal-input" name="displayName" value={form.displayName} onChange={handleChange} />
+            <label>
+              Nama Tampilan
+              <input
+                className="modal-input"
+                name="displayName"
+                value={form.displayName}
+                onChange={handleChange}
+              />
             </label>
-            <label>Bio
-              <textarea className="modal-input" name="bio" value={form.bio} onChange={handleChange} />
+            <label>
+              Bio
+              <textarea
+                className="modal-input"
+                name="bio"
+                value={form.bio}
+                onChange={handleChange}
+              />
             </label>
-            <label>Instrumen
-              <input className="modal-input" name="instrument" value={form.instrument} onChange={handleChange} />
+            <label>
+              Instrumen
+              <input
+                className="modal-input"
+                name="instrument"
+                value={form.instrument}
+                onChange={handleChange}
+              />
             </label>
-            <label>Pengalaman
-              <input className="modal-input" name="experience" value={form.experience} onChange={handleChange} />
+            <label>
+              Pengalaman
+              <input
+                className="modal-input"
+                name="experience"
+                value={form.experience}
+                onChange={handleChange}
+              />
             </label>
-            <label>Lokasi
-              <input className="modal-input" name="location" value={form.location} onChange={handleChange} />
+            <label>
+              Lokasi
+              <input
+                className="modal-input"
+                name="location"
+                value={form.location}
+                onChange={handleChange}
+              />
             </label>
-              <label>Preferensi Genre
-                <input className="modal-input" name="genres" value={form.genres} onChange={handleChange} placeholder="Contoh: pop, rock, jazz" />
-              </label>
+            <label>
+              Preferensi Genre
+              <input
+                className="modal-input"
+                name="genres"
+                value={form.genres}
+                onChange={handleChange}
+                placeholder="Contoh: pop, rock, jazz"
+              />
+            </label>
             {error && <div className="error-text">{error}</div>}
             {success && <div className="success-text">{success}</div>}
-            <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-              <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</button>
-              <button className="btn" type="button" onClick={() => setShowEdit(false)} disabled={loading}>Batal</button>
+            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+              <button className="btn btn-primary" type="submit" disabled={loading}>
+                {loading ? "Menyimpan..." : "Simpan"}
+              </button>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => setShowEdit(false)}
+                disabled={loading}
+              >
+                Batal
+              </button>
             </div>
           </form>
         </div>
@@ -207,34 +300,34 @@ export default function ProfilePage() {
 
   // Change Password Modal
   const ChangePasswordModal = () => {
-    const [form, setForm] = useState({ oldPassword: '', newPassword: '', confirm: '' });
+    const [form, setForm] = useState({ oldPassword: "", newPassword: "", confirm: "" });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
-    const handleChange = e => {
+    const handleChange = (e) => {
       setForm({ ...form, [e.target.name]: e.target.value });
-      setError('');
-      setSuccess('');
+      setError("");
+      setSuccess("");
     };
 
-    const handleSubmit = async e => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
-      setError('');
-      setSuccess('');
+      setError("");
+      setSuccess("");
       if (form.newPassword.length < 8) {
-        setError('Password minimal 8 karakter');
+        setError("Password minimal 8 karakter");
         return;
       }
       if (form.newPassword !== form.confirm) {
-        setError('Konfirmasi password tidak cocok');
+        setError("Konfirmasi password tidak cocok");
         return;
       }
       setLoading(true);
       try {
         await apiClient.changePassword(form.oldPassword, form.newPassword);
-        setSuccess('Password berhasil diubah');
-        trackEvent('password_change', { email: user.email });
+        setSuccess("Password berhasil diubah");
+        trackEvent("password_change", { email: user.email });
         setTimeout(() => setShowPassword(false), 1200);
       } catch (err) {
         setError(err.message);
@@ -245,23 +338,56 @@ export default function ProfilePage() {
 
     return (
       <div className="modal-overlay" onClick={() => setShowPassword(false)}>
-        <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal" onClick={(e) => e.stopPropagation()}>
           <h2>Ubah Password</h2>
           <form onSubmit={handleSubmit} className="modal-form">
-            <label>Password Lama
-              <input className="modal-input" name="oldPassword" type="password" value={form.oldPassword} onChange={handleChange} autoComplete="current-password" />
+            <label>
+              Password Lama
+              <input
+                className="modal-input"
+                name="oldPassword"
+                type="password"
+                value={form.oldPassword}
+                onChange={handleChange}
+                autoComplete="current-password"
+              />
             </label>
-            <label>Password Baru
-              <input className="modal-input" name="newPassword" type="password" value={form.newPassword} onChange={handleChange} autoComplete="new-password" />
+            <label>
+              Password Baru
+              <input
+                className="modal-input"
+                name="newPassword"
+                type="password"
+                value={form.newPassword}
+                onChange={handleChange}
+                autoComplete="new-password"
+              />
             </label>
-            <label>Konfirmasi Password Baru
-              <input className="modal-input" name="confirm" type="password" value={form.confirm} onChange={handleChange} autoComplete="new-password" />
+            <label>
+              Konfirmasi Password Baru
+              <input
+                className="modal-input"
+                name="confirm"
+                type="password"
+                value={form.confirm}
+                onChange={handleChange}
+                autoComplete="new-password"
+              />
             </label>
             {error && <div className="error-text">{error}</div>}
             {success && <div className="success-text">{success}</div>}
-            <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-              <button className="btn btn-primary" type="submit" disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</button>
-              <button className="btn" type="button" onClick={() => setShowPassword(false)} disabled={loading}>Batal</button>
+            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+              <button className="btn btn-primary" type="submit" disabled={loading}>
+                {loading ? "Menyimpan..." : "Simpan"}
+              </button>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => setShowPassword(false)}
+                disabled={loading}
+              >
+                Batal
+              </button>
             </div>
           </form>
         </div>
@@ -275,68 +401,90 @@ export default function ProfilePage() {
         <h1>Profil Akun</h1>
       </div>
       <div className="card profile-card">
-        <div className="profile-avatar">
-          {profile.profilePicture ? (
-            <img
-              src={profile.profilePicture}
-              alt={profile.displayName || 'Avatar'}
-              className="avatar-circle"
-              style={{ objectFit: 'cover', width: 80, height: 80, borderRadius: '50%' }}
-            />
-          ) : (
-            <div className="avatar-circle">{profile.displayName ? profile.displayName[0].toUpperCase() : '?'}</div>
-          )}
-        </div>
-        <div className="profile-info">
-          <div className="profile-row">
-            <span className="text-secondary">Nama Tampilan:</span>
-            <span className="text-primary">{profile.displayName || '-'}</span>
+        <div className="profile-main-row">
+          <div className="profile-avatar">
+            {profile.profilePicture ? (
+              <img
+                src={profile.profilePicture}
+                alt={profile.displayName || "Avatar"}
+                className="avatar-circle"
+                style={{ objectFit: "cover", width: 96, height: 96, borderRadius: "50%", border: '3px solid var(--primary-accent)', boxShadow: '0 2px 8px #0001' }}
+              />
+            ) : (
+              <div className="avatar-circle" style={{ width: 96, height: 96, fontSize: 40, border: '3px solid var(--primary-accent)', boxShadow: '0 2px 8px #0001' }}>
+                {profile.displayName ? profile.displayName[0].toUpperCase() : "?"}
+              </div>
+            )}
           </div>
-          <div className="profile-row">
-            <span className="text-secondary">Email:</span>
-            <span className="text-primary">{profile.email || '-'}</span>
-          </div>
-          <div className="profile-row">
-            <span className="text-secondary">Bio:</span>
-            <span className="text-primary">{profile.bio || '-'}</span>
-          </div>
-          <div className="profile-row">
-            <span className="text-secondary">Instrumen:</span>
-            <span className="text-primary">{profile.instrument || '-'}</span>
-          </div>
-          <div className="profile-row">
-            <span className="text-secondary">Pengalaman:</span>
-            <span className="text-primary">{profile.experience || '-'}</span>
-          </div>
-          <div className="profile-row">
-            <span className="text-secondary">Lokasi:</span>
-            <span className="text-primary">{profile.location || '-'}</span>
-          </div>
-           <div className="profile-row">
-             <span className="text-secondary">Preferensi Genre:</span>
-             <span className="text-primary">{Array.isArray(profile.genres) ? profile.genres.join(', ') : (profile.genres || '-')}</span>
-             <button className="btn btn-secondary" style={{ marginLeft: 8 }} type="button" onClick={() => setShowEdit(true)}>Edit Preferensi</button>
-           </div>
-          {Array.isArray(profile.bands) && profile.bands.length > 0 && (
-            <div className="profile-row" style={{ marginTop: 12 }}>
-              <span className="text-secondary">Daftar Band:</span>
-              <ul style={{ margin: 0, paddingLeft: 16 }}>
-                {profile.bands.map(band => (
-                  <li key={band.id}>
-                    <span style={{ fontWeight: 500 }}>{band.name}</span>
-                    {band.genre && <span style={{ color: '#888', marginLeft: 8 }}>({band.genre})</span>}
-                    {band.role && <span style={{ color: '#555', marginLeft: 8 }}>- {band.role}</span>}
-                  </li>
-                ))}
-              </ul>
+          <div className="profile-info">
+            <div className="profile-row">
+              <span className="text-secondary">Nama Tampilan:</span>
+              <span className="text-primary profile-value">{profile.displayName || "-"}</span>
             </div>
-          )}
+            <div className="profile-row">
+              <span className="text-secondary">Email:</span>
+              <span className="text-primary profile-value">{profile.email || "-"}</span>
+            </div>
+            <div className="profile-row">
+              <span className="text-secondary">Bio:</span>
+              <span className="text-primary profile-value">{profile.bio || "-"}</span>
+            </div>
+            <div className="profile-row">
+              <span className="text-secondary">Instrumen:</span>
+              <span className="text-primary profile-value">{profile.instrument || "-"}</span>
+            </div>
+            <div className="profile-row">
+              <span className="text-secondary">Pengalaman:</span>
+              <span className="text-primary profile-value">{profile.experience || "-"}</span>
+            </div>
+            <div className="profile-row">
+              <span className="text-secondary">Lokasi:</span>
+              <span className="text-primary profile-value">{profile.location || "-"}</span>
+            </div>
+            <div className="profile-row">
+              <span className="text-secondary">Preferensi Genre:</span>
+              <span className="text-primary profile-value">
+                {Array.isArray(profile.genres) ? profile.genres.join(", ") : profile.genres || "-"}
+              </span>
+            </div>
+            {Array.isArray(profile.bands) && profile.bands.length > 0 && (
+              <div className="profile-row" style={{ marginTop: 12 }}>
+                <span className="text-secondary">Daftar Band:</span>
+                <ul style={{ margin: 0, paddingLeft: 16 }}>
+                  {profile.bands.map((band) => (
+                    <li key={band.id}>
+                      <span style={{ fontWeight: 500 }}>{band.name}</span>
+                      {band.genre && (
+                        <span style={{ color: "#888", marginLeft: 8 }}>({band.genre})</span>
+                      )}
+                      {band.role && (
+                        <span style={{ color: "#555", marginLeft: 8 }}>- {band.role}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
+        {/* Tombol aksi diatur grid 2 kolom di desktop, 1 kolom di mobile */}
         <div className="profile-actions">
-          <button className="btn btn-primary" type="button" onClick={() => setShowEdit(true)}>Edit Profil</button>
-          <button className="btn btn-secondary" type="button" onClick={() => setShowPassword(true)}>Ubah Password</button>
-          <button className="btn" type="button" onClick={handleLogout}>Logout</button>
-          <button className="btn btn-danger" type="button" onClick={() => setShowDelete(true)} style={{ marginLeft: 8 }}>Hapus Akun</button>
+          <button className="btn btn-primary" type="button" onClick={() => { setEditModalKey(k => k+1); setShowEdit(true); }}>
+            <span role="img" aria-label="Edit" style={{marginRight: 6}}>✏️</span> Edit Profil
+          </button>
+          <button className="btn btn-secondary" type="button" onClick={() => setShowPassword(true)}>
+            <span role="img" aria-label="Password" style={{marginRight: 6}}>🔒</span> Ubah Password
+          </button>
+          <button className="btn" type="button" onClick={handleLogout}>
+            <span role="img" aria-label="Logout" style={{marginRight: 6}}>🚪</span> Logout
+          </button>
+          <button
+            className="btn btn-danger"
+            type="button"
+            onClick={() => setShowDelete(true)}
+          >
+            <span role="img" aria-label="Delete" style={{marginRight: 6}}>🗑️</span> Hapus Akun
+          </button>
         </div>
       </div>
       {/* Statistik Aktivitas User */}
@@ -345,31 +493,56 @@ export default function ProfilePage() {
         {activityLoading ? (
           <div>Loading...</div>
         ) : activityStats ? (
-          <div style={{ display: 'flex', gap: 24 }}>
-            <div>
-              <strong>Total Event:</strong> {activityStats.totalEvents}
-              <br />
-              <strong>Hari ini:</strong> {activityStats.timeline.today}
-              <br />
-              <strong>Minggu ini:</strong> {activityStats.timeline.thisWeek}
-              <br />
-              <strong>Bulan ini:</strong> {activityStats.timeline.thisMonth}
+          <div className="statistik-grid">
+            <div className="statistik-item">
+              <span className="statistik-icon" role="img" aria-label="Event">📊</span>
+              <div>
+                <div className="statistik-label">Total Event</div>
+                <div className="statistik-value">{activityStats.totalEvents}</div>
+              </div>
             </div>
-            <div>
-              <strong>By Category:</strong>
-              <ul>
-                {Object.entries(activityStats.byCategory || {}).map(([cat, count]) => (
-                  <li key={cat}>{cat}: {count}</li>
-                ))}
-              </ul>
+            <div className="statistik-item">
+              <span className="statistik-icon" role="img" aria-label="Today">📅</span>
+              <div>
+                <div className="statistik-label">Hari ini</div>
+                <div className="statistik-value">{activityStats.timeline.today}</div>
+              </div>
             </div>
-            <div>
-              <strong>By Severity:</strong>
-              <ul>
-                {Object.entries(activityStats.bySeverity || {}).map(([sev, count]) => (
-                  <li key={sev}>{sev}: {count}</li>
-                ))}
-              </ul>
+            <div className="statistik-item">
+              <span className="statistik-icon" role="img" aria-label="Week">🗓️</span>
+              <div>
+                <div className="statistik-label">Minggu ini</div>
+                <div className="statistik-value">{activityStats.timeline.thisWeek}</div>
+              </div>
+            </div>
+            <div className="statistik-item">
+              <span className="statistik-icon" role="img" aria-label="Month">📆</span>
+              <div>
+                <div className="statistik-label">Bulan ini</div>
+                <div className="statistik-value">{activityStats.timeline.thisMonth}</div>
+              </div>
+            </div>
+            <div className="statistik-item">
+              <span className="statistik-icon" role="img" aria-label="Kategori">🏷️</span>
+              <div>
+                <div className="statistik-label">Kategori</div>
+                <div className="statistik-value">
+                  {Object.entries(activityStats.byCategory || {}).map(([cat, count]) => (
+                    <span key={cat} className="statistik-badge">{cat}: {count}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="statistik-item">
+              <span className="statistik-icon" role="img" aria-label="Severity">⚠️</span>
+              <div>
+                <div className="statistik-label">Severity</div>
+                <div className="statistik-value">
+                  {Object.entries(activityStats.bySeverity || {}).map(([sev, count]) => (
+                    <span key={sev} className="statistik-badge">{sev}: {count}</span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         ) : (
@@ -386,20 +559,27 @@ export default function ProfilePage() {
         ) : auditLogs.length === 0 ? (
           <div>Tidak ada aktivitas.</div>
         ) : (
-          <ul style={{ margin: 0, paddingLeft: 16 }}>
-            {auditLogs.map(log => (
-              <li key={log.id} style={{ marginBottom: 8 }}>
-                <span style={{ fontWeight: 500 }}>{log.action}</span>
-                <span style={{ color: '#888', marginLeft: 8 }}>{log.category}</span>
-                <span style={{ color: '#555', marginLeft: 8 }}>{log.severity}</span>
-                <span style={{ color: '#999', marginLeft: 8 }}>{new Date(log.createdAt).toLocaleString()}</span>
-                {log.status === 'failed' && <span style={{ color: '#ef4444', marginLeft: 8 }}>Gagal</span>}
-              </li>
+          <div className="auditlog-table">
+            <div className="auditlog-header">
+              <span>Aksi</span>
+              <span>Kategori</span>
+              <span>Severity</span>
+              <span>Waktu</span>
+              <span>Status</span>
+            </div>
+            {auditLogs.map((log) => (
+              <div className="auditlog-row" key={log.id}>
+                <span className="auditlog-action">{log.action}</span>
+                <span className="auditlog-category">{log.category}</span>
+                <span className={`auditlog-severity badge-severity-${log.severity}`}>{log.severity}</span>
+                <span className="auditlog-time">{new Date(log.createdAt).toLocaleString()}</span>
+                <span className={`auditlog-status badge-status-${log.status}`}>{log.status === "failed" ? "Gagal" : "Berhasil"}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
-      {showEdit && <EditProfileModal />}
+      {showEdit && <EditProfileModal key={editModalKey} />}
       {showPassword && <ChangePasswordModal />}
       {showDelete && <DeleteAccountModal />}
     </div>
