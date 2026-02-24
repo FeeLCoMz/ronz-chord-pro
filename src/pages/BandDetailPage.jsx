@@ -14,6 +14,8 @@ export default function BandDetailPage() {
     const [inviteRole, setInviteRole] = useState('member');
     const [inviteError, setInviteError] = useState(null);
     const [inviteLoading, setInviteLoading] = useState(false);
+    // State for form submission
+    const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   const currentUserId = user?.userId || user?.id;
   const { id } = useParams();
