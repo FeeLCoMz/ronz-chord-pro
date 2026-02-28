@@ -50,8 +50,13 @@ export default function ChordDisplay({ song, transpose = 0, zoom = 1, onTimestam
           return (
             <div key={i} className="cd-chord">
               {lineObj.tokens.map((t, j) =>
-                t.isSpace ? <span key={j}>{t.token}</span> :
-                <span key={j} className="cd-token">{t.token}</span>
+                t.isSpace ? (
+                  <span key={j}>{t.token}</span>
+                ) : t.isBarline ? (
+                  <span key={j} className="cd-barline-token">{t.token}</span>
+                ) : (
+                  <span key={j} className="cd-token">{t.token}</span>
+                )
               )}
             </div>
           );

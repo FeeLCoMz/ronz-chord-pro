@@ -14,11 +14,12 @@ export function parseLines(lines, transpose) {
       // Token chord (dengan transpose jika perlu)
       return {
         type: 'chord',
-        tokens: line.split(/(\s+)/).map(token =>
-          /^\s+$/.test(token)
-            ? { token, isSpace: true }
-            : { token: transpose ? transposeChord(token, transpose) : token, isChord: true }
-        )
+        tokens: line.split(/(\s+)/).map(token => {
+          if (/^\s+$/.test(token)) return { token, isSpace: true };
+          // Deteksi barline
+          if (/^(\|:|:\||\[\:|\:\]|\|\||\|)$/.test(token)) return { token, isBarline: true };
+          return { token: transpose ? transposeChord(token, transpose) : token, isChord: true };
+        })
       };
     }
     if (parseNumberLine(line)) {
@@ -147,7 +148,7 @@ export function parseSection(line) {
       'piano', 'keyboard', 'organ', 'synth',
       // Brass section
       'brass', 'horn section', 'horns', 'trombone', 'tuba', 'euphonium', 'cornet',
-      'saxophone', 'saksofon', 'saxofon', 'trumpet', 'terompet', 'flute', 'suling', 'clarinet', 'klarinet',
+      'saxophone', 'saksofon', 'saxofon', 'trumpet', 'terompet', 'flute', 'suling', 'clarinet', 'klarinet', 'bansi',
       'violin', 'biola', 'cello', 'kontrabas', 'strings',
       'vokal', 'vocal', 'vocalist', 'vokalist', 'choir', 'vokal grup',
       'drum', 'drums', 'perkusi', 'percussion', 'cajon', 'tamborin', 'marakas', 'rebana'
@@ -245,8 +246,11 @@ export const isChordLine = (line) => {
   const compactPattern = /^(?:-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/([A-G][#b]?))?)(?:\.\.(?:-?[A-G][#b]?(?:m|maj|min|dim|aug|sus|add)?[0-9]*(?:\/([A-G][#b]?))?))+$/;
   if (compactPattern.test(cleanedLine.trim())) return true;
 
-  // Tokenisasi: pisahkan berdasarkan spasi
-  const tokens = cleanedLine.split(/\s+/).filter(Boolean);
+  // Tokenisasi: pisahkan berdasarkan spasi, abaikan barline (|, ||, |:, :|)
+  const tokens = cleanedLine
+    .replace(/\|:|:\||\[\:|\:\]|\|\||\|/g, ' ') // hilangkan barline
+    .split(/\s+/)
+    .filter(Boolean);
   if (!tokens.length) return false;
 
   // Hitung jumlah token chord dan token pengisi (hanya . atau -)
