@@ -31,6 +31,20 @@ export default function SongChordsInfo({
 }) {
   return (
     <div className="song-panel">
+      {/* Judul dan artis selalu di atas info lain */}
+      {(title || artist || contributor) && (
+        <div className="song-title-artist-block">
+          {title && (
+            <h1 className="song-title-main">{title}</h1>
+          )}
+          {artist && (
+            <h2 className="song-artist-main">{artist}</h2>
+          )}
+          {contributor && !performanceMode && (
+            <div className="song-contributor-main">Kontributor: {contributor}</div>
+          )}
+        </div>
+      )}
       <div className="song-info-compact-header">
         <ExpandButton
           isExpanded={showSongInfo}
@@ -42,25 +56,6 @@ export default function SongChordsInfo({
       </div>
       {showSongInfo && (
         <div className="song-info-compact-grid">
-          {/* Judul, artis, kontributor */}
-          {title && (
-            <div className="song-info-item song-info-title">
-              <span className="song-info-label">Judul</span>
-              <span className="song-info-value song-info-title-value">{title}</span>
-            </div>
-          )}
-          {artist && (
-            <div className="song-info-item song-info-artist">
-              <span className="song-info-label">Artis</span>
-              <span className="song-info-value song-info-artist-value">{artist}</span>
-            </div>
-          )}
-          {!performanceMode && contributor && (
-            <div className="song-info-item song-info-contributor">
-              <span className="song-info-label">Kontributor</span>
-              <span className="song-info-value song-info-contributor-value">{contributor}</span>
-            </div>
-          )}
           {(originalKey || targetKey) && (
             <div className="song-info-item song-info-priority song-info-key">
               <span className="song-info-label">🎹 Key</span>
